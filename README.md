@@ -2,7 +2,7 @@
 
 # 🎵 快快快樂學粵拼
 
-**標準粵拼（Jyutping）⇄ 香港政府拼音 雙碼表打字教學**
+**標準粵拼（Jyutping）⇄ 香港「政府式」拼音 雙碼表打字教學**
 
 [![Version](https://img.shields.io/badge/version-v0.89-blue)](#)
 [![Platform](https://img.shields.io/badge/platform-Web%20%2F%20Offline-green)](#)
