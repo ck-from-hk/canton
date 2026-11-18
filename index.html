@@ -3,9 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
-<title>快快快樂學粵拼</title>
-<meta name="description" content="九十年代 DOS 打字教學程式致敬之作。含 48 頁粵拼／港式拼音教材、分階打字練習、實力測驗（中途可切碼表）、粵拼查碼與最佳成績排行榜。支援 jyut.js／canton.js 預設碼表、yaml 外掛、觸控鍵盤與橫向模式。">
+<title>快快快樂學粵拼 — 仿DOS重構版 v0.89</title>
+<meta name="description" content="九十年代 DOS 打字教學程式致敬之作，單一 HTML 檔、離線可玩。含 48 頁粵拼／港式拼音教材、六階打字練習、實力測驗（中途可切碼表）、粵拼查碼與最佳成績排行榜。">
 <script>document.documentElement.classList.add("js");</script>
+<script src="jyut.js" onerror="void 0"></script>
+<script src="canton.js" onerror="void 0"></script>
 <style>
 *{box-sizing:border-box;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
 input,textarea{user-select:text;-webkit-user-select:text;font-size:16px}
@@ -14,7 +16,22 @@ body.handheld-land{justify-content:flex-start;padding-top:4px}
 body.handheld-land .dos-screen{transform-origin:top center}
 .dos-screen{width:960px;height:540px;background:#005a52;position:relative;border:3px solid #808080;box-shadow:0 0 25px rgba(0,0,0,.9);display:flex;flex-direction:column;justify-content:space-between;transform-origin:center;flex-shrink:0}
 @media(pointer:coarse)and(hover:none){.key-button,.menu-btn,.tk-btn{min-height:44px;font-size:18px}.dos-footer{height:60px}.menu-item-row{min-height:44px}}
-.key-button,.menu-item-row,.tk-btn{touch-action:manipulation}
+.key-button,.menu-item-row,.cand-item,.tk-btn,.rad-card{touch-action:manipulation}
+
+/* 觸控虛擬鍵盤（簡倉定型架構） */
+#touchKeypad{position:fixed;bottom:0;left:0;right:0;width:100%;display:none;background:rgba(20,20,20,.96);border-top:2px solid #555;padding:6px 6px calc(12px + env(safe-area-inset-bottom,0px));flex-direction:column;gap:4px;z-index:9999;touch-action:none}
+#touchKeypad.kp-left{width:40%;left:0;right:auto;border-right:2px solid #555}
+#touchKeypad.kp-right{width:40%;left:auto;right:0;border-left:2px solid #555}
+#touchKeypad.kp-left .tk-btn,#touchKeypad.kp-right .tk-btn{font-size:13px;height:34px;min-width:0}
+.tk-row{display:flex;justify-content:center;gap:4px}
+.tk-btn{background:#c0c0c0;border:2px solid;border-color:#fff #404040 #404040 #fff;font-weight:bold;font-size:16px;height:40px;flex:1;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:0;font-family:Consolas,monospace;color:#000}
+.tk-btn:active{background:#888;border-color:#404040 #fff #fff #404040}
+#kpFloatBar{position:absolute;top:-22px;right:8px;display:flex;gap:6px;z-index:10000}
+#kpReopenBtn{position:fixed;bottom:8px;right:8px;display:none;z-index:9998;color:#5ff;font-size:11px;background:#222;border:1px solid #5ff;border-radius:10px;padding:4px 10px;cursor:pointer;font-family:Consolas,"Microsoft JhengHei",monospace}
+.kp-pill{color:#5ff;font-size:10px;background:#2a2a2a;border:1px solid #555;border-radius:9px;padding:2px 10px;cursor:pointer;white-space:nowrap;line-height:1.2}
+.kp-pill:active{background:#444}
+
+/* 頂部標題列 */
 .dos-header{height:54px;display:flex;align-items:center;padding:0 24px;gap:12px;flex-shrink:0}
 .jp-logo{display:flex;align-items:center;justify-content:center;width:95px;height:30px;flex-shrink:0}
 .title-group{display:flex;align-items:center;flex:1;justify-content:center;gap:14px}
@@ -26,6 +43,8 @@ body.handheld-land .dos-screen{transform-origin:top center}
 .dos-footer{height:36px;background:#c0c0c0;border-top:2px solid #fff;display:flex;align-items:center;justify-content:space-between;padding:0 16px;flex-shrink:0;z-index:10}
 .key-button{background:#c0c0c0;border:2px solid;border-color:#fff #404040 #404040 #fff;font-weight:bold;height:24px;display:inline-flex;align-items:center;justify-content:center;font-size:14px;color:#000080;cursor:pointer;font-family:Consolas,"Microsoft JhengHei",monospace;padding:0 14px;text-decoration:none}
 .key-button:active,.key-button.focused-choice{border-color:#404040 #fff #fff #404040;background:#a8a8a8;outline:1px dotted #000;outline-offset:-4px}
+
+/* 主選單 */
 .menu-panel{background:#c0c0c0;border:3px solid;border-color:#fff #404040 #404040 #fff;padding:8px;width:275px;position:absolute;left:245px;top:15px;z-index:10;display:flex;flex-direction:column;gap:5px}
 .menu-item-row{display:flex;align-items:center;gap:8px;cursor:pointer;min-height:28px}
 .menu-item-row:active,.menu-item-row:active .menu-btn{background:#ffe600!important;color:#000!important}
@@ -37,14 +56,19 @@ body.handheld-land .dos-screen{transform-origin:top center}
 .menu-btn{flex:1;height:28px;display:flex;align-items:center;padding-left:8px;font-size:16px;color:#000;letter-spacing:1px;background:#c0c0c0;border:2px solid;border-color:#fff #404040 #404040 #fff;font-weight:bold}
 #jsNote{border:2px dashed #a00;background:#ffd;color:#800;font-size:12px;font-weight:bold;padding:6px;margin-bottom:4px;line-height:1.5;pointer-events:none}
 html.js #jsNote{display:none}
+
+/* 子視窗與捲動區域 */
 .sub-window{background:#003833;border:3px double #5ff;width:820px;height:100%;padding:14px 16px;display:none;flex-direction:column;justify-content:space-between;box-shadow:6px 6px 0 rgba(0,0,0,.5);z-index:10}
 .dos-screen.hk-mode .sub-window{border-color:#f7a}
 .sub-window.wide{width:100%}
 .sub-window.n620{width:620px}.sub-window.n660{width:660px}
-.sub-win-title{color:#ff5;font-size:20px;font-weight:bold;border-bottom:2px solid #5ff;padding-bottom:6px;display:flex;justify-content:space-between;align-items:center}
+.sub-win-title{color:#ff5;font-size:20px;font-weight:bold;border-bottom:2px solid #5ff;padding-bottom:6px;display:flex;justify-content:space-between;align-items:center;gap:8px}
 .dos-screen.hk-mode .sub-win-title{color:#f7a;border-bottom-color:#f7a}
 .category-badge{background:#004b45;border:1px solid #5ff;color:#ff5;font-size:13px;padding:2px 6px;margin-right:6px}
 .dos-screen.hk-mode .category-badge{background:#3a1030;border-color:#f7a;color:#f7a}
+.scroll-box,.tut-content{overflow-y:auto!important;overscroll-behavior:contain;scroll-behavior:smooth;-webkit-overflow-scrolling:touch}
+
+/* 打字練習 */
 #practiceScopeRow{display:flex;justify-content:center;align-items:center;gap:6px;margin:4px 0 0;font-size:12px;color:#5ff;flex-wrap:wrap}
 .practice-char-box{width:160px;height:160px;border:2px solid #ff0;background:rgba(0,0,0,.45);margin:10px auto;display:flex;align-items:center;justify-content:center;font-size:105px;color:#fff;position:relative}
 .practice-code-slots{display:flex;gap:8px;justify-content:center;margin-top:6px;flex-wrap:wrap}
@@ -52,6 +76,8 @@ html.js #jsNote{display:none}
 .p-slot.ok{border-color:#5f5;background:rgba(85,255,85,.2)}
 .p-slot.err{border-color:#f55;background:rgba(255,85,85,.25)}
 .p-slot.reveal{color:#5f5;border-color:#5f5;border-style:dashed}
+
+/* 實力測驗 18 行畫面 */
 .exam-18-screen{display:none;width:100%;height:100%;background:#d8dcd8;border:2px inset #808080;flex-direction:column;padding:2px 10px;font-family:"BiauKaiHK","DFKai-SB","標楷體",monospace}
 .exam-line{width:100%;flex:1;min-height:0;display:flex;align-items:center;white-space:pre;overflow:hidden;font-size:20px;line-height:1}
 .exam-line-status1{background:#000080;color:#ff5;padding:0 8px;justify-content:space-between;font-size:16px;font-weight:bold}
@@ -67,6 +93,10 @@ html.js #jsNote{display:none}
 .compose-box{display:inline-flex;align-items:center;gap:12px}
 .compose-radicals{color:#000080;background:#fff;padding:1px 8px;border:1px solid #404040;min-width:150px;font-family:Consolas,monospace;letter-spacing:2px}
 .compose-preview-char{color:#00f;background:#ffc;padding:1px 10px;border:1px solid #000080;min-width:44px;text-align:center;font-size:20px}
+.cand-item{background:#000080;color:#ff5;padding:1px 7px;margin-right:5px;border:1px solid #ff0;cursor:pointer;display:inline-block;font-size:15px}
+.cand-item:active{background:#ffe600;color:#000}
+
+/* 成績結算與對話框 */
 .result-view{display:none;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;position:relative;top:-10px}
 .result-table-box{width:395px;background:#00f;border:3px double #ff0;outline:2px solid #ff0;outline-offset:1px;color:#fff;margin-top:10px;box-shadow:4px 4px 0 rgba(0,0,0,.4)}
 .result-table-header{text-align:center;font-size:20px;color:#ff5;padding:6px 0;font-weight:bold;letter-spacing:4px;border-bottom:1px solid #ff0}
@@ -88,7 +118,9 @@ html.js #jsNote{display:none}
 .dos-exit-screen{display:none;position:absolute;inset:0;width:100%;height:100%;background:#000;color:#c0c0c0;font-family:Consolas,monospace;font-size:18px;padding:28px 32px;flex-direction:column;justify-content:space-between;z-index:100}
 @keyframes blinkCursor{0%,49%{opacity:1}50%,100%{opacity:0}}
 .dos-cursor{display:inline-block;width:10px;height:18px;background:#c0c0c0;vertical-align:text-bottom;animation:blinkCursor 1s infinite}
-.tut-content{overflow-y:auto;flex:1;min-height:0;font-size:13.5px;color:#fff;line-height:1.55;margin:4px 0;padding-right:5px;overscroll-behavior:contain;scroll-behavior:smooth;-webkit-overflow-scrolling:touch}
+
+/* 48 頁教材排版樣式 */
+.tut-content{flex:1;min-height:0;font-size:13.5px;color:#fff;line-height:1.55;margin:4px 0;padding-right:5px}
 .tut-content.page-flex{display:flex;flex-direction:column;justify-content:space-between;gap:6px;padding-right:2px}
 .tut-h{font-weight:bold;font-size:14px;margin-top:6px;background:rgba(0,0,0,.35);padding:2px 8px;border-left:4px solid #ff5;color:#ff5;display:flex;justify-content:space-between;align-items:center}
 .tut-h.g{border-left-color:#5f5;color:#5f5}
@@ -146,6 +178,7 @@ html.js #jsNote{display:none}
 .rad-grid-final{flex:1;min-height:0;display:grid;grid-template-columns:repeat(11,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:4px}
 .rad-grid-special{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
 .rad-card{width:100%;min-width:0;background:#002626;border:1.5px solid #5ff;padding:3px 1px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;overflow:hidden}
+.rad-card:hover{border-color:#ff0;background:#004242}
 .rad-card.init-card{min-height:48px;padding:3px 2px}
 .rad-card .rk{font-family:Consolas,monospace;font-size:10.5px;color:#5f5;font-weight:bold;line-height:1.05}
 .rad-card.init-card .rc{font-size:19px;color:#ff5;font-weight:bold;line-height:1.15;margin-top:2px;font-family:Consolas,monospace;white-space:nowrap;letter-spacing:-.3px}
@@ -168,17 +201,6 @@ html.js #jsNote{display:none}
 .data-item span:last-child{color:#5ff;font-family:Consolas,monospace;font-size:14px;font-weight:bold;text-align:right;letter-spacing:-.4px}
 #saveMsg{color:#5f5;font-size:13px;margin-top:6px;min-height:18px}
 #errorBanner{display:none;background:#a00;color:#fff;padding:4px 10px;font-size:12px;font-family:Consolas,monospace;position:absolute;top:0;left:0;right:0;z-index:99999;border-bottom:2px solid #ff0;pointer-events:none}
-#touchKeypad{position:fixed;bottom:0;left:0;right:0;width:100%;display:none;background:rgba(20,20,20,.96);border-top:2px solid #555;padding:6px 6px calc(12px + env(safe-area-inset-bottom,0px));flex-direction:column;gap:4px;z-index:9999;touch-action:none}
-#touchKeypad.kp-left{width:40%;left:0;right:auto;border-right:2px solid #555}
-#touchKeypad.kp-right{width:40%;left:auto;right:0;border-left:2px solid #555}
-#touchKeypad.kp-left .tk-btn,#touchKeypad.kp-right .tk-btn{font-size:13px;min-width:0}
-.tk-row{display:flex;justify-content:center;gap:4px}
-.tk-sp{pointer-events:none;visibility:hidden}
-.tk-btn{background:#c0c0c0;border:2px solid;border-color:#fff #404040 #404040 #fff;font-weight:bold;font-size:16px;height:40px;flex:1;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:0;font-family:Consolas,monospace;color:#000}
-.tk-btn:active{background:#888;border-color:#404040 #fff #fff #404040}
-#kpFloatBar{position:absolute;top:-22px;right:8px;display:flex;gap:6px;z-index:10000}
-.kp-pill{color:#5ff;font-size:10px;background:#2a2a2a;border:1px solid #555;border-radius:9px;padding:2px 10px;cursor:pointer;white-space:nowrap;line-height:1.2}
-.kp-pill:active{background:#444}
 @media(max-width:480px){.dos-screen{transform:scale(.4)}}
 @media(min-width:481px)and(max-width:768px){.dos-screen{transform:scale(.6)}}
 </style>
@@ -199,7 +221,7 @@ html.js #jsNote{display:none}
       </div><br>
       <div>C:\JYUTPING&gt;<span class="dos-cursor"></span></div>
     </div>
-    <div style="border-top:1px dashed #555;padding-top:10px;display:flex;justify-content:space-between;align-items:center;font-size:14px;color:#888"><span>💡 程式已結束</span><button class="key-button" id="btnRestartDos" style="height:24px;font-size:13px">重新啟動 [Enter]</button></div>
+    <div style="border-top:1px dashed #555;padding-top:10px;display:flex;justify-content:space-between;align-items:center;font-size:14px;color:#888"><span>💡 程式已結束</span><button type="button" class="key-button" id="btnRestartDos" style="height:24px;font-size:13px">重新啟動 [Enter]</button></div>
   </div>
 
   <div class="dos-header" id="topHeaderBar">
@@ -215,27 +237,27 @@ html.js #jsNote{display:none}
   <div class="dos-stage">
     <div class="menu-panel" id="menuPanel">
       <div id="jsNote">⚠️ 此預覽已停用 JavaScript，程式無法執行。<br>請下載後以瀏覽器開啟。</div>
-      <div class="menu-item-row selected" data-i="1" onclick="menuGo(1)"><div class="menu-check-box"></div><div class="menu-num">1</div><div class="menu-btn">軟體簡介</div></div>
-      <div class="menu-item-row" data-i="2" onclick="menuGo(2)"><div class="menu-check-box"></div><div class="menu-num">2</div><div class="menu-btn">粵拼入門</div></div>
-      <div class="menu-item-row" data-i="3" onclick="menuGo(3)"><div class="menu-check-box"></div><div class="menu-num">3</div><div class="menu-btn">打字練習</div></div>
-      <div class="menu-item-row" data-i="4" onclick="menuGo(4)"><div class="menu-check-box"></div><div class="menu-num">4</div><div class="menu-btn">實力測驗</div></div>
-      <div class="menu-item-row" data-i="5" onclick="menuGo(5)"><div class="menu-check-box"></div><div class="menu-num">5</div><div class="menu-btn">粵拼查碼</div></div>
-      <div class="menu-item-row" data-i="6" onclick="menuGo(6)"><div class="menu-check-box"></div><div class="menu-num">6</div><div class="menu-btn">最佳成績排行榜</div></div>
-      <div class="menu-item-row" data-i="7" onclick="menuGo(7)"><div class="menu-check-box"><div class="sound-indicator" id="soundDot" style="display:none"></div></div><div class="menu-num">7</div><div class="menu-btn">音效</div></div>
+      <div class="menu-item-row selected" data-i="1"><div class="menu-check-box"></div><div class="menu-num">1</div><div class="menu-btn">軟體簡介</div></div>
+      <div class="menu-item-row" data-i="2"><div class="menu-check-box"></div><div class="menu-num">2</div><div class="menu-btn">粵拼入門</div></div>
+      <div class="menu-item-row" data-i="3"><div class="menu-check-box"></div><div class="menu-num">3</div><div class="menu-btn">打字練習</div></div>
+      <div class="menu-item-row" data-i="4"><div class="menu-check-box"></div><div class="menu-num">4</div><div class="menu-btn">實力測驗</div></div>
+      <div class="menu-item-row" data-i="5"><div class="menu-check-box"></div><div class="menu-num">5</div><div class="menu-btn">粵拼查碼</div></div>
+      <div class="menu-item-row" data-i="6"><div class="menu-check-box"></div><div class="menu-num">6</div><div class="menu-btn">最佳成績排行榜</div></div>
+      <div class="menu-item-row" data-i="7"><div class="menu-check-box"><div class="sound-indicator" id="soundDot" style="display:none"></div></div><div class="menu-num">7</div><div class="menu-btn">音效</div></div>
     </div>
 
     <div class="exit-dialog-box" id="exitConfirmDialog">
       <div class="dialog-title"><span>離開確認</span><span style="font-size:12px;color:#555">[Y/X]</span></div>
       <div style="font-size:17px;font-weight:bold;text-align:center;padding:8px 0">確定要離開《快快快樂學粵拼》嗎？</div>
-      <div style="display:flex;justify-content:center;gap:20px"><button class="key-button" id="btnExitYes" style="color:#800000;height:30px;font-size:15px;padding:0 18px">[Y] 離開</button><button class="key-button focused-choice" id="btnExitNo" style="color:#000080;height:30px;font-size:15px;padding:0 18px">[X] 返回</button></div>
+      <div style="display:flex;justify-content:center;gap:20px"><button type="button" class="key-button" id="btnExitYes" style="color:#800000;height:30px;font-size:15px;padding:0 18px">[Y] 離開</button><button type="button" class="key-button focused-choice" id="btnExitNo" style="color:#000080;height:30px;font-size:15px;padding:0 18px">[X] 返回</button></div>
     </div>
 
     <div class="dialog-box" id="examSetupDialog">
       <div class="dialog-title"><span>測驗設定</span><span style="font-size:12px;color:#555">[Esc] 取消</span></div>
       <div style="display:flex;flex-direction:column;gap:8px">
         <div style="font-size:15px;font-weight:bold;color:#000080">請選擇命題方式：</div>
-        <div class="dialog-option-row" id="optComputer" onclick="setExamSrc('computer')"><div class="dialog-radio active" id="radioComputer"></div><div class="dialog-label">1. 電腦命題</div></div>
-        <div class="dialog-option-row" id="optCustom" onclick="setExamSrc('custom')"><div class="dialog-radio" id="radioCustom"></div><div class="dialog-label">2. 自訂命題（貼上／載入文字）</div></div>
+        <div class="dialog-option-row" id="optComputer"><div class="dialog-radio active" id="radioComputer"></div><div class="dialog-label">1. 電腦命題</div></div>
+        <div class="dialog-option-row" id="optCustom"><div class="dialog-radio" id="radioCustom"></div><div class="dialog-label">2. 自訂命題（貼上／載入文字）</div></div>
       </div>
       <div id="compPoolGroup" style="display:flex;flex-direction:column;gap:6px;background:#b0b0b0;padding:8px;border:1px inset #808080">
         <div style="font-size:13px;font-weight:bold;color:#000080">電腦命題題庫（五選一）：</div>
@@ -249,32 +271,32 @@ html.js #jsNote{display:none}
         <div style="font-size:12px;color:#333"><span id="compPoolStatus" style="color:#004080">已選擇：內建綜合</span></div>
       </div>
       <div id="customTextInputGroup" style="display:none;flex-direction:column;gap:6px;background:#b0b0b0;padding:8px;border:1px inset #808080">
-        <div style="display:flex;gap:8px;align-items:center"><input type="file" id="customTxtFile" accept=".txt,text/plain" style="font-size:14px;width:200px"><span style="font-size:12px;color:#333">或直接貼上：</span></div>
-        <textarea id="customInputString" class="dialog-input" rows="3" maxlength="2000" style="resize:vertical;font-size:15px">陳大文喺元朗朗屏屏山、再到上水粉嶺粉嶺、沙田大圍火炭、葵青青衣荔景、屯門兆康藍地。</textarea>
-        <div style="font-size:11.5px;color:#555">💡 未收錄之字會自動以灰色跳過，不計分。</div>
+        <div style="display:flex;gap:8px;align-items:center"><input type="file" id="customTxtFile" accept=".txt,text/plain" style="font-size:14px;width:210px"><span style="font-size:12px;color:#333" id="customTxtStatus">或直接貼上：</span></div>
+        <textarea id="customInputString" class="dialog-input" rows="3" maxlength="4000" style="resize:vertical;font-size:15px">陳大文喺元朗朗屏屏山、再到上水粉嶺粉嶺、沙田大圍火炭、葵青青衣荔景、屯門兆康藍地。</textarea>
+        <div style="font-size:11.5px;color:#555">💡 未收錄之字會自動以灰色跳過，不計分；超過 112 字自動分頁連打。</div>
       </div>
       <div style="border-top:1px solid #888;margin:2px 0;padding-top:6px;display:flex;flex-direction:column;gap:6px">
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
           <span style="font-size:13px;font-weight:bold;color:#000080">外掛字庫：</span>
-          <span class="dialog-radio" id="radioPlgJp" onclick="setPlgMode('jp')" style="cursor:pointer"></span><span style="font-size:13px;font-weight:bold;color:#000;cursor:pointer" onclick="setPlgMode('jp')">粵拼</span>
-          <span class="dialog-radio" id="radioPlgHk" onclick="setPlgMode('hk')" style="cursor:pointer"></span><span style="font-size:13px;font-weight:bold;color:#000;cursor:pointer" onclick="setPlgMode('hk')">港拼</span>
+          <span class="dialog-radio" id="radioPlgJp" style="cursor:pointer"></span><span id="lblPlgJp" style="font-size:13px;font-weight:bold;color:#000;cursor:pointer">粵拼</span>
+          <span class="dialog-radio" id="radioPlgHk" style="cursor:pointer"></span><span id="lblPlgHk" style="font-size:13px;font-weight:bold;color:#000;cursor:pointer">港拼</span>
           <input type="file" id="plgFileInput" accept=".txt,.cin,.yaml,.yml,text/plain" style="font-size:13px;width:180px">
-          <span style="font-size:12px;color:#333">字庫：<span id="dictSizeDisplay">0</span> 字</span>
+          <span style="font-size:12px;color:#333">外掛：<span id="dictSizeDisplay">0</span> 字</span>
           <button type="button" class="key-button" id="btnPlgClear" style="height:24px;font-size:12px;color:#800000">卸載</button>
         </div>
         <div style="font-size:11px;color:#004080" id="presetStatus">預設碼表偵測中…</div>
-        <div style="font-size:11px;color:#666">💡 支援「字=碼」「碼 字」「YAML（字: 碼／碼: 字／一字多碼）」；選檔後存入瀏覽器下次自動套用，並解鎖練習第六階。</div>
+        <div style="font-size:11px;color:#666">💡 支援 UTF-8 / Big5「字=碼」「碼 字」「YAML（字: 碼／碼: 字／一字多碼）」；選檔後存入 IndexedDB 下次自動套用，並解鎖練習第六階。</div>
       </div>
       <div style="display:flex;align-items:center;gap:10px"><span class="dialog-label">時限：</span><input type="number" id="examTimeInput" class="dialog-input" value="3" min="1" max="30" style="width:70px;text-align:center"><span class="dialog-label" style="font-size:13px">分鐘</span></div>
       <div style="font-size:13px;color:#004080;font-weight:bold" id="examSetupMsg">💡 內建教材字庫已就緒；jyut.js／canton.js 預設碼表自動偵測載入，可立即開始測驗！</div>
-      <div style="display:flex;justify-content:flex-end;gap:10px"><button class="key-button" id="btnCancelExamSetup">取消</button><button class="key-button" id="btnStartExam" style="color:#800000">開始 [Enter]</button></div>
+      <div style="display:flex;justify-content:flex-end;gap:10px"><button type="button" class="key-button" id="btnCancelExamSetup">取消</button><button type="button" class="key-button" id="btnStartExam" style="color:#800000">開始 [Enter]</button></div>
     </div>
 
     <div class="sub-window" id="subWin"></div>
 
     <div class="exam-18-screen" id="exam18Screen">
       <div class="exam-line exam-line-status1"><span id="exam18Title">【實力測驗】電腦命題</span><span id="exam18Timer">剩餘時間：03:00（按首碼開始計時）</span></div>
-      <div class="exam-line exam-line-status2"><span id="exam18Stats">已輸入：0（正確 0 錯誤 0）｜準確率：100%｜速度：0.0字/分</span><span>[Space]確認·唯一碼 [1-9/0]重碼選字 [=−.]翻頁 [?]反查 [Esc]清除/退出</span></div>
+      <div class="exam-line exam-line-status2"><span id="exam18Stats">已輸入：0（正確 0 錯誤 0）｜準確率：100%｜速度：0.0字/分</span><span>[Space]唯一碼上屏 [1-9]重碼選字 [=−]翻頁 [?]反查 [Esc]清除/退出</span></div>
       <div id="exam7GroupsContainer" style="display:flex;flex-direction:column;flex:14;min-height:0;width:100%"></div>
       <div class="exam-line exam-line-17"><span>重碼選字：</span><span id="candidateListText" style="color:#000080">（無重碼）</span></div>
       <div class="exam-line exam-line-18"><div class="compose-box"><span>拼音緩衝：</span><span class="compose-radicals" id="line18Radicals">&nbsp;</span><span>即時預覽：</span><span class="compose-preview-char" id="line18PreviewChar">&nbsp;</span></div><span id="line18HintMsg" style="font-size:14px;color:#333">按「?」可反查字碼</span></div>
@@ -285,42 +307,61 @@ html.js #jsNote{display:none}
         <div class="result-row"><div class="result-label">輸入速度</div><div class="result-val">每分鐘 <span class="num" id="resSpeed">0</span> 字</div></div>
         <div class="result-row"><div class="result-label">準確率</div><div class="result-val"><span class="num" id="resAccuracy">0</span> %</div></div>
       </div>
-      <div class="result-name-bar"><span>登錄姓名：</span><input type="text" id="resultNameInput" class="result-name-input" value="粵拼小高手" maxlength="12"><button class="key-button" id="btnSaveResult" style="height:22px;font-size:12px">保存 [Enter]</button></div>
+      <div class="result-name-bar"><span>登錄姓名：</span><input type="text" id="resultNameInput" class="result-name-input" value="粵拼小高手" maxlength="12"><button type="button" class="key-button" id="btnSaveResult" style="height:22px;font-size:12px">保存 [Enter]</button></div>
       <div id="resultHintBar" style="color:#5ff;font-size:13px;margin-top:8px">[Enter 保存｜Esc 不保存返回]</div>
       <div id="saveMsg"></div>
     </div>
   </div>
 
   <div class="dos-footer" id="bottomFooterBar">
-    <div style="display:flex;gap:12px"><div class="key-button" id="btnEnter">Enter</div><div class="key-button" id="btnEsc">Esc</div></div>
+    <div style="display:flex;gap:12px"><button type="button" class="key-button" id="btnEnter">Enter</button><button type="button" class="key-button" id="btnEsc">Esc</button></div>
     <div id="footerHint" style="font-size:12px;color:#333;flex:1;text-align:center">↑↓ 選擇，Enter 進入 ｜ Esc 離開程式</div>
-    <div style="display:flex;gap:6px"><div class="key-button" id="btnUp">↑</div><div class="key-button" id="btnDown">↓</div></div>
+    <div style="display:flex;gap:6px"><button type="button" class="key-button" id="btnUp">↑</button><button type="button" class="key-button" id="btnDown">↓</button></div>
   </div>
 </div>
 
+<button type="button" id="kpReopenBtn" onclick="showKeypad()">⌨ 喚出鍵盤</button>
 <div id="touchKeypad">
   <div id="kpFloatBar">
     <span id="kpPosLabel" class="kp-pill" onclick="cycleKeypadPos()">▣ 原大</span>
-    <span id="kpModeLabel" class="kp-pill" onclick="toggleKeypadShow()">⌨ 隱藏</span>
+    <span id="kpModeLabel" class="kp-pill" onclick="hideKeypad()">⌨ 隱藏</span>
   </div>
   <div id="kpAbc"></div>
 </div>
 
-<script src="jyut.js" onerror="void 0"></script>
-<script src="canton.js" onerror="void 0"></script>
 <script>
 "use strict";
-const $=id=>document.getElementById(id);
-let isHKMode=false;
-const stripT=s=>String(s||"").replace(/[1-6]/g,"");
-const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
-const pick=a=>a[Math.random()*a.length|0];
-const AU={on:false,ctx:null};
-function beep(f,d,t){if(!AU.on)return;try{AU.ctx=AU.ctx||new(window.AudioContext||window.webkitAudioContext)();const o=AU.ctx.createOscillator(),g=AU.ctx.createGain();o.type=t||"square";o.frequency.value=f;g.gain.value=.07;o.connect(g);g.connect(AU.ctx.destination);o.start();o.stop(AU.ctx.currentTime+(d||.05))}catch(e){}}
-const snd={key(){beep(950,.05)},err(){beep(160,.16,"sawtooth")},nav(){beep(500,.04)},ok(){beep(523,.08);setTimeout(()=>beep(659,.08),70)},alarm(){beep(880,.15);setTimeout(()=>beep(1174,.3),180)}};
-function toast(msg){const b=$("errorBanner");if(!b)return;b.style.display="block";b.textContent=msg;clearTimeout(toast._t);toast._t=setTimeout(()=>b.style.display="none",2800)}
+const $=id=>document.getElementById(id),
+esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]),
+stripT=s=>String(s||"").replace(/[1-6]/g,""),
+shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a},
+pick=a=>a[Math.random()*a.length|0],
+safe=fn=>function(ev){try{return fn.call(this,ev)}catch(e){const b=$("errorBanner");if(b){b.style.display="block";b.textContent="處理器錯誤："+(e?.message||e)}console.error(e)}};
 
-/* ================= 教材資料 ================= */
+window.onerror=(m,u,l)=>{if(/jyut\.js|canton\.js/i.test(String(u||"")))return true;const b=$("errorBanner");if(b){b.style.display="block";b.textContent=`系統警告 (L${l}):${m}`}return false};
+function sfxToast(msg,dark){const b=$("errorBanner");if(!b)return;const ob=b.style.backgroundColor;b.style.backgroundColor=dark?"#2a2a2a":"#a00";b.style.display="block";b.textContent=msg;clearTimeout(sfxToast._t);sfxToast._t=setTimeout(()=>{b.style.display="none";b.style.backgroundColor=ob||"#a00"},3200)}
+
+/* ================= 音效引擎（重用簡倉架構） ================= */
+const sound={en:false,ctx:null,resuming:null,_t:[],
+_clear(){this._t.forEach(clearTimeout);this._t=[]},
+_ensure(){try{if(!this.ctx){const C=window.AudioContext||window.webkitAudioContext;if(!C)return false;this.ctx=new C()}if(this.ctx.state!=="running"){try{const p=this.ctx.resume();this.resuming=p?.then?p.finally(()=>{this.resuming=null}):null}catch(e){this.resuming=null}}return!!this.ctx}catch(e){return this.ctx=null,false}},
+_tone(f,d,t="square",vol=.12,dl=0){const c=this.ctx;if(!c)return;const go=()=>{try{const o=c.createOscillator(),g=c.createGain(),t0=c.currentTime+dl;o.type=t;o.frequency.value=f;g.gain.setValueAtTime(vol,t0);g.gain.exponentialRampToValueAtTime(.001,t0+d);o.connect(g);g.connect(c.destination);o.onended=()=>{try{o.disconnect();g.disconnect()}catch(e){}};o.start(t0);o.stop(t0+d)}catch(e){}};c.state==="running"?go():this.resuming?this.resuming.then(go).catch(()=>{}):go()},
+beep(f=900,d=.04,t="square"){if(this.en&&this._ensure())this._tone(f,d,t)},
+unlock(){if(this._ensure())this._tone(1,.002,"sine",.001)},
+key(){this.beep(950,.05)},err(){this.beep(160,.16,"sawtooth")},nav(){this.beep(500,.04)},
+ok(){this._clear();this.beep(523,.08);this._t.push(setTimeout(()=>this.beep(659,.08),70))},
+alarm(){if(!this.en)return;this._clear();this.beep(880,.15);this._tone(880,.15,"square",.12,.18);this._tone(1174,.35,"square",.12,.36)}};
+
+/* ================= IndexedDB 持久儲存與解碼工具（重用簡倉架構） ================= */
+const IDB={DB:"jyutping_kv",STORE:"kv",db:null,
+open(){return new Promise((res,rej)=>{if(IDB.db)return res(IDB.db);try{const r=indexedDB.open(IDB.DB,1);r.onupgradeneeded=()=>{try{r.result.createObjectStore(IDB.STORE)}catch(e){}};r.onsuccess=()=>res(IDB.db=r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}})},
+get(k){return IDB.open().then(db=>new Promise((res,rej)=>{const r=db.transaction(IDB.STORE,"readonly").objectStore(IDB.STORE).get(k);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}))},
+set(k,v){return IDB.open().then(db=>new Promise((res,rej)=>{const r=db.transaction(IDB.STORE,"readwrite").objectStore(IDB.STORE).put(v,k);r.onsuccess=()=>res();r.onerror=()=>rej(r.error)}))}};
+
+const decodeBuf=buf=>{let t;try{t=new TextDecoder("utf-8",{fatal:true}).decode(buf)}catch(e){t=new TextDecoder("big5").decode(buf)}return t.replace(/^\uFEFF/,"").trim()};
+
+/* ================= 教材資料（完整 48 頁聲韻雙版） ================= */
+let isHKMode=false;
 const initData=[
 {id:"b",ipa:"[p]",jp:"b",hk:"P/B",desc:"雙唇不送氣清塞音",tip:"切勿讀成英文 b，應讀如英文 spy 的 p。",contrast:"手掌放嘴前，讀 b 無氣流，讀 p 會有強烈氣流。",big:[["巴","baa1","Pa","巴士"],["波","bo1","Po","波浪"],["爸","baa4","Pa","爸爸"],["班","baan1","Pan","班級"]],more:[["寶","bou2","Po"],["白","baak6","Pak"],["比","bei2","Pei"],["必","bit1","Pit"],["冰","bing1","Ping"],["百","baak3","Pak"]]},
 {id:"p",ipa:"[pʰ]",jp:"p",hk:"P",desc:"雙唇送氣清塞音",tip:"讀如英文 pie 的 p，有強烈氣流。",contrast:"讀 p 時有明顯氣流噴出，可放張紙巾喺嘴前測試。",big:[["怕","paa3","Pa","害怕"],["破","po3","Po","破壞"],["爬","paa4","Pa","爬山"],["平","ping4","Ping","平安"]],more:[["彭","paang4","Pang"],["潘","pun1","Poon"],["培","pui4","Pui"],["皮","pei4","Pei"],["派","paai3","Pai"],["排","paai4","Pai"]]},
@@ -466,12 +507,13 @@ const KOUYU_HK={嘅:["ke"],喺:["hai"],唔:["m"],佢:["kui"],咗:["tso","cho"],�
 const EXCLUDE_HK=new Set(["中環","金鐘","銅鑼灣","太子","北角","炮台山","鰂魚涌","香港仔","赤柱","太平山","半山區","跑馬地","渣甸山","香港大學","海洋公園","海怡半島","會展","馬場","大學","西九龍","九龍灣","九龍城","第一城","車公廟","康城","黃金海岸","蝴蝶灣","欣澳","迪士尼","機場","博覽館","奧運","淺水灣","深水灣","旺角","旺角東","吐露港","打鼓嶺","古洞","大埔墟","堅尼地城","大嶼山","南丫島","太古城"]);
 const TAIL_WORDS=new Set(["road","bay","island","park","hill","point","centre","center","temple","market","peak","harbour","harbor","valley","town","city","east","west","north","south","resort","expo","shing"]);
 
-/* ============ 內建雙碼庫 ============ */
+/* ============ 內建雙碼庫與推導 ============ */
 const JP_DICT={},HK_DICT={},SRC={};
-const isCJK=s=>/[\u3400-\u4dbf\u4e00-\u9fff]/.test(s);
-function addJP(ch,jpsrc){if(!ch||[...ch].length!==1)return;String(jpsrc||"").split("/").forEach(tk=>{const b=stripT(tk).toLowerCase();if(b){(JP_DICT[ch]=JP_DICT[ch]||new Set()).add(b)}})}
+const isCJK=s=>{if(!s)return false;const cp=s.codePointAt(0);return(cp>=0x3400&&cp<=0x9FFF)||(cp>=0xF900&&cp<=0xFAFF)||(cp>=0x20000&&cp<=0x323AF)};
+function addJP(ch,jpsrc){if(!ch||[...ch].length!==1)return;String(jpsrc||"").split("/").forEach(tk=>{const b=stripT(tk).toLowerCase();if(/^[a-z]+$/.test(b)){(JP_DICT[ch]=JP_DICT[ch]||new Set()).add(b)}})}
 function addHK(ch,hksrc){if(!ch||[...ch].length!==1)return;String(hksrc||"").split("/").forEach(tk=>{tk=tk.trim().toLowerCase();if(/^[a-z]+$/.test(tk))(HK_DICT[ch]=HK_DICT[ch]||new Set()).add(tk)})}
 function tag(ch,src){if(ch&&[...ch].length===1&&!SRC[ch])SRC[ch]=src}
+
 initData.forEach(it=>it.big.concat(it.more).forEach(e=>{addJP(e[0],e[1]);addHK(e[0],e[2]);tag(e[0],"init")}));
 finalData.forEach(it=>it.items.forEach(s=>s.big.concat(s.more).forEach(e=>{addJP(e[0],e[1]);addHK(e[0],e[2]);tag(e[0],"final")})));
 SURNAME_100.split(",").forEach(s=>{const[c,jp,hk]=s.split(":");const ch=c.replace(/^\d+\./,"");addJP(ch,jp);addHK(ch,hk);tag(ch,"name")});
@@ -481,41 +523,46 @@ LAZYIN.forEach(g=>g.items.concat(g.ls||[]).forEach(([ch,jp])=>{addJP(ch,jp);tag(
 const WORDS=[];
 [MTR_ALL_LINES,DISTRICTS_18].forEach(arr=>arr.forEach(line=>{line.split("|").slice(1).join("|").split(",").forEach(ent=>{const[zh,en,jp]=ent.split("/");if(!zh)return;const zhA=[...zh],jpA=jp.split(" ");if(zhA.length===jpA.length)zhA.forEach((ch,i)=>{addJP(ch,jpA[i]);tag(ch,"place")});let enA=en.toLowerCase().split(/\s+/).filter(x=>/^[a-z]+$/.test(x));while(enA.length&&TAIL_WORDS.has(enA[enA.length-1]))enA.pop();const ok=!EXCLUDE_HK.has(zh)&&enA.length===zhA.length;if(ok)zhA.forEach((ch,i)=>{addHK(ch,enA[i])});WORDS.push({zh,jpExp:jpA.map(stripT).join(""),en,hkExp:ok?enA.join(""):""})})}));
 
-/* ============ 碼表解析 ============ */
+/* 碼表解析器（支援 字=碼、碼 字、YAML 字: 碼 / 碼: 字、一字多碼） */
 function parseDict(text){
   const d={};
+  let inYamlMeta=false;
   String(text||"").split(/\r?\n/).forEach(line=>{
-    line=line.trim();
-    if(!line||/^[%#;]/.test(line))return;
+    const trimmed=line.trim();
+    if(trimmed==="---"){inYamlMeta=true;return}
+    if(inYamlMeta){if(trimmed==="..."||trimmed==="---")inYamlMeta=false;return}
+    if(!trimmed||/^[%#;]/.test(trimmed))return;
     let ch=null,codes=[],m;
-    if((m=line.match(/^([\u3400-\u4dbf\u4e00-\u9fff])\s*[:=：]\s*(.+)$/))){ch=m[1];codes=m[2].split(/[\s,，、/]+/)}
-    else if((m=line.match(/^(.+?)\s*[:=：]\s*([\u3400-\u4dbf\u4e00-\u9fff])$/))){ch=m[2];codes=[m[1]]}
+    if((m=trimmed.match(/^([\u3400-\u4dbf\u4e00-\u9fff\ud840-\ud888][\udc00-\udfff]?)\s*[:=：]\s*(.+)$/))){ch=m[1];codes=m[2].split(/[\s,，、/]+/)}
+    else if((m=trimmed.match(/^([a-zA-Z0-9]+)\s*[:=：]\s*([\u3400-\u4dbf\u4e00-\u9fff\ud840-\ud888][\udc00-\udfff]?)$/))){ch=m[2];codes=[m[1]]}
     else{
-      const tk=line.split(/[\s\t]+/).filter(Boolean);
+      const tk=trimmed.split(/[\s\t]+/).filter(Boolean);
       const c=tk.find(isCJK);
       const os=tk.filter(t=>!isCJK(t)&&/^[a-z]+[1-6]?$/i.test(t));
       if(c&&os.length){ch=c;codes=os}
     }
     if(ch&&[...ch].length===1){
-      codes.forEach(cc=>{cc=String(cc).trim().toLowerCase();if(/^[a-z]+[1-6]?$/.test(cc))(d[ch]=d[ch]||[]).push(cc)});
+      codes.forEach(cc=>{cc=String(cc||"").trim().toLowerCase();if(/^[a-z]+[1-6]?$/.test(cc))(d[ch]=d[ch]||[]).push(cc)});
     }
   });
   return d;
 }
 
-/* ============ 預設碼表 jyut.js／canton.js ============ */
 function ingestTable(raw,mode){
   if(raw==null)return 0;
   let d=null;
   if(typeof raw==="string")d=parseDict(raw);
+  else if(Array.isArray(raw)){d=parseDict(raw.join("\n"))}
   else if(typeof raw==="object"){
     d={};
     for(const k in raw){
+      if(!Object.prototype.hasOwnProperty.call(raw,k))continue;
       const v=raw[k];
       if(isCJK(k)&&[...k].length===1){
-        String(Array.isArray(v)?v.join(" "):v).split(/[\s,，、/]+/).forEach(c=>{c=String(c).trim().toLowerCase();if(/^[a-z]+[1-6]?$/.test(c))(d[k]=d[k]||[]).push(c)});
+        String(Array.isArray(v)?v.join(" "):v).split(/[\s,，、/]+/).forEach(c=>{c=String(c||"").trim().toLowerCase();if(/^[a-z]+[1-6]?$/.test(c))(d[k]=d[k]||[]).push(c)});
       }else if(!isCJK(k)&&typeof v==="string"&&isCJK(v)&&[...v].length===1){
-        (d[v]=d[v]||[]).push(String(k).trim().toLowerCase());
+        const codeStr=String(k||"").trim().toLowerCase();
+        if(/^[a-z]+[1-6]?$/.test(codeStr))(d[v]=d[v]||[]).push(codeStr);
       }
     }
   }
@@ -523,7 +570,8 @@ function ingestTable(raw,mode){
   const tgt=mode==="jp"?JP_DICT:HK_DICT;
   let n=0;
   for(const ch in d){
-    const valid=d[ch].map(stripT).filter(c=>/^[a-z]+$/.test(c));
+    if(!Array.isArray(d[ch]))continue;
+    const valid=d[ch].map(c=>stripT(String(c||""))).filter(c=>/^[a-z]+$/.test(c));
     if(!valid.length)continue;
     valid.forEach(c=>{(tgt[ch]=tgt[ch]||new Set()).add(c)});
     if(!SRC[ch])SRC[ch]=mode==="jp"?"preset-jp":"preset-hk";
@@ -531,36 +579,90 @@ function ingestTable(raw,mode){
   }
   return n;
 }
+
+/* 單一音節映射自動推導（修復時機：每次載入預設或外掛碼表後皆重新推導） */
+function deriveMissingHK(){
+  const m={};
+  for(const ch in JP_DICT){
+    const hs=HK_DICT[ch];if(!hs)continue;
+    JP_DICT[ch].forEach(b=>{hs.forEach(h=>{(m[b]=m[b]||new Set()).add(h)})});
+  }
+  for(const ch in JP_DICT){
+    if(HK_DICT[ch])continue;
+    JP_DICT[ch].forEach(b=>{const s=m[b];if(s&&s.size===1)addHK(ch,[...s][0])});
+  }
+}
+
 const PRESET_N={jp:0,hk:0};
-try{PRESET_N.jp=ingestTable(window.JYUT_TABLE,"jp")}catch(e){}
-try{PRESET_N.hk=ingestTable(window.CANTON_TABLE,"hk")}catch(e){}
-(function(){const m={};for(const ch in JP_DICT){const hs=HK_DICT[ch];if(!hs)continue;JP_DICT[ch].forEach(b=>{hs.forEach(h=>{(m[b]=m[b]||new Set()).add(h)})})}for(const ch in JP_DICT){if(HK_DICT[ch])continue;JP_DICT[ch].forEach(b=>{const s=m[b];if(s&&s.size===1)addHK(ch,[...s][0])})}})();
+try{PRESET_N.jp=ingestTable(window.JYUT_TABLE||window.EXTERNAL_JYUT_TT,"jp")}catch(e){}
+try{PRESET_N.hk=ingestTable(window.CANTON_TABLE||window.EXTERNAL_CANTON_TT,"hk")}catch(e){}
+deriveMissingHK();
+
 const modeKey=()=>isHKMode?"hk":"jp";
 
-/* ============ 外掛字庫 ============ */
+/* ================= 外掛字庫（IndexedDB 永久儲存） ================= */
 const PLG={jp:null,hk:null,mode:"jp"};
 let effCache={};
-function effDict(mode){if(effCache[mode])return effCache[mode];const base=mode==="hk"?HK_DICT:JP_DICT;const m={};for(const k in base)m[k]=base[k];const p=PLG[mode];if(p){for(const ch in p){const codes=p[ch].map(stripT).filter(Boolean);if(!codes.length)continue;m[ch]=new Set(m[ch]?[...m[ch]]:[]);codes.forEach(c=>m[ch].add(c))}}effCache[mode]=m;return m}
-function plgChars(mode){const p=PLG[mode];if(!p)return[];const d=effDict(mode);return Object.keys(p).filter(ch=>{const cs=(p[ch]||[]).map(stripT).filter(Boolean);return cs.length&&d[ch]})}
-function plgSave(){try{["jp","hk"].forEach(m=>{const p=PLG[m];localStorage.setItem("jp_plg_"+m,p?JSON.stringify({name:p._name,text:p._text}):"")})}catch(e){}}
-function plgLoadAll(){try{["jp","hk"].forEach(m=>{const raw=localStorage.getItem("jp_plg_"+m);if(raw){const o=JSON.parse(raw);if(o&&o.text){const d=parseDict(o.text);d._name=o.name;d._text=o.text;PLG[m]=d}}})}catch(e){}}
+function effDict(mode){
+  if(effCache[mode])return effCache[mode];
+  const base=mode==="hk"?HK_DICT:JP_DICT;
+  const m={};
+  for(const k in base)m[k]=base[k];
+  const p=PLG[mode];
+  if(p){
+    for(const ch in p){
+      if(ch.startsWith("_"))continue;
+      const codes=(p[ch]||[]).map(c=>stripT(String(c||""))).filter(Boolean);
+      if(!codes.length)continue;
+      m[ch]=new Set(m[ch]?[...m[ch]]:[]);
+      codes.forEach(c=>m[ch].add(c));
+    }
+  }
+  effCache[mode]=m;
+  return m;
+}
+function plgChars(mode){const p=PLG[mode];if(!p)return[];const d=effDict(mode);return Object.keys(p).filter(ch=>!ch.startsWith("_")&&d[ch])}
+async function plgSave(){
+  for(const m of ["jp","hk"]){
+    const p=PLG[m];
+    const val=p?JSON.stringify({name:p._name,text:p._text}):"";
+    try{await IDB.set("plg_"+m,val)}catch(_){try{localStorage.setItem("jp_plg_"+m,val)}catch(__){}}
+  }
+}
+async function plgLoadAll(){
+  for(const m of ["jp","hk"]){
+    let raw=null;
+    try{raw=await IDB.get("plg_"+m)}catch(_){}
+    if(!raw){try{raw=localStorage.getItem("jp_plg_"+m)}catch(_){}}
+    if(raw){
+      try{
+        const o=JSON.parse(raw);
+        if(o&&o.text){const d=parseDict(o.text);d._name=o.name;d._text=o.text;PLG[m]=d}
+      }catch(_){}
+    }
+  }
+  effCache={};
+}
 function plgCount(){return plgChars("jp").length+plgChars("hk").length}
-function showCodes(ch){const s=effDict(modeKey())[ch];if(!s)return"—";return[...s].join("/")}
+function showCodes(ch){const s=effDict(modeKey())[ch];return s?[...s].join("/"):"—"}
 const SRC_LABEL={init:"聲母教材",final:"韻母教材",name:"姓氏人名",kouyu:"口語字",lazy:"懶音正音",place:"地名站名","preset-jp":"預設碼表 jyut.js","preset-hk":"預設碼表 canton.js"};
 
-/* ================= 教材（48 頁） ================= */
+/* ================= 48 頁雙版教材（上下捲動、左右轉頁） ================= */
 let tutPage=-1;
 function goTut(idx){tutPage=idx;renderTut()}
 function renderTut(){
   const win=$("subWin");
   win.className="sub-window wide";
-  $("footerHint").textContent="📖 ↑↓ 或 ← → 翻頁 ｜ Tab 切換碼表 ｜ Esc 主選單";
+  $("footerHint").textContent="📖 ↑↓ / 滾輪上下捲動 ｜ ← → 左右轉頁 ｜ Tab 切換碼表 ｜ Esc 返回";
+  const navBtns=`<span style="display:inline-flex;gap:5px;align-items:center">
+    <button type="button" class="key-button" style="height:22px;font-size:12px;padding:0 8px" onclick="tutNav(-1)">◀ 上頁</button>
+    <button type="button" class="key-button" style="height:22px;font-size:12px;padding:0 8px" onclick="tutNav(1)">下頁 ▶</button>
+  </span>`;
   if(tutPage===-1){
     const initCards=initData.map((item,i)=>{const label=(isHKMode?item.hk:item.jp).toLowerCase();return `<div class="rad-card init-card" onclick="goTut(${i})" title="P.${String(i+1).padStart(2,'0')} 聲母 ${item.id}"><span class="rk">${String(i+1).padStart(2,'0')}</span><span class="rc">${label}</span></div>`}).join("");
     const finalCards=finalData.map((item,i)=>{const l1=(isHKMode?item.l1_hk:item.l1_jp).toLowerCase();const l2=(isHKMode?item.l2_hk:item.l2_jp).toLowerCase();const isSubNote=l2.startsWith("(");const isCompact1=l1.length>=8;const isCompact2=!isSubNote&&l2.length>=8;return `<div class="rad-card final-card" onclick="goTut(${i+20})" title="P.${i+21} 韻母 ${item.id}"><span class="rk">f${String(i+1).padStart(2,'0')}</span><div class="rc-2line"><span class="rc-l1 ${isCompact1?'compact-txt':''}">${l1}</span><span class="rc-l2 ${isSubNote?'sub-note':(isCompact2?'compact-txt':'')}">${l2}</span></div></div>`}).join("");
     win.innerHTML=`
-      <div class="sub-win-title"><div><span>📖 粵拼 48 頁聲韻雙版總目錄</span><span class="category-badge">${isHKMode?'港式人名':'標準粵拼'}</span></div>
-      <span style="font-size:11.5px;color:#5ff">點擊進入專講</span></div>
+      <div class="sub-win-title"><div><span>📖 粵拼 48 頁聲韻雙版總目錄</span><span class="category-badge">${isHKMode?'港式人名':'標準粵拼'}</span></div>${navBtns}</div>
       <div class="idx-board">
         <div class="cat-group"><div class="cat-header"><span>▶ 聲母專講（19 聲母 ＋ 零聲母 · 細楷總覽）</span><span style="font-size:10.5px;color:#5f5">P.01 – P.20</span></div><div class="rad-grid-init">${initCards}</div></div>
         <div class="cat-group final-group"><div class="cat-header"><span>▶ 韻母專講（22 組共 58 韻母 · 雙行字母變化）</span><span style="font-size:10.5px;color:#5f5">P.21 – P.42</span></div><div class="rad-grid-final">${finalCards}</div></div>
@@ -582,8 +684,8 @@ function renderTut(){
     const bigHtml=item.big.map(([ch,jp,hk,word])=>{const code=isHKMode?hk:jp;return `<div class="ex-big-card"><div class="ex-big-head"><span class="ex-big-char">${ch}</span><span class="ex-big-code ${code.length>6?'long-code':''}">${code}</span></div><span class="ex-big-word">${word}</span></div>`}).join("");
     const moreHtml=item.more.map(([ch,jp,hk])=>{const code=isHKMode?hk:jp;return `<span class="more-ex-item"><b>${ch}</b><span class="${code.length>6?'long-code':''}">${code}</span></span>`}).join("");
     win.innerHTML=`
-      <div class="sub-win-title"><div><span>📖 粵拼聲母專講（P.${String(tutPage+1).padStart(2,'0')} / 48）</span></div><span style="font-size:13px;color:#5ff">聲母 ${item.id} · 國際音標 ${item.ipa}</span></div>
-      <div class="tut-content page-flex">
+      <div class="sub-win-title"><div><span>📖 粵拼聲母專講（P.${String(tutPage+1).padStart(2,'0')} / 48）</span><span style="font-size:13px;color:#5ff">聲母 ${item.id} · ${item.ipa}</span></div>${navBtns}</div>
+      <div class="tut-content page-flex" id="tutPageContent">
         <div class="initial-card"><div class="ic-top">
           <div class="rad-main-card"><div class="rad-big-char" style="font-size:${fs}px">${activeSym}</div><div class="rad-alt-tag">${altSym}</div><div class="rad-key-tag">${item.ipa}</div></div>
           <div class="feature-panel"><div style="font-size:13px;line-height:1.4;"><span class="${isHKMode?'hl-hk':'hl-jp'}">發音特徵：</span>${item.desc}</div><div class="tip-box">🎯 <b>初學者${item.tip}</b></div></div>
@@ -604,19 +706,19 @@ function renderTut(){
       const moreH=sub.more.map(([ch,jp,hk])=>{const code=isHKMode?hk:jp;return `<span class="more-ex-item"><b>${ch}</b><span class="${code.length>6?'long-code':''}">${code}</span></span>`}).join("");
       return `<div class="phoneme-var-row ${isCompactList?'compact-row':''}"><div class="pvr-info"><span class="phoneme-badge">${activeLabel}</span><div class="pvr-ipa">${sub.ipa}</div><div class="pvr-desc">${sub.desc}</div></div><div class="pvr-main"><div class="ex-grid-4col">${bigH}</div><div class="pvr-more-bar"><span class="more-ex-label">延伸字例：</span> ${moreH}</div></div></div>`}).join("");
     win.innerHTML=`
-      <div class="sub-win-title"><div><span>📖 粵拼韻母專講（P.${tutPage+1} / 48）</span></div><span style="font-size:12.5px;color:#5ff;font-family:'Lucida Sans Unicode','DejaVu Sans',Consolas,sans-serif">${ipaHeaderStr}</span></div>
-      <div class="tut-content page-flex">
+      <div class="sub-win-title"><div><span>📖 粵拼韻母專講（P.${tutPage+1} / 48）</span><span style="font-size:12px;color:#5ff;font-family:'Lucida Sans Unicode',Consolas,sans-serif">${ipaHeaderStr}</span></div>${navBtns}</div>
+      <div class="tut-content page-flex" id="tutPageContent">
         <div class="final-group-header"><div class="rad-main-card" style="flex:0 0 135px;padding:4px 6px;"><div class="rad-big-char" style="font-size:20px;line-height:1.05;text-align:center">${activeHero}</div><div class="rad-alt-tag">${altHero}</div></div>
         <div class="feature-panel"><div style="font-size:13px;line-height:1.35;"><span class="${isHKMode?'hl-hk':'hl-jp'}">音韻結構特徵：</span>${item.desc}</div><div class="tip-box" style="padding:3px 7px;">🎯 <b>初學者${item.tip}</b></div></div></div>
         <div class="final-var-list">${blocksHtml}</div>
       </div>`;
   }else{
-    win.innerHTML=renderSpecial(tutPage);
+    win.innerHTML=renderSpecial(tutPage,navBtns);
   }
 }
-function renderSpecial(p){
-  if(p===42)return `<div class="sub-win-title"><div><span>📖 專題一：九聲六調與入聲標調規律（P.43）</span></div></div>
-  <div class="tut-content"><div class="tut-h">▶ 六大舒聲調音階（1 至 6 聲）</div>
+function renderSpecial(p,navBtns){
+  if(p===42)return `<div class="sub-win-title"><div><span>📖 專題一：九聲六調與入聲標調規律（P.43 / 48）</span></div>${navBtns}</div>
+  <div class="tut-content" id="tutPageContent"><div class="tut-h">▶ 六大舒聲調音階（1 至 6 聲）</div>
   <table class="retro-table" style="margin-top:6px"><thead><tr><th>調號</th><th>調名</th><th>調值</th><th>代表字例</th><th>粵拼標調</th></tr></thead><tbody>
   <tr><td><b>1</b></td><td>陰平（高平／高降）</td><td>55 / 53</td><td>詩、夫、山</td><td>si1 / fu1 / saan1</td></tr>
   <tr><td><b>2</b></td><td>陰上（高升）</td><td>35</td><td>史、虎、水</td><td>si2 / fu2 / seoi2</td></tr>
@@ -631,15 +733,15 @@ function renderSpecial(p){
       const mk=lst=>lst.map(([ch])=>{const code=showCodes(ch);return `<span class="more-ex-item"><b>${ch}</b><span class="${code.length>7?'long-code':''}">${code}</span></span>`}).join("");
       return `<div class="tut-h" style="margin-top:7px">▶ ${g.t}</div><div style="font-size:13px;padding:4px;display:flex;flex-direction:column;gap:4px"><div style="display:flex;flex-wrap:wrap;gap:4px"><span class="more-ex-label">必須正音：</span>${mk(g.items)}</div>${g.ls?`<div style="display:flex;flex-wrap:wrap;gap:4px"><span class="more-ex-label">對照組：</span>${mk(g.ls)}</div>`:""}</div>`;
     };
-    return `<div class="sub-win-title"><div><span>📖 專題二：香港人五大懶音正音救星（P.44）</span></div></div><div class="tut-content">${LAZYIN.map(grp).join("")}<div style="font-size:11.5px;color:#8fdfff;margin-top:5px">💡 本頁字例已納入「打字練習・懶音正音」階段與測驗題庫。</div></div>`;
+    return `<div class="sub-win-title"><div><span>📖 專題二：香港人五大懶音正音救星（P.44 / 48）</span></div>${navBtns}</div><div class="tut-content" id="tutPageContent">${LAZYIN.map(grp).join("")}<div style="font-size:11.5px;color:#8fdfff;margin-top:5px">💡 本頁字例已納入「打字練習・懶音正音」階段與測驗題庫。</div></div>`;
   }
   if(p===44){
     let trows="";
     for(let i=0;i<KOUYU_24.length;i+=6){
       trows+="<tr>"+KOUYU_24.slice(i,i+6).map(([ch,jp])=>`<td>${ch} <b>${jp}</b></td>`).join("")+"</tr>";
     }
-    return `<div class="sub-win-title"><div><span>📖 專題三：廣東話高頻口語字與聲母簡拼（P.45）</span></div></div>
-    <div class="tut-content">
+    return `<div class="sub-win-title"><div><span>📖 專題三：廣東話高頻口語字與聲母簡拼（P.45 / 48）</span></div>${navBtns}</div>
+    <div class="tut-content" id="tutPageContent">
       <div class="tut-h">▶ 香港日常高頻 24 個口語字（全附聲調）</div>
       <table class="retro-table" style="margin-top:4px"><tbody>${trows}</tbody></table>
       <div class="tut-h c" style="margin-top:8px">▶ 「聲母簡拼（只打聲母）」極速連打技巧</div>
@@ -650,44 +752,72 @@ function renderSpecial(p){
   if(p===45){
     const sList=SURNAME_100.split(",").map(s=>{const[c,jp,hk]=s.split(":");const name=c.replace(/^\d+\./,"");return `<div class="data-item"><span>${name}</span><span>${isHKMode?hk:jp}</span></div>`}).join("");
     const gList=GIVEN_NAMES_40.split(",").map(s=>{const[c,jp,hk]=s.split(":");return `<div class="data-item"><span>${c}</span><span>${isHKMode?hk:jp}</span></div>`}).join("");
-    return `<div class="sub-win-title"><div><span>📖 專題四：香港 100 大姓氏與常見人名用字對照（P.46）</span></div></div>
-    <div class="tut-content" style="overflow-y:auto;display:block">
-    <div class="tut-h">▶ 香港 100 大高頻姓氏對照（每行 5 個 · Tab 切換模式）</div><div class="name-grid-5col">${sList}</div>
+    return `<div class="sub-win-title"><div><span>📖 專題四：香港 100 大姓氏與常見人名用字對照（P.46 / 48）</span></div>${navBtns}</div>
+    <div class="tut-content" id="tutPageContent" style="display:block">
+    <div class="tut-h">▶ 香港 100 大高頻姓氏對照（↑↓ 滾輪可上下捲動・Tab 切換模式）</div><div class="name-grid-5col">${sList}</div>
     <div class="tut-h c" style="margin-top:10px">▶ 香港人名常見用字 40 例（每行 5 個）</div><div class="name-grid-5col">${gList}</div>
     <div style="font-size:11.5px;color:#8fdfff;margin-top:6px">💡 本頁字例已納入「打字練習・姓氏地名」階段與測驗「姓氏地名」題庫。</div></div>`;
   }
   if(p===46){
     const mtrHtml=MTR_ALL_LINES.map(line=>{const[title,stations]=line.split("|");const stHtml=stations.split(",").map(st=>{const[c,en,jp]=st.split("/");return `<div class="data-item"><span>${c}</span><span>${isHKMode?en:jp}</span></div>`}).join("");return `<div class="tut-h c" style="margin-top:8px">▶ 港鐵 · ${title}</div><div class="data-grid">${stHtml}</div>`}).join("");
     const distHtml=DISTRICTS_18.map(d=>{const[title,places]=d.split("|");const pHtml=places.split(",").map(pl=>{const[c,en,jp]=pl.split("/");return `<div class="data-item"><span>${c}</span><span>${isHKMode?en:jp}</span></div>`}).join("");return `<div class="tut-h g" style="margin-top:8px">▶ 十八區地名 · ${title}</div><div class="data-grid">${pHtml}</div>`}).join("");
-    return `<div class="sub-win-title"><div><span>📖 專題五：全港鐵車站與十八區地名對照總集（P.47）</span></div></div>
-    <div class="tut-content" style="overflow-y:auto;display:block">
+    return `<div class="sub-win-title"><div><span>📖 專題五：全港鐵車站與十八區地名對照總集（P.47 / 48）</span></div>${navBtns}</div>
+    <div class="tut-content" id="tutPageContent" style="display:block">
     <div style="font-size:12px;color:#ff5;margin-bottom:4px">⚠️ 歷史特例提示：Mong Kok 源自舊稱「望角／芒角」；Aberdeen（香港仔）、Quarry Bay（鰂魚涌）、Central（中環）等屬意譯地名，無法直接由英文推導粵拼。按 Tab 可切換官方英文與標準粵拼！</div>
     <div style="font-size:12px;color:#5f5;margin-bottom:4px">⚙️ 測驗「姓氏地名」題庫之<b>香港拼音模式</b>自動剔除所有意譯及俗拼地名（如 Central、Mong Kok），確保題目皆可依音韻規則合理拼出；標準粵拼模式則全數保留。</div>
     ${mtrHtml}<div class="tut-h" style="margin-top:12px">🏛️ 香港十八區經典地名全集（每區 6 至 8 個）</div>${distHtml}</div>`;
   }
-  return `<div class="sub-win-title"><div><span>📖 專題六：五日粵拼速成特訓路線（P.48）</span></div></div>
-  <div class="tut-content">
+  return `<div class="sub-win-title"><div><span>📖 專題六：五日粵拼速成特訓路線（P.48 / 48）</span></div>${navBtns}</div>
+  <div class="tut-content" id="tutPageContent">
   <div class="tut-h">▶ Day 1：破除英文拼音習慣（j、z、c）</div><div style="font-size:13.5px;padding:2px 6px">牢記三大轉換：j 讀 y (人 jan4)、z 讀不送氣知 (張 zoeng1)、c 讀送氣雌 (陳 can4)，徹底告別 ch / sh / y。</div>
   <div class="tut-h g">▶ Day 2：長短音 aa/a 與圓唇音 oe/eo/yu</div><div style="font-size:13.5px;padding:2px 6px">對比：三 saam1 vs 心 sam1；熟打：佢 keoi5、想 soeng2、魚 jyu4。</div>
   <div class="tut-h c">▶ Day 3：攻克五大懶音與入聲韻尾</div><div style="font-size:13.5px;padding:2px 6px">專練 n-/l-、ng-/零聲母、gw-/kw- 及 -p/-t/-k 尾音。</div>
   <div class="tut-h">▶ Day 4：港府人名地名轉換與口語字實戰</div><div style="font-size:13.5px;padding:2px 6px">用身邊朋友英文名練習：Cheung Ka Wai → zoeng1 gaa1 wai5；Tsim Sha Tsui → zim1 saa1 zeoi2。</div>
   <div class="tut-h g">▶ Day 5：港府拼音特例與意譯地名</div><div style="font-size:13.5px;padding:2px 6px">練習意譯地名：Aberdeen → hoeng1 gong2 zai2 (香港仔)、Mong Kok → wong6 gok3 (旺角)。<br>🎉 完成後接續前往「打字練習」「實力測驗」實戰吧！</div></div>`;
 }
-function tutNav(d){snd.nav();goTut(tutPage===-1?(d>0?0:47):(tutPage+d>47?-1:(tutPage+d<0?47:tutPage+d)))}
+function tutNav(d){sound.nav();goTut(tutPage===-1?(d>0?0:47):(tutPage+d>47?-1:(tutPage+d<0?47:tutPage+d)))}
 
-/* ================= 視圖切換 ================= */
-let VIEW="MENU";
+/* ================= 通用上下捲動控制器（↑↓ 鍵與滑鼠滾輪） ================= */
+function getActiveScrollBox(){
+  const sels=[
+    "#tutPageContent",
+    "#aboutScrollBox",
+    "#lbScrollBox",
+    "#queryDetails",
+    "#examSetupDialog"
+  ];
+  for(const s of sels){
+    const el=document.querySelector(s);
+    if(el&&el.offsetParent!==null)return el;
+  }
+  return null;
+}
+function scrollActiveBox(deltaY){
+  const box=getActiveScrollBox();
+  if(!box)return false;
+  box.scrollBy({top:deltaY,behavior:"smooth"});
+  return true;
+}
+
+/* ================= 視圖切換與全局狀態 ================= */
+let VIEW="MENU",hasPhys=false;
 function setView(v){
+  clearInterval(EX.timer);
+  clearTimeout(PR.advTimer);PR.advTimer=null;
+  EX.escSt=0;clearTimeout(EX.escTimer);EX.escTimer=null;
   VIEW=v;
+  const exit=v==="EXIT";
+  $("topHeaderBar").style.display=v==="EXAM_RUN"||exit?"none":"flex";
+  $("bottomFooterBar").style.display=exit?"none":"flex";
   $("menuPanel").style.display=(v==="MENU"||v==="EXAM_SETUP"||v==="EXIT_CONFIRM")?"flex":"none";
   $("subWin").style.display=(v==="TUTORIAL"||v==="PRACTICE"||v==="QUERY"||v==="LEADER"||v==="ABOUT")?"flex":"none";
   $("exam18Screen").style.display=v==="EXAM_RUN"?"flex":"none";
   $("resultView").style.display=v==="RESULT"?"flex":"none";
   $("examSetupDialog").style.display=v==="EXAM_SETUP"?"flex":"none";
   $("exitConfirmDialog").style.display=v==="EXIT_CONFIRM"?"flex":"none";
-  $("dosExitScreen").style.display=v==="EXIT"?"flex":"none";
+  $("dosExitScreen").style.display=exit?"flex":"none";
   updateMenuSel();
-  if(v==="MENU")$("footerHint").textContent=(isTouch()?"💡 觸控裝置進入練習／測驗自動彈出虛擬鍵盤｜":"")+"↑↓ 選擇，Enter 進入 ｜ Esc 離開程式";
+  if(v==="MENU")$("footerHint").textContent="↑↓ 選擇，Enter 進入 ｜ 1-7 直接進入 ｜ Tab 切換碼表 ｜ Esc 離開";
   maybeAutoKeypad();
   schedScale();
 }
@@ -696,24 +826,38 @@ function updateMenuSel(){document.querySelectorAll(".menu-item-row").forEach(r=>
 /* ================= 主選單 ================= */
 let menuSel=0;
 function menuGo(n){
-  snd.nav();
-  if(n===7){AU.on=!AU.on;$("soundDot").style.display=AU.on?"block":"none";snd.ok();return}
-  if(n===1){VIEW="ABOUT";renderAbout();setView("ABOUT")}
-  else if(n===2){VIEW="TUTORIAL";goTut(-1);setView("TUTORIAL")}
-  else if(n===3){VIEW="PRACTICE";practiceStart(PR.stage);setView("PRACTICE")}
+  if(n<1||n>7)return;
+  menuSel=n-1;
+  updateMenuSel();
+  if(n===7){
+    sound.en=!sound.en;
+    $("soundDot").style.display=sound.en?"block":"none";
+    if(sound.en){
+      sound.unlock();
+      setTimeout(()=>{
+        if(sound.ctx?.state==="running")sound.ok();
+        else{sound.en=false;$("soundDot").style.display="none";sfxToast("⚠️ 音效被此環境封鎖（預覽／iframe 限制）——請下載本檔以獨立瀏覽器開啟")}
+      },350);
+    }else sound._clear();
+    return;
+  }
+  sound.key();
+  if(n===1){renderAbout();setView("ABOUT")}
+  else if(n===2){goTut(-1);setView("TUTORIAL")}
+  else if(n===3){practiceStart(PR.stage);setView("PRACTICE")}
   else if(n===4){openExamSetup()}
-  else if(n===5){VIEW="QUERY";renderQuery();setView("QUERY")}
-  else if(VIEW==="QUERY")doQuery();
-  else if(n===6){VIEW="LEADER";renderLeader();setView("LEADER")}
+  else if(n===5){renderQuery();setView("QUERY")}
+  else if(n===6){renderLeader();setView("LEADER")}
 }
-function menuSelMove(d){menuSel=(menuSel+d+7)%7;snd.nav();updateMenuSel()}
+function menuSelMove(d){menuSel=(menuSel+d+7)%7;sound.nav();updateMenuSel()}
 function menuActivate(){menuGo(menuSel+1)}
 
 /* ================= 軟體簡介 ================= */
 function renderAbout(){
   $("subWin").className="sub-window n660";
-  $("subWin").innerHTML=`<div class="sub-win-title"><span>軟體簡介</span><span style="font-size:13px;color:#aaa">[Esc] 返回</span></div>
-  <div style="font-size:14px;color:#fff;line-height:1.8;overflow-y:auto;flex:1;padding-right:6px">
+  $("footerHint").textContent="📖 ↑↓ / 滾輪上下捲動 ｜ Tab 切換碼表 ｜ Enter / Esc 返回主選單";
+  $("subWin").innerHTML=`<div class="sub-win-title"><span>軟體簡介</span><span style="font-size:13px;color:#aaa">[↑↓] 捲動 [Esc] 返回</span></div>
+  <div class="scroll-box" id="aboutScrollBox" style="font-size:14px;color:#fff;line-height:1.8;flex:1;padding-right:6px">
   本作「致敬」九十年代風行之 DOS 打字教學程式，並特別針對<b style="color:#ff5">標準粵拼（Jyutping）與香港政府拼音</b>雙系統的使用習慣進行全面重構。香港人的身分證英文姓名與街道地名採用港式英文拼音，而手機電腦輸入法則採用粵拼，兩者極易混淆——本程式以 <b style="color:#5ff">Tab 一鍵切換</b>雙碼庫，練習、測驗、查碼全部同步對應，且<b style="color:#5ff">練習與測驗途中均可即時切換碼表</b>（測驗切換後，新碼表未收錄的餘下字元自動以灰色跳過）。<br>
   <div style="margin-top:10px;font-weight:bold;color:#ff5">▶ 名詞辨析：粵拼？廣東拼音？港式拼音？</div>
   • <b style="color:#5ff">廣東拼音／粵語拼音（Cantonese romanisation）</b>：泛稱，涵蓋所有將粵語用拉丁字母拼寫的方案。<br>
@@ -723,34 +867,34 @@ function renderAbout(){
   <div style="margin-top:10px;font-weight:bold;color:#ff5">▶ 手機／平板開啟方式</div>
   • iOS 從 WhatsApp／檔案 App 直接點開本檔時，預覽器會停用 JavaScript——請改用 Safari 開啟部署網址，或傳送至電腦開啟。<br>• Android 以 Chrome 開啟即可完整執行。<br>
   <div style="margin-top:10px;font-weight:bold;color:#ff5">▶ 粵拼入門（48 頁）</div>
-  • 聲母 20 頁＋韻母 22 頁＋專題 6 頁；每聲母／韻母均配四大字例、延伸字例與辨音要點；<b style="color:#5ff">右下 ↑↓ 按鈕或方向鍵即為翻頁鍵</b>。<br>
+  • 聲母 20 頁＋韻母 22 頁＋專題 6 頁；每聲母／韻母均配四大字例、延伸字例與辨音要點；<b style="color:#5ff">↑↓ 方向鍵與滑鼠滾輪上下捲動長文，← → 方向鍵左右翻頁</b>。<br>
   <div style="margin-top:10px;font-weight:bold;color:#ff5">▶ 打字練習（六階）</div>
-  • 基礎聲韻 → 韻母入聲 → 懶音正音 → 高頻口語 → 姓氏地名 → 外掛字庫；每組 20 字，即時統計速度與準確率；打錯可 Backspace 修正，打滿最長碼或按 Space 結算；途中可 Tab 切換碼表，缺字自動跳過。<br>
+  • 基礎聲韻 → 韻母入聲 → 懶音正音 → 高頻口語 → 姓氏地名 → 外掛字庫；每組 20 字，按首碼開始計時；打錯可 Backspace 修正，打滿最長碼或按 Space 結算；途中可 Tab 切換碼表，缺字自動跳過。<br>
   <div style="margin-top:10px;font-weight:bold;color:#ff5">▶ 實力測驗</div>
-  • 電腦命題五選一或自訂命題；7×16 字格逐字拼音；<b style="color:#5ff">唯一碼打滿自動上屏；出現重碼時必須以 1–9/0 選出目標（Space 不保送，判錯）</b>；按首碼開始計時；「姓氏地名」之香港拼音模式自動剔除意譯／俗拼地名。<br>
+  • 電腦命題五選一或自訂命題；7×16 字格逐字拼音；<b style="color:#5ff">唯一碼打滿自動上屏；出現重碼時必須以 1–9 點選或按鍵選出目標（Space 不保送，判錯）</b>；按首碼開始計時；打滿一頁自動無限覆題直到時間結束。<br>
   <div style="margin-top:10px;font-weight:bold;color:#ff5">▶ 預設與外掛碼表</div>
-  • 程式自動偵測同目錄的 <b style="color:#5ff">jyut.js（粵拼版）</b>與 <b style="color:#5ff">canton.js（港式版）</b>預設碼表(現時網上掛載港拼為較廣定義的港式廣東拼音，一般不用硬記港府碼)：檔內以 <code>window.JYUT_TABLE</code>／<code>window.CANTON_TABLE</code> 匯出字串或物件（「字=碼」「碼 字」「字: 碼」皆可，支援一字多碼）。<br>
-  • 亦可於「實力測驗 → 測驗設定」手動掛載 .txt／.cin／.yaml 碼表（支援 YAML「字: 碼」「碼: 字」），綁定粵拼或港拼，存入瀏覽器（localStorage）下次自動套用，並解鎖練習第六階。<br>
-  <div style="margin-top:10px;font-weight:bold;color:#ff5">▶ 觸控操作（移植自簡倉定型版）</div>
-  • 觸控裝置自動彈出<b style="color:#5ff">純英文虛擬鍵盤</b>：可循環「原大／置左 40%／置右 40%」；橫向模式畫面錨定頂部，鍵盤靠邊騰出中央；實體鍵盤輸入自動隱藏，點觸螢幕自動喚回。<br>
-  <div style="margin-top:10px;font-weight:bold;color:#ff5">▶ 粵拼查碼／排行榜</div>
-  • 查碼支援單字或詞組，顯示雙系統編碼與來源（教材／預設碼表／外掛）；成績榜保存最快 50 筆（localStorage）。<br>
+  • 程式自動偵測同目錄的 <b style="color:#5ff">jyut.js（粵拼版）</b>與 <b style="color:#5ff">canton.js（港式版）</b>預設碼表：檔內以 <code>window.JYUT_TABLE</code>／<code>window.CANTON_TABLE</code> 匯出字串或物件（「字=碼」「碼 字」「字: 碼」皆可，支援一字多碼）。<br>
+  • 亦可於「實力測驗 → 測驗設定」手動掛載 .txt／.cin／.yaml 碼表（支援 UTF-8 與 Big5 自動解碼），綁定粵拼或港拼，存入瀏覽器（IndexedDB）下次自動套用，並解鎖練習第六階；排行榜亦可直接匯出 <code>jyut.js</code> / <code>canton.js</code>。<br>
+  <div style="margin-top:10px;font-weight:bold;color:#ff5">▶ 觸控操作</div>
+  • 觸控裝置進入練習／測驗時自動彈出<b style="color:#5ff">純英文虛擬鍵盤</b>：可循環「原大／置左 40%／置右 40%」；實體鍵盤打字自動隱藏，點觸螢幕或右下角「⌨ 喚出鍵盤」按鈕隨時喚回。<br>
   <div style="margin-top:14px;text-align:right"><span style="color:#888;font-family:Consolas,monospace;margin-right:16px">v0.89</span></div></div>
-  <div style="text-align:right"><button class="key-button" id="closeAboutBtn" onclick="goMenu()">確定 [Esc]</button></div>`;
+  <div style="text-align:right;margin-top:6px"><button type="button" class="key-button" id="closeAboutBtn" onclick="goMenu()">確定 [Enter / Esc]</button></div>`;
 }
 
 /* ================= 粵拼查碼 ================= */
 function renderQuery(){
   $("subWin").className="sub-window n620";
+  $("footerHint").textContent="🔍 輸入漢字按 Enter 查詢 ｜ ↑↓ 捲動結果 ｜ Esc 返回主選單";
   $("subWin").innerHTML=`<div class="sub-win-title"><span>🔍 粵拼查碼</span><span style="font-size:13px;color:#aaa">[Enter] 查詢 [Esc] 返回</span></div>
   <div style="display:flex;flex-direction:column;gap:12px;margin:14px 0;flex:1;min-height:0">
     <div style="font-size:15px;color:#fff">請輸入要查詢的字或詞（可多字）：</div>
-    <div style="display:flex;gap:8px"><input type="text" id="queryCharInput" maxlength="15" placeholder="例：陳,旺角,佢" style="font-size:16px;width:190px;padding:4px 8px;text-align:center"><button class="key-button" id="queryBtnDo" style="flex:1">查 詢</button></div>
-    <div id="queryDetails" style="background:#00201d;border:1px solid #5ff;padding:12px;display:none;flex-direction:column;gap:8px;overflow-y:auto;font-size:14px;color:#fff"></div>
+    <div style="display:flex;gap:8px"><input type="text" id="queryCharInput" maxlength="20" placeholder="例：陳,旺角,佢" style="font-size:16px;width:210px;padding:4px 8px;text-align:center"><button type="button" class="key-button" id="queryBtnDo" style="flex:1">查 詢</button></div>
+    <div class="scroll-box" id="queryDetails" style="background:#00201d;border:1px solid #5ff;padding:12px;display:none;flex-direction:column;gap:8px;flex:1;font-size:14px;color:#fff"></div>
   </div>
-  <div style="text-align:right"><button class="key-button" onclick="goMenu()">返回 [Esc]</button></div>`;
+  <div style="text-align:right"><button type="button" class="key-button" onclick="goMenu()">返回 [Esc]</button></div>`;
   $("queryBtnDo").onclick=doQuery;
   $("queryCharInput").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();doQuery()}});
+  setTimeout(()=>$("queryCharInput")?.focus(),50);
 }
 function doQuery(){
   const raw=$("queryCharInput").value.trim();const box=$("queryDetails");
@@ -760,14 +904,14 @@ function doQuery(){
     const jpStr=jpS?[...jpS].join(" / "):null;
     const hkStr=hkS?[...hkS].join(" / "):null;
     const src=SRC[ch]?SRC_LABEL[SRC[ch]]:(jpS||hkS?"外掛字庫":"未收錄");
-    return `<div style="border-bottom:1px dashed #066;padding-bottom:6px"><span style="font-size:20px;color:#ff5;font-weight:bold">${ch}</span> <span style="color:#5ff">粵拼：${jpStr||"—"}</span> <span style="color:#f7a">港式：${hkStr||"—"}</span> <span style="font-size:12px;color:#888">來源：${src}</span></div>`;
+    return `<div style="border-bottom:1px dashed #066;padding-bottom:6px"><span style="font-size:20px;color:#ff5;font-weight:bold">${esc(ch)}</span> <span style="color:#5ff">粵拼：${esc(jpStr||"—")}</span> <span style="color:#f7a">港式：${esc(hkStr||"—")}</span> <span style="font-size:12px;color:#888">來源：${esc(src)}</span></div>`;
   }).join("");
-  box.innerHTML=rows||"（無結果）";box.style.display="flex";snd.ok();
+  box.innerHTML=rows||"（無結果）";box.style.display="flex";sound.ok();
 }
 
-/* ================= 打字練習 ================= */
+/* ================= 打字練習（六階） ================= */
 const STAGES=["基礎聲韻","韻母入聲","懶音正音","高頻口語","姓氏地名","外掛字庫"];
-const PR={stage:1,list:[],i:0,ok:0,err:0,t0:0,buf:"",reveal:false,lock:false,done:false};
+const PR={stage:1,list:[],i:0,ok:0,err:0,t0:0,buf:"",reveal:false,lock:false,done:false,advTimer:null};
 function charsBySrc(srcs){const out=[];for(const ch in SRC)if(srcs.includes(SRC[ch]))out.push(ch);return out}
 function practicePool(stage){
   const mode=modeKey();const d=effDict(mode);
@@ -780,7 +924,15 @@ function practicePool(stage){
   if(stage===6)return plgChars(mode);
   return[];
 }
-function practiceStart(stage){PR.stage=stage;const pool=shuffle(practicePool(stage));PR.list=pool.slice(0,20);PR.i=0;PR.ok=0;PR.err=0;PR.t0=Date.now();PR.buf="";PR.done=false;PR.reveal=false;PR.lock=false;practiceSkipMissing();renderPractice()}
+function practiceStart(stage){
+  clearTimeout(PR.advTimer);PR.advTimer=null;
+  PR.stage=stage;
+  const pool=shuffle(practicePool(stage));
+  PR.list=pool.slice(0,20);
+  PR.i=0;PR.ok=0;PR.err=0;PR.t0=0;PR.buf="";PR.done=false;PR.reveal=false;PR.lock=false;
+  practiceSkipMissing();
+  renderPractice();
+}
 function practiceSkipMissing(){const d=effDict(modeKey());let guard=0;while(PR.i<PR.list.length&&!d[PR.list[PR.i]]&&guard++<200)PR.i++;if(PR.i>=PR.list.length)PR.done=true}
 function expAns(en){
   const d=effDict(modeKey());
@@ -789,17 +941,24 @@ function expAns(en){
   const maxLen=Math.max(1,...(arr.length?arr.map(c=>c.length):[1]));
   return{arr,primary,full:primary,maxLen};
 }
-function practiceAdvance(){PR.i++;PR.buf="";PR.reveal=false;PR.lock=false;practiceSkipMissing();if(PR.i>=PR.list.length)PR.done=true;renderPractice()}
-function practiceWrong(){PR.err++;snd.err();PR.lock=true;PR.reveal=true;PR.buf="";renderPractice();setTimeout(()=>{PR.reveal=false;practiceAdvance()},900)}
+function practiceAdvance(){clearTimeout(PR.advTimer);PR.advTimer=null;PR.i++;PR.buf="";PR.reveal=false;PR.lock=false;practiceSkipMissing();if(PR.i>=PR.list.length)PR.done=true;renderPractice()}
+function practiceWrong(){
+  PR.err++;sound.err();PR.lock=true;PR.reveal=true;PR.buf="";renderPractice();
+  clearTimeout(PR.advTimer);
+  PR.advTimer=setTimeout(()=>{if(VIEW==="PRACTICE"){PR.reveal=false;practiceAdvance()}},900);
+}
 function renderPractice(){
   const win=$("subWin");win.className="sub-window";
+  $("footerHint").textContent="⌨️ A–Z 輸入拼音 ｜ Backspace 修正 ｜ ← → 切換上下題 ｜ ? 查碼 ｜ Tab 切換碼表 ｜ Esc 返回";
   const en=PR.list[PR.i];
   const locked=PR.stage===6&&!PR.list.length;
   const prog=PR.done?"完成":`${PR.i+1<10?"0":""}${Math.min(PR.i+1,PR.list.length)}/${PR.list.length}`;
+  const elapsedMin=PR.t0?Math.max((Date.now()-PR.t0)/60000,0.008):0;
+  const spd=elapsedMin>0?(PR.ok/elapsedMin).toFixed(1):"0.0";
+  const acc=(PR.ok+PR.err)?Math.round(PR.ok/(PR.ok+PR.err)*100):100;
   let body;
   if(locked){body=`<div style="flex:1;display:flex;align-items:center;justify-content:center;color:#ffd;font-size:16px">🔒 請先於「實力測驗 → 測驗設定」載入綁定${isHKMode?"香港拼音":"標準粵拼"}的外掛字庫</div>`}
   else if(PR.done){
-    const m=(Date.now()-PR.t0)/60000;const spd=m>0?(PR.ok/m).toFixed(1):"0.0";const acc=(PR.ok+PR.err)?Math.round(PR.ok/(PR.ok+PR.err)*100):100;
     body=`<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px">
       <div class="practice-char-box" style="font-size:44px">🎉<span style="font-size:22px;margin-left:8px">完成！</span></div>
       <div style="font-size:17px;color:#ff5;font-weight:bold">速度 ${spd} 字/分 準確率 ${acc}%</div>
@@ -821,13 +980,12 @@ function renderPractice(){
       <div class="practice-code-slots">${slots.join("")}</div>
       <button type="button" class="key-button" id="btnToggleAuxMode" style="position:absolute;left:73%;top:50%;transform:translate(-50%,-50%);height:26px;font-size:12px;color:#000080;box-shadow:2px 2px 0 rgba(0,0,0,.4)">${PR.reveal?"顯示我的輸入":"顯示答案提示"}</button>
       <div style="display:flex;justify-content:center;gap:8px;margin-top:10px">
-        <button class="key-button" id="practiceQueryBtn" style="height:26px;font-size:13px">🔍 查碼 [?]</button>
+        <button type="button" class="key-button" id="practiceQueryBtn" style="height:26px;font-size:13px">🔍 查碼 [?]</button>
         <span id="practiceQueryResult" style="font-size:15px;color:#5ff;align-self:center;min-height:20px"></span>
       </div>
       <div style="text-align:center;margin-top:10px;font-size:16px;color:#ff5" id="dispPrompt">${PR.lock?"❌ 答案已顯示，稍後自動跳下一題":"按 A–Z 輸入拼音 ｜ Backspace 修正 ｜ 打滿自動確認（Space 亦可）"}</div>
     </div>`;
   }
-  const m=(Date.now()-PR.t0)/60000;const spd=m>0?(PR.ok/m).toFixed(1):"0.0";const acc=(PR.ok+PR.err)?Math.round(PR.ok/(PR.ok+PR.err)*100):100;
   win.innerHTML=`
   <div class="sub-win-title"><div><span id="winModeTitle">粵拼練習</span><span class="category-badge" id="charTypeBadge">${STAGES[PR.stage-1]}</span></div><span style="font-size:14px;color:#5ff" id="winProgress">進度：${prog}</span></div>
   <div id="practiceScopeRow">
@@ -836,8 +994,8 @@ function renderPractice(){
   </div>
   ${body}
   <div style="display:flex;justify-content:space-between;font-size:13px;color:#aaa;border-top:1px dashed #5ff;padding-top:6px"><span>模式：<span style="color:#5f5">${isHKMode?"香港拼音":"標準粵拼"}</span>（Tab 中途可切換）</span><span>速度：<span id="rtSpeed" style="color:#5f5">${spd}</span>字/分｜準確率：<span id="rtAcc" style="color:#5f5">${acc}%</span></span></div>`;
-  win.querySelectorAll(".stage-sel").forEach(b=>b.onclick=()=>{snd.nav();practiceStart(+b.dataset.s)});
-  const ab=$("btnToggleAuxMode");if(ab)ab.onclick=()=>{PR.reveal=!PR.reveal;snd.nav();renderPractice()};
+  win.querySelectorAll(".stage-sel").forEach(b=>b.onclick=()=>{sound.nav();practiceStart(+b.dataset.s)});
+  const ab=$("btnToggleAuxMode");if(ab)ab.onclick=()=>{PR.reveal=!PR.reveal;sound.nav();renderPractice()};
   const qb=$("practiceQueryBtn");if(qb)qb.onclick=()=>practiceQuery();
 }
 function practiceQuery(){
@@ -845,37 +1003,37 @@ function practiceQuery(){
   const jpS=effDict("jp")[en],hkS=effDict("hk")[en];
   const jpStr=jpS?[...jpS].join("/"):"—";
   const el=$("practiceQueryResult");if(el)el.textContent=`${en} ＝ 粵拼 ${jpStr}｜港式 ${hkS?[...hkS].join("/"):"—"}`;
-  clearTimeout(practiceQuery._t);practiceQuery._t=setTimeout(()=>{if(el)el.textContent=""},2000);
+  clearTimeout(practiceQuery._t);practiceQuery._t=setTimeout(()=>{if(el)el.textContent=""},2400);
 }
 function practiceKey(k){
-  if(PR.done){if(k===" "||k==="Enter"){snd.key();practiceStart(PR.stage)}return}
-  if(PR.lock||!PR.list.length)return;
+  if(PR.done||PR.lock||!PR.list.length)return;
   const en=PR.list[PR.i];const d=effDict(modeKey());
   if(!d[en]){practiceSkipMissing();renderPractice();return}
   const a=expAns(en);
-  if(k==="Backspace"){if(PR.buf.length>0){PR.buf=PR.buf.slice(0,-1);snd.nav()}renderPractice();return}
+  if(k==="Backspace"){if(PR.buf.length>0){PR.buf=PR.buf.slice(0,-1);sound.nav()}renderPractice();return}
   if(k===" "||k==="Enter"){
     const b=PR.buf;
     if(!b)return;
-    if(a.arr.includes(b)){PR.ok++;snd.ok();practiceAdvance()}
+    if(a.arr.includes(b)){PR.ok++;sound.ok();practiceAdvance()}
     else practiceWrong();
     return;
   }
   if(/^[a-zA-Z]$/.test(k)){
-    if(PR.buf.length<8){PR.buf+=k.toLowerCase();snd.key()}
+    if(!PR.t0)PR.t0=Date.now();
+    if(PR.buf.length<8){PR.buf+=k.toLowerCase();sound.key()}
     const b=PR.buf;
-    if(b&&a.arr.includes(b)){PR.ok++;snd.ok();practiceAdvance();return}
+    if(b&&a.arr.includes(b)){PR.ok++;sound.ok();practiceAdvance();return}
     if(b.length>=a.maxLen){practiceWrong();return}
   }
   renderPractice();
 }
 
-/* ================= 實力測驗 ================= */
+/* ================= 實力測驗（單一計時源＋無限分頁續題） ================= */
 const POOL_LABELS={all:"內建綜合",basic:"題庫一・基礎聲韻",lazy:"題庫二・懶音正音",kouyu:"題庫三・高頻口語",name:"題庫四・姓氏地名"};
-const EX={phase:"setup",src:"computer",pool:"all",mins:3,units:[],i:0,ok:0,err:0,t0:0,started:false,buf:"",cands:[],candPage:0,states:[],timer:null,lastId:0};
-function openExamSetup(){EX.phase="setup";setView("EXAM_SETUP");updateDialogUI();$("footerHint").textContent="設定完成後按「開始」｜ Esc 取消"}
-function setExamSrc(s){EX.src=s;snd.nav();updateDialogUI()}
-function setPlgMode(m){PLG.mode=m;snd.nav();updateDialogUI()}
+const EX={phase:"setup",src:"computer",pool:"all",mins:3,units:[],i:0,ok:0,err:0,t0:0,end:0,started:false,buf:"",cands:[],candPage:0,states:[],timer:null,lastId:0,saved:false,escSt:0,escTimer:null};
+function openExamSetup(){EX.phase="setup";setView("EXAM_SETUP");updateDialogUI();$("footerHint").textContent="設定完成後按「開始」｜ 1/2 切換命題 ｜ Esc 取消"}
+function setExamSrc(s){EX.src=s;sound.nav();updateDialogUI()}
+function setPlgMode(m){PLG.mode=m;sound.nav();updateDialogUI()}
 function updateDialogUI(){
   $("radioComputer").classList.toggle("active",EX.src==="computer");
   $("radioCustom").classList.toggle("active",EX.src==="custom");
@@ -888,16 +1046,48 @@ function updateDialogUI(){
   $("dictSizeDisplay").textContent=plgCount();
   $("presetStatus").textContent="預設碼表：jyut.js（粵拼）"+PRESET_N.jp+" 字 ｜ canton.js（港式）"+PRESET_N.hk+" 字"+((!PRESET_N.jp&&!PRESET_N.hk)?"（未偵測到檔案，使用內建教材字庫）":"");
 }
-document.querySelectorAll(".pool-btn").forEach(b=>b.onclick=()=>{EX.pool=b.dataset.p;snd.nav();updateDialogUI()});
+document.querySelectorAll(".pool-btn").forEach(b=>b.onclick=()=>{EX.pool=b.dataset.p;sound.nav();updateDialogUI()});
+$("optComputer").onclick=()=>setExamSrc("computer");
+$("optCustom").onclick=()=>setExamSrc("custom");
+$("radioPlgJp").onclick=$("lblPlgJp").onclick=()=>setPlgMode("jp");
+$("radioPlgHk").onclick=$("lblPlgHk").onclick=()=>setPlgMode("hk");
+
+/* 綁定自訂命題本機 .txt 檔案載入 */
+$("customTxtFile").addEventListener("change",e=>{
+  const f=e.target.files&&e.target.files[0];if(!f)return;
+  const rd=new FileReader();
+  rd.onload=ev=>{
+    const txt=decodeBuf(ev.target.result);
+    $("customInputString").value=txt;
+    setExamSrc("custom");
+    const d=effDict(modeKey());
+    const validCnt=[...txt].filter(ch=>d[ch]).length;
+    $("customTxtStatus").textContent=`✅ 已載入 ${f.name}（可用 ${validCnt} 字）`;
+    sound.ok();
+  };
+  rd.onloadend=()=>{e.target.value=""};
+  rd.readAsArrayBuffer(f);
+});
+
 $("plgFileInput").addEventListener("change",e=>{
   const f=e.target.files&&e.target.files[0];if(!f)return;
   const rd=new FileReader();
-  rd.onload=()=>{const d=parseDict(rd.result);d._name=f.name;d._text=rd.result;PLG[PLG.mode]=d;effCache={};plgSave();updateDialogUI();$("examSetupMsg").textContent=`💡 已載入字庫 ${Object.keys(d).length} 字（${PLG.mode==="jp"?"粵拼":"港拼"}），可立即開始測驗！`;snd.ok()};
-  rd.readAsText(f);
+  rd.onload=async ev=>{
+    const txt=decodeBuf(ev.target.result);
+    const d=parseDict(txt);d._name=f.name;d._text=txt;
+    PLG[PLG.mode]=d;effCache={};
+    await plgSave();
+    updateDialogUI();
+    $("examSetupMsg").textContent=`💡 已載入外掛字庫 ${plgChars(PLG.mode).length} 字（${PLG.mode==="jp"?"粵拼":"港拼"}），並存入瀏覽器記憶！`;
+    sound.ok();
+  };
+  rd.onloadend=()=>{e.target.value=""};
+  rd.readAsArrayBuffer(f);
 });
-$("btnPlgClear").onclick=()=>{PLG[PLG.mode]=null;effCache={};plgSave();updateDialogUI();snd.nav()};
+$("btnPlgClear").onclick=async()=>{PLG[PLG.mode]=null;effCache={};await plgSave();updateDialogUI();sound.nav()};
 $("btnCancelExamSetup").onclick=()=>goMenu();
 $("btnStartExam").onclick=()=>examStart();
+
 function poolCharsFor(type){
   const mode=modeKey();const d=effDict(mode);
   const flt=arr=>arr.filter(ch=>d[ch]);
@@ -922,30 +1112,71 @@ function poolStrings(type,mode){
   if(type==="basic")return Array.from({length:160},()=>combo(basic,2));
   return places.concat(Array.from({length:50},nameOf)).concat(Array.from({length:50},()=>combo(kouyu,2))).concat(Array.from({length:50},()=>combo(basic,2)));
 }
-const SKIP_PUNCT=new Set(["、","，","。","！","？","；","："," ","　"]);
+
+/* 完整標點過濾集合（移除誤植的 "v"，補齊中英文常見標點與空白） */
+const SKIP_PUNCT=new Set([..."、，。！？；：「」『』（）()《》〈〉【】［］—…·.,!?;:'\"- \u3000\t"]);
+
+function makeExamPageUnits(rawChars, mode, padWithBlank){
+  const d=effDict(mode);
+  const units=rawChars.map(ch=>{
+    const codes=d[ch];
+    const isSk=SKIP_PUNCT.has(ch)||!codes;
+    return{ch,skip:isSk,codes:(!isSk&&codes)?[...codes]:null};
+  });
+  if(padWithBlank){
+    while(units.length%112!==0)units.push({ch:" ",skip:true,codes:null});
+  }
+  return units;
+}
+
+function appendComputerExamPage(){
+  const mode=modeKey();
+  const strs=poolStrings(EX.pool,mode);
+  let text="",guard=0;
+  const parts=[];
+  while([...text].length<112&&guard++<400){parts.push(pick(strs));parts.push("、");text=parts.join("")}
+  const pageChars=[...text].slice(0,112);
+  const newUnits=makeExamPageUnits(pageChars,mode,true);
+  EX.units.push(...newUnits);
+  EX.states.push(...Array(newUnits.length).fill(""));
+}
+
 function examStart(){
   const mins=Math.max(1,Math.min(30,+$("examTimeInput").value||3));EX.mins=mins;
-  const mode=modeKey();const d=effDict(mode);
-  let text="";
-  if(EX.src==="custom"){text=$("customInputString").value||""}
-  else{const strs=poolStrings(EX.pool,mode);let guard=0;const parts=[];
-    while(text.length<130&&guard++<400){parts.push(pick(strs));parts.push("、");text=parts.join("")}}
-  EX.units=[...text].slice(0,112).map(ch=>{const codes=d[ch];return{ch,skip:SKIP_PUNCT.has(ch)||!codes,codes:codes?[...codes]:null}});
-  while(EX.units.length<112)EX.units.push({ch:"，",skip:true,codes:null});
-  EX.states=Array(112).fill("");
-  EX.i=0;EX.ok=0;EX.err=0;EX.buf="";EX.cands=[];EX.candPage=0;EX.started=false;
+  const mode=modeKey();
+  EX.units=[];EX.states=[];
+  if(EX.src==="custom"){
+    const cleaned=[...($("customInputString").value||"").replace(/[\r\n]+/g,"")];
+    if(!cleaned.length){sound.err();sfxToast("⚠️ 請輸入自訂測驗文字！");return}
+    EX.units=makeExamPageUnits(cleaned,mode,true);
+    EX.states=Array(EX.units.length).fill("");
+  }else{
+    appendComputerExamPage();
+  }
+  EX.i=0;EX.ok=0;EX.err=0;EX.buf="";EX.cands=[];EX.candPage=0;EX.started=false;EX.saved=false;EX.escSt=0;
   clearInterval(EX.timer);
   advanceSkips();
-  if(EX.i>=EX.units.length){snd.err();toast("題目過短或未包含有效字！");return}
+  if(EX.i>=EX.units.length){sound.err();sfxToast("⚠️ 題目中未包含目前碼表收錄之有效漢字！");return}
   EX.phase="run";setView("EXAM_RUN");
   $("exam18Title").textContent=`【實力測驗】${EX.src==="custom"?"自訂命題":POOL_LABELS[EX.pool]}｜${isHKMode?"香港拼音":"標準粵拼"}`;
   updateExamUI();renderExamGrid();
-  $("footerHint").textContent="a–z 輸入拼音 ｜ Space 確認(唯一碼) ｜ 重碼用 1–9/0 選字 ｜ = − . , 翻頁 ｜ ? 反查 ｜ Esc 清除/退出 ｜ Tab 中途切換碼表";
+  $("footerHint").textContent="a–z 輸入拼音 ｜ Space 唯一碼上屏 ｜ 重碼按 1–9 或點擊選字 ｜ [ ] / = − 翻頁 ｜ ? 反查 ｜ Tab 切換碼表";
 }
-function advanceSkips(){while(EX.i<EX.units.length&&EX.units[EX.i].skip){EX.states[EX.i]="skip";EX.i++}}
+
+function advanceSkips(){
+  while(EX.i<EX.units.length&&EX.units[EX.i].skip){
+    EX.states[EX.i]="skip";
+    EX.i++;
+  }
+  if(EX.i>=EX.units.length&&EX.src==="computer"&&EX.started&&(EX.end-Date.now()>0)){
+    appendComputerExamPage();
+    advanceSkips();
+  }
+}
+
 function refreshExamMode(){
   const d=effDict(modeKey());
-  for(let i=0;i<EX.units.length;i++){
+  for(let i=EX.i;i<EX.units.length;i++){
     const u=EX.units[i];
     if(SKIP_PUNCT.has(u.ch)){u.skip=true;u.codes=null;continue}
     const cs=d[u.ch];
@@ -957,6 +1188,7 @@ function refreshExamMode(){
   advanceSkips();updateExamUI();renderExamGrid();
   if(EX.i>=EX.units.length)examFinish();
 }
+
 function updateCands(){
   const b=stripT(EX.buf);EX.cands=[];
   if(b){
@@ -965,66 +1197,107 @@ function updateCands(){
   }
   EX.cands.sort((a,b2)=>a.ch.localeCompare(b2.ch,"zh-Hant"));
 }
+
 function updateExamUI(){
-  const elapsed=EX.started?(Date.now()-EX.t0)/1000:0;
-  const remain=Math.max(0,EX.mins*60-elapsed);
+  const remain=EX.started?Math.max(0,Math.round((EX.end-Date.now())/1000)):EX.mins*60;
+  const elapsed=EX.started?Math.max(1,(Date.now()-EX.t0)/1000):0;
   const mm=String(Math.floor(remain/60)).padStart(2,"0"),ss=String(Math.floor(remain%60)).padStart(2,"0");
   $("exam18Timer").textContent=EX.started?`剩餘時間：${mm}:${ss}`:`剩餘時間：${String(EX.mins).padStart(2,"0")}:00（按首碼開始計時）`;
   const spd=EX.started&&elapsed>0?(EX.ok/(elapsed/60)).toFixed(1):"0.0";
   const acc=(EX.ok+EX.err)?Math.round(EX.ok/(EX.ok+EX.err)*100):100;
   $("exam18Stats").textContent=`已輸入：${EX.ok+EX.err}（正確 ${EX.ok} 錯誤 ${EX.err}）｜準確率：${acc}%｜速度：${spd}字/分`;
   $("line18Radicals").textContent=EX.buf||"\u00A0";
+
   let prev="\u00A0";
   if(EX.cands.length===1)prev=EX.cands[0].ch;
-  else{const b=stripT(EX.buf);const u=EX.units[EX.i];if(u&&!u.skip&&u.codes&&u.codes.some(c=>c===b))prev=u.ch}
+  else if(EX.cands.length>1)prev=EX.cands[0].ch+"▾";
+  else if(EX.buf)prev="？";
   $("line18PreviewChar").textContent=prev;
+
   const cl=$("candidateListText");
   if(!EX.cands.length)cl.textContent="（無重碼）";
   else{
-    const tg=(EX.units[EX.i]||{}).ch;
+    const pages=Math.max(1,Math.ceil(EX.cands.length/9));
+    if(EX.candPage>=pages)EX.candPage=0;
     const page=EX.cands.slice(EX.candPage*9,EX.candPage*9+9);
-    cl.textContent=page.map((c,i)=>{const n=EX.candPage*9+i+1;return `${n===10?0:n}.${c.ch===tg?"★":""}${c.ch} ${c.code}`}).join("　")+(EX.cands.length>(EX.candPage+1)*9?"　[=]更多":"");
+    cl.innerHTML=page.map((c,i)=>`<span class="cand-item" data-idx="${EX.candPage*9+i}">[${i+1}]${esc(c.ch)}</span>`).join("")+(pages>1?`<span style="color:#004080;font-size:13px">（第${EX.candPage+1}/${pages}頁 [ ]翻頁）</span>`:"");
+    cl.querySelectorAll(".cand-item").forEach(sp=>{
+      sp.addEventListener("pointerdown",ev=>{
+        ev.preventDefault();
+        const item=EX.cands[+sp.dataset.idx];
+        const u=EX.units[EX.i];
+        if(item&&u)examCommit(item.ch===u.ch);
+      });
+    });
   }
 }
+
 function renderExamGrid(){
-  const box=$("exam7GroupsContainer");let html="";
+  const box=$("exam7GroupsContainer");
+  const pageIdx=Math.floor(EX.i/112);
+  const startOffset=pageIdx*112;
+  let html="";
   for(let r=0;r<7;r++){
     html+=`<div class="char-grid-row">`;
     for(let c=0;c<16;c++){
-      const idx=r*16+c;const u=EX.units[idx];const st=EX.states[idx];
-      let cls="char-cell";if(st==="ok")cls+=" correct";else if(st==="err")cls+=" wrong";else if(st==="skip")cls+=" skipped";
-      if(idx===EX.i&&!st)cls+=" active-cursor";
-      html+=`<div class="${cls}">${u.ch}</div>`;
+      const idx=startOffset+r*16+c;
+      const u=EX.units[idx]||{ch:" ",skip:true};
+      const st=EX.states[idx]||"";
+      let cls="char-cell";
+      if(st==="ok")cls+=" correct";
+      else if(st==="err")cls+=" wrong";
+      else if(st==="skip"||u.skip)cls+=" skipped";
+      if(idx===EX.i&&!st&&!u.skip)cls+=" active-cursor";
+      html+=`<div class="${cls}">${esc(u.ch)}</div>`;
     }
     html+=`</div>`;
   }
   box.innerHTML=html;
 }
+
 function examCommit(okFlag){
   EX.states[EX.i]=okFlag?"ok":"err";
-  if(okFlag){EX.ok++;snd.ok()}else{EX.err++;snd.err()}
+  if(okFlag){EX.ok++;sound.ok()}else{EX.err++;sound.err()}
   EX.buf="";EX.cands=[];EX.candPage=0;EX.i++;
   advanceSkips();
   updateExamUI();renderExamGrid();
   if(EX.i>=EX.units.length)examFinish();
 }
+
 function examKey(k){
-  if(k==="Backspace"){if(EX.buf.length>0){EX.buf=EX.buf.slice(0,-1);updateCands();EX.candPage=0;updateExamUI()}return}
+  if(EX.escSt===1){EX.escSt=0;clearTimeout(EX.escTimer);$("exam18Title").textContent=`【實力測驗】${EX.src==="custom"?"自訂命題":POOL_LABELS[EX.pool]}｜${isHKMode?"香港拼音":"標準粵拼"}`}
+  if(k==="Backspace"){if(EX.buf.length>0){EX.buf=EX.buf.slice(0,-1);updateCands();EX.candPage=0;updateExamUI();sound.key()}return}
   if(k===" "||k==="Enter"){
     const u=EX.units[EX.i];if(!u||u.skip)return;
     const b=stripT(EX.buf);
+    if(!b)return;
     updateCands();
-    if(b&&u.codes.some(c=>c===b)){
-      if(EX.cands.length>1)examCommit(false);
-      else examCommit(true);
+    if(u.codes.some(c=>c===b)){
+      if(EX.cands.length>1){
+        sound.err();
+        $("line18HintMsg").textContent="⚠️ 出現重碼，請按數字鍵 1–9 或點擊候選字！";
+        clearTimeout(examKey._t);examKey._t=setTimeout(()=>{$("line18HintMsg").textContent="按「?」可反查字碼"},2000);
+      }else{
+        examCommit(true);
+      }
+    }else{
+      examCommit(false);
     }
-    else if(b)examCommit(false);
     return;
   }
   if(/^[a-zA-Z]$/.test(k)){
     if(EX.buf.length<8){
-      EX.buf+=k.toLowerCase();snd.key();
-      if(!EX.started){EX.started=true;EX.t0=Date.now();clearInterval(EX.timer);EX.timer=setInterval(()=>{const remain=EX.mins*60-(Date.now()-EX.t0)/1000;if(remain<=0){snd.alarm();examFinish()}else updateExamUI()},250)}
+      EX.buf+=k.toLowerCase();sound.key();
+      if(!EX.started){
+        EX.started=true;
+        EX.t0=Date.now();
+        EX.end=EX.t0+EX.mins*60000;
+        clearInterval(EX.timer);
+        EX.timer=setInterval(()=>{
+          if(Date.now()>=EX.end){sound.alarm();examFinish()}
+          else updateExamUI();
+        },250);
+      }
       updateCands();EX.candPage=0;
       const b=stripT(EX.buf);const u=EX.units[EX.i];
       if(u&&!u.skip&&u.codes&&u.codes.some(c=>c===b)&&EX.cands.length===1){examCommit(true);return}
@@ -1032,31 +1305,41 @@ function examKey(k){
     }
     return;
   }
-  if(/^[0-9]$/.test(k)){
-    const n=k==="0"?10:+k;const idx=(n-1)+EX.candPage*9;const c=EX.cands[idx];
+  if(/^[1-9]$/.test(k)){
+    const idx=(+k-1)+EX.candPage*9;
+    const c=EX.cands[idx];
     if(c){const u=EX.units[EX.i];examCommit(c.ch===u.ch)}
+    else sound.err();
     return;
   }
-  if(k==="="||k==="."){if((EX.candPage+1)*9<EX.cands.length){EX.candPage++;updateExamUI()}return}
-  if(k==="-"||k===","){if(EX.candPage>0){EX.candPage--;updateExamUI()}return}
+  if(k==="="||k==="."||k==="]"||k==="PageDown"){
+    if((EX.candPage+1)*9<EX.cands.length){EX.candPage++;sound.nav();updateExamUI()}
+    return;
+  }
+  if(k==="-"||k===","||k==="["||k==="PageUp"){
+    if(EX.candPage>0){EX.candPage--;sound.nav();updateExamUI()}
+    return;
+  }
   if(k==="?"){
     const u=EX.units[EX.i];if(u&&!u.skip){
+      sound.key();
       const jpS=effDict("jp")[u.ch],hkS=effDict("hk")[u.ch];
-      $("line18HintMsg").textContent=`${u.ch} ＝ 粵拼 ${jpS?[...jpS].join("/"):"—"}｜港式 ${hkS?[...hkS].join("/"):"—"}`;
-      clearTimeout(examKey._t);examKey._t=setTimeout(()=>{$("line18HintMsg").textContent="按「?」可反查字碼"},1600);
+      $("line18HintMsg").textContent=`提示「${u.ch}」：粵拼 ${jpS?[...jpS].join("/"):"—"}｜港式 ${hkS?[...hkS].join("/"):"—"}`;
+      clearTimeout(examKey._t);examKey._t=setTimeout(()=>{$("line18HintMsg").textContent="按「?」可反查字碼"},2500);
     }
     return;
   }
 }
+
 function examFinish(){
   clearInterval(EX.timer);EX.phase="result";
-  if(!EX.started)EX.t0=Date.now();
-  const elapsed=Math.max(1,(Date.now()-EX.t0)/1000);
+  const elapsed=EX.started?Math.max(1,(Date.now()-EX.t0)/1000):1;
   const spd=(EX.started?EX.ok:0)/(elapsed/60);
   const acc=(EX.ok+EX.err)?Math.round(EX.ok/(EX.ok+EX.err)*100):100;
   $("resSpeed").textContent=spd.toFixed(1);
   $("resAccuracy").textContent=acc;
   EX.lastResult={speed:+spd.toFixed(1),acc,mins:EX.mins,ok:EX.ok,err:EX.err};
+  EX.saved=false;
   try{$("resultNameInput").value=localStorage.getItem("jp_name")||"粵拼小高手"}catch(e){}
   $("saveMsg").textContent="";
   setView("RESULT");
@@ -1066,7 +1349,9 @@ function examFinish(){
 $("btnSaveResult").onclick=saveResult;
 $("resultNameInput").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();saveResult()}});
 function saveResult(){
+  if(EX.saved)return;
   const r=EX.lastResult;if(!r)return;
+  EX.saved=true;
   const name=($("resultNameInput").value.trim()||"粵拼小高手").slice(0,12);
   try{localStorage.setItem("jp_name",name)}catch(e){}
   let list=[];try{list=JSON.parse(localStorage.getItem("jyutping_lb_v1")||"[]")}catch(e){}
@@ -1074,36 +1359,68 @@ function saveResult(){
   EX.lastId=entry.id;
   list.push(entry);list.sort((a,b)=>b.speed-a.speed);list=list.slice(0,50);
   try{localStorage.setItem("jyutping_lb_v1",JSON.stringify(list))}catch(e){}
-  $("saveMsg").textContent="✅ 已保存至排行榜！";snd.ok();
-  setTimeout(()=>{VIEW="LEADER";renderLeader();setView("LEADER")},500);
+  $("saveMsg").textContent="✅ 已保存至排行榜！";sound.ok();
+  setTimeout(()=>{renderLeader();setView("LEADER")},450);
 }
 
-/* ================= 排行榜 ================= */
+/* ================= 排行榜與碼表匯出 ================= */
+function exportDictJs(mode){
+  const dict=effDict(mode);
+  const ks=Object.keys(dict).sort((a,b)=>a.localeCompare(b,"zh-Hant"));
+  let s=`# ${mode==="hk"?"香港拼音":"標準粵拼"}碼表 (v0.89)\n`;
+  ks.forEach(c=>dict[c].forEach(v=>s+=`${c} ${v}\n`));
+  const varName=mode==="hk"?"CANTON_TABLE":"JYUT_TABLE";
+  const fn=mode==="hk"?"canton.js":"jyut.js";
+  const jsContent=`/* ${fn} */\nwindow.${varName}=${JSON.stringify(s)};\n`;
+  const u=URL.createObjectURL(new Blob([jsContent],{type:"text/javascript;charset=utf-8"}));
+  const a=document.createElement("a");a.href=u;a.download=fn;a.style.display="none";
+  document.body.appendChild(a);a.click();
+  setTimeout(()=>{a.remove();URL.revokeObjectURL(u)},800);
+  sfxToast(`✅ 已匯出下載：${fn}（共 ${ks.length} 字）`,true);
+}
+
 function renderLeader(){
   $("subWin").className="sub-window";
+  $("footerHint").textContent="🏆 ↑↓ / 滾輪上下捲動 ｜ Esc 返回主選單";
   let list=[];try{list=JSON.parse(localStorage.getItem("jyutping_lb_v1")||"[]")}catch(e){}
   list.sort((a,b)=>b.speed-a.speed);
-  const rows=list.length?list.map((e,i)=>`<tr class="${e.id===EX.lastId?'latest-score-row':''}"><td>${i+1}</td><td>${e.name}</td><td>${e.mode}</td><td>${e.dur}</td><td>${e.speed}</td><td>${e.acc}%</td><td>${e.date}</td></tr>`).join(""):`<tr><td colspan="7">（暫無紀錄 — 完成「實力測驗」後即可上榜！）</td></tr>`;
+  const rows=list.length?list.map((e,i)=>`<tr class="${e.id===EX.lastId?'latest-score-row':''}"><td>${i+1}</td><td>${esc(e.name)}</td><td>${esc(e.mode)}</td><td>${esc(e.dur)}</td><td>${e.speed}</td><td>${e.acc}%</td><td>${esc(e.date)}</td></tr>`).join(""):`<tr><td colspan="7">（暫無紀錄 — 完成「實力測驗」後即可上榜！）</td></tr>`;
   $("subWin").innerHTML=`<div class="sub-win-title"><span>🏆 最佳成績排行榜</span><span style="font-size:13px;color:#aaa" id="lbStatusHint">[Esc] 返回</span></div>
-  <div style="max-height:300px;overflow-y:auto"><table class="retro-table"><thead><tr><th>名次</th><th>姓名</th><th>模式</th><th>時長</th><th>速度</th><th>準確率</th><th>日期</th></tr></thead><tbody>${rows}</tbody></table></div>
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px"><button class="key-button" id="clearLbBtn" style="color:#800000">重置</button><button class="key-button" onclick="goMenu()">返回 [Esc]</button></div>`;
-  $("clearLbBtn").onclick=()=>{try{localStorage.removeItem("jyutping_lb_v1")}catch(e){}EX.lastId=0;snd.err();renderLeader()};
+  <div class="scroll-box" id="lbScrollBox" style="max-height:290px;flex:1"><table class="retro-table"><thead><tr><th>名次</th><th>姓名</th><th>模式</th><th>時長</th><th>速度</th><th>準確率</th><th>日期</th></tr></thead><tbody>${rows}</tbody></table></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;flex-wrap:wrap;gap:6px">
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button type="button" class="key-button" id="clearLbBtn" style="color:#800000">重置榜單</button>
+      <button type="button" class="key-button" onclick="exportDictJs('jp')" style="color:#000080">匯出 jyut.js</button>
+      <button type="button" class="key-button" onclick="exportDictJs('hk')" style="color:#000080">匯出 canton.js</button>
+    </div>
+    <button type="button" class="key-button" onclick="goMenu()">返回 [Esc]</button>
+  </div>`;
+  let clrStep=0;
+  $("clearLbBtn").onclick=()=>{
+    if(!clrStep){clrStep=1;sound.nav();$("clearLbBtn").textContent="確定重置？";setTimeout(()=>{clrStep=0;if($("clearLbBtn"))$("clearLbBtn").textContent="重置榜單"},3000)}
+    else{try{localStorage.removeItem("jyutping_lb_v1")}catch(e){}EX.lastId=0;sound.err();renderLeader()}
+  };
 }
 
-/* ================= 離開 / 重新啟動 ================= */
-function openExitConfirm(){setView("EXIT_CONFIRM");$("footerHint").textContent="[Y] 離開 ｜ [X] 返回"}
-$("btnExitYes").onclick=()=>{setView("EXIT");$("footerHint").textContent=""};
-$("btnExitNo").onclick=()=>{setView("MENU");$("footerHint").textContent="↑↓ 選擇，Enter 進入 ｜ Esc 離開程式"};
+/* ================= 離開確認與模式切換 ================= */
+function openExitConfirm(){setView("EXIT_CONFIRM");$("footerHint").textContent="[← →] 選擇 ｜ [Y / Enter] 離開 ｜ [X / Esc] 返回"}
+function setExitChoice(yesFocused){
+  const y=$("btnExitYes"),n=$("btnExitNo");
+  if(!y||!n)return;
+  y.classList.toggle("focused-choice",!!yesFocused);
+  n.classList.toggle("focused-choice",!yesFocused);
+}
+$("btnExitYes").onclick=()=>{sound.nav();setView("EXIT");$("footerHint").textContent=""};
+$("btnExitNo").onclick=()=>{sound.nav();setView("MENU")};
 $("btnRestartDos").onclick=()=>location.reload();
 
-/* ================= 碼表切換（練習／測驗途中皆可） ================= */
 function toggleMode(){
   isHKMode=!isHKMode;
   $("dosScreen").classList.toggle("hk-mode",isHKMode);
   $("btnModeToggle").textContent=isHKMode?"［香港拼音］":"［標準粵拼］";
-  snd.nav();
+  sound.nav();
   if(VIEW==="TUTORIAL")renderTut();
-  else if(VIEW==="PRACTICE"){PR.buf="";PR.reveal=false;PR.lock=false;practiceSkipMissing();renderPractice()}
+  else if(VIEW==="PRACTICE"){clearTimeout(PR.advTimer);PR.buf="";PR.reveal=false;PR.lock=false;practiceSkipMissing();renderPractice()}
   else if(VIEW==="EXAM_RUN")refreshExamMode();
   else if(VIEW==="QUERY")renderQuery();
   else if(VIEW==="ABOUT")renderAbout();
@@ -1111,11 +1428,14 @@ function toggleMode(){
   else if(VIEW==="MENU"||VIEW==="EXAM_SETUP"){updateMenuSel();if(VIEW==="EXAM_SETUP")updateDialogUI()}
 }
 
-/* ================= 主路由 / 右下 ↑↓＝翻頁鍵 ================= */
 function goMenu(){setView("MENU")}
+
+/* ================= 底部四鍵與鍵盤操作（教材及簡介：上下捲動、左右轉頁） ================= */
 function footerEnter(){
-  snd.nav();
+  sound.nav();
   if(VIEW==="MENU")menuActivate();
+  else if(VIEW==="EXIT_CONFIRM"){if($("btnExitYes").classList.contains("focused-choice"))$("btnExitYes").click();else $("btnExitNo").click()}
+  else if(VIEW==="DOS_EXIT"||VIEW==="EXIT")location.reload();
   else if(VIEW==="TUTORIAL")tutNav(1);
   else if(VIEW==="PRACTICE"){PR.done?practiceStart(PR.stage):practiceKey("Enter")}
   else if(VIEW==="EXAM_SETUP")examStart();
@@ -1124,219 +1444,330 @@ function footerEnter(){
   else if(VIEW==="QUERY")doQuery();
   else if(VIEW==="LEADER"||VIEW==="ABOUT")goMenu();
 }
+
 function footerEsc(){
-  snd.nav();
+  sound.nav();
   if(VIEW==="MENU")openExitConfirm();
   else if(VIEW==="EXAM_SETUP")goMenu();
-  else if(VIEW==="EXAM_RUN"){if(EX.buf){EX.buf="";updateCands();EX.candPage=0;updateExamUI()}else{clearInterval(EX.timer);openExamSetup()}}
+  else if(VIEW==="EXAM_RUN"){
+    if(EX.buf){EX.buf="";updateCands();EX.candPage=0;updateExamUI();return}
+    if(!EX.escSt){
+      EX.escSt=1;
+      $("exam18Title").textContent="⚠️ 再按一次 Esc 放棄測驗";
+      EX.escTimer=setTimeout(()=>{EX.escSt=0;if(VIEW==="EXAM_RUN")$("exam18Title").textContent=`【實力測驗】${EX.src==="custom"?"自訂命題":POOL_LABELS[EX.pool]}｜${isHKMode?"香港拼音":"標準粵拼"}`},3000);
+    }else{
+      clearInterval(EX.timer);openExamSetup();
+    }
+  }
   else if(VIEW==="RESULT")goMenu();
   else if(VIEW==="EXIT_CONFIRM"){$("btnExitNo").click()}
+  else if(VIEW==="TUTORIAL"){if(tutPage!==-1)goTut(-1);else goMenu()}
   else if(VIEW==="EXIT"){}
   else goMenu();
 }
+
+/* 上下鍵：選單移動選單；教材、簡介、排行榜等一律上下捲動！ */
 function footerUp(){
-  snd.nav();
   if(VIEW==="MENU")menuSelMove(-1);
-  else if(VIEW==="TUTORIAL")tutNav(-1);
-  else if(VIEW==="PRACTICE"){if(!PR.done&&!PR.lock){PR.i=Math.max(PR.i-1,0);PR.buf="";renderPractice()}}
-  else if(VIEW==="EXAM_RUN"){if(EX.candPage>0){EX.candPage--;updateExamUI()}}
-  else{const b=document.querySelector(".tut-content");if(b)b.scrollBy({top:-95,behavior:"smooth"})}
+  else if(VIEW==="EXAM_RUN"){if(EX.candPage>0){EX.candPage--;sound.nav();updateExamUI()}}
+  else if(scrollActiveBox(-95))sound.nav();
 }
 function footerDown(){
-  snd.nav();
   if(VIEW==="MENU")menuSelMove(1);
-  else if(VIEW==="TUTORIAL")tutNav(1);
-  else if(VIEW==="PRACTICE"){if(!PR.done&&!PR.lock){PR.buf="";if(PR.i+1>=PR.list.length)PR.done=true;else PR.i++;renderPractice()}}
-  else if(VIEW==="EXAM_RUN"){if((EX.candPage+1)*9<EX.cands.length){EX.candPage++;updateExamUI()}}
-  else{const b=document.querySelector(".tut-content");if(b)b.scrollBy({top:95,behavior:"smooth"})}
+  else if(VIEW==="EXAM_RUN"){if((EX.candPage+1)*9<EX.cands.length){EX.candPage++;sound.nav();updateExamUI()}}
+  else if(scrollActiveBox(95))sound.nav();
 }
 
-/* ================= 觸控鍵盤（移植自簡倉定型版）＋ 橫豎屏轉向自適應縮放 ================= */
-const mqT=q=>window.matchMedia(q).matches;
-let _hadTouch=false,rafId=null,hasPhys=false,KP_POS="FULL",KP_SHOWN=false;
-window.addEventListener("touchstart",()=>_hadTouch=true,{passive:true});
-const isTouch=()=>_hadTouch||mqT("(pointer:coarse)")||mqT("(any-pointer:coarse)")||('ontouchstart' in window)||navigator.maxTouchPoints>0;
-const schedScale=()=>{if(rafId)cancelAnimationFrame(rafId);rafId=requestAnimationFrame(scaleScreen)};
+/* 滑鼠滾輪全區域支援（教材與簡介等長文隨處可滾輪捲動） */
+window.addEventListener("wheel",e=>{
+  const box=getActiveScrollBox();
+  if(!box)return;
+  if(!box.contains(e.target))box.scrollTop+=e.deltaY;
+},{passive:true});
 
-function scaleScreen(){
-  const el=$("dosScreen");if(!el)return;
-  try{
-    const vv=window.visualViewport,W=vv?.width>0?vv.width:innerWidth,H=vv?.height>0?vv.height:innerHeight,
-    handLand=isTouch()&&W>H;
-    document.body.classList.toggle("handheld-land",handLand);
-    if(handLand){
-      const sc=Math.min((W*.8)/960,(H*.8)/540);
-      el.style.transform=`scale(${Math.max(.25,sc).toFixed(4)})`;
-    }else{
-      const tk=$("touchKeypad");
-      const kpH=(tk&&tk.style.display==="flex"&&KP_POS==="FULL")?(tk.offsetHeight||230):0;
-      const kpW=(tk&&tk.style.display==="flex"&&KP_POS!=="FULL")?(W*0.4):0;
-      const sc=Math.min((W-kpW-16)/960,(H-kpH-16)/540);
-      el.style.transform=`scale(${Math.max(.25,sc).toFixed(4)})`;
-    }
-  }catch(e){el.style.transform="scale(.5)"}
-}
-window.addEventListener("resize",schedScale);
-window.addEventListener("orientationchange",()=>setTimeout(schedScale,300));
-window.visualViewport?.addEventListener("resize",schedScale);
-
+/* ================= 觸控虛擬鍵盤（簡倉去抖動單一事件＋喚回按鈕） ================= */
+const isTouchDevice=()=>('ontouchstart' in window)||navigator.maxTouchPoints>0;
+let KP_POS="FULL",KP_SHOWN=false;
 function initKeypad(){
-  const sp=f=>`<div class="tk-sp" style="flex:${f}"></div>`;
-  const kb=k=>`<button type="button" class="tk-btn" data-k="${k}">${String(k).toUpperCase()}</button>`;
-  const r1='<div class="tk-row">'+sp(.5)+[1,2,3,4,5,6,7,8,9,0].map(kb).join("")+sp(.5)+'</div>';
+  const kb=k=>`<button type="button" class="tk-btn" data-k="${k}">${k.toUpperCase()}</button>`;
+  const r1='<div class="tk-row">'+[..."1234567890"].map(kb).join("")+'</div>';
   const r2='<div class="tk-row">'+[..."QWERTYUIOP"].map(kb).join("")+'</div>';
-  const r3='<div class="tk-row">'+sp(.5)+[..."ASDFGHJKL"].map(kb).join("")+sp(.5)+'</div>';
-  const r4='<div class="tk-row">'+sp(1.5)+[..."ZXCVBNM"].map(kb).join("")+'<button type="button" class="tk-btn" data-k="BACKSPACE" style="flex:1.5;color:#800">⌫</button></div>';
+  const r3='<div class="tk-row">'+[..."ASDFGHJKL"].map(kb).join("")+'</div>';
+  const r4='<div class="tk-row">'+[..."ZXCVBNM"].map(kb).join("")+'<button type="button" class="tk-btn" data-k="BACKSPACE" style="flex:1.5;color:#800">⌫</button></div>';
   const r5='<div class="tk-row">'
     +'<button type="button" class="tk-btn" data-k="ESC" style="flex:1.15;color:#800">Esc</button>'
     +'<button type="button" class="tk-btn" data-k="?" style="flex:.7">?</button>'
     +'<button type="button" class="tk-btn" data-k=" " style="flex:4;color:#008">[Space]</button>'
-    +'<button type="button" class="tk-btn" data-k="UP" style="flex:.9;font-size:13px">↑</button>'
-    +'<button type="button" class="tk-btn" data-k="DOWN" style="flex:.9;font-size:13px">↓</button>'
+    +'<button type="button" class="tk-btn" data-k="LEFT" style="flex:.9;font-size:13px">◀</button>'
+    +'<button type="button" class="tk-btn" data-k="RIGHT" style="flex:.9;font-size:13px">▶</button>'
     +'<button type="button" class="tk-btn" data-k="ENTER" style="flex:1.3;color:#008">Enter</button></div>';
   $("kpAbc").innerHTML=r1+r2+r3+r4+r5;
 }
-
 function kpDispatch(raw){
   if(!raw)return;
-  const now=Date.now(),winK=(raw===" "||raw==="ENTER"||raw==="BACKSPACE")?50:80,st=kpDispatch;
-  if(st._k===raw&&now-(st._t||0)<winK)return;st._k=raw;st._t=now;
-  snd.key();
-  if(raw==="ESC")return footerEsc();
-  if(raw==="ENTER")return footerEnter();
-  if(raw==="UP")return footerUp();
-  if(raw==="DOWN")return footerDown();
+  const now=Date.now(),k=String(raw).toLowerCase();
+  const win=(k===" "||k==="enter"||k==="backspace")?55:80;
+  if(kpDispatch._k===k&&now-(kpDispatch._t||0)<win)return;
+  kpDispatch._k=k;kpDispatch._t=now;
+
+  if(k==="esc")return footerEsc();
+  if(k==="enter")return footerEnter();
+  if(k==="left"){
+    if(VIEW==="TUTORIAL")return tutNav(-1);
+    if(VIEW==="PRACTICE"&&!PR.done&&!PR.lock&&PR.i>0){PR.i--;PR.buf="";sound.nav();return renderPractice()}
+    if(VIEW==="EXAM_RUN")return examKey("[");
+    return;
+  }
+  if(k==="right"){
+    if(VIEW==="TUTORIAL")return tutNav(1);
+    if(VIEW==="PRACTICE"&&!PR.done&&!PR.lock){PR.buf="";if(PR.i+1>=PR.list.length)PR.done=true;else PR.i++;sound.nav();return renderPractice()}
+    if(VIEW==="EXAM_RUN")return examKey("]");
+    return;
+  }
   if(VIEW==="PRACTICE"){
-    if(raw==="?")return practiceQuery();
-    if(/^[a-zA-Z0-9]$/.test(raw)||raw===" ")practiceKey(raw);
-    else if(raw==="BACKSPACE")practiceKey("Backspace");
+    if(k==="?"){sound.key();return practiceQuery()}
+    if(/^[a-z0-9]$/.test(k)||k===" ")practiceKey(k);
+    else if(k==="backspace")practiceKey("Backspace");
     return;
   }
   if(VIEW==="EXAM_RUN"){
-    if(raw==="?")return examKey("?");
-    if(/^[a-zA-Z0-9]$/.test(raw)||raw===" "||raw==="="||raw==="-"||raw==="."||raw===",")examKey(raw);
-    else if(raw==="BACKSPACE")examKey("Backspace");
+    if(k==="?")return examKey("?");
+    if(/^[a-z0-9]$/.test(k)||k===" "||k==="="||k==="-"||k==="."||k===",")examKey(k);
+    else if(k==="backspace")examKey("Backspace");
     return;
   }
 }
-
 function bindKeypad(){
   const tk=$("touchKeypad");if(!tk||tk._bound)return;tk._bound=true;
-  const onPad=ev=>{
+  const onPad=safe(ev=>{
     const b=ev.target.closest&&ev.target.closest(".tk-btn");
     if(!b||!tk.contains(b))return;
     if(ev.cancelable)ev.preventDefault();
     kpDispatch(b.dataset.k);
-  };
+  });
   tk.addEventListener("pointerdown",onPad);
   tk.addEventListener("touchstart",onPad,{passive:false});
 }
-
 function showKeypad(){
-  const tk=$("touchKeypad");if(!tk)return;
-  tk.style.display="flex";KP_SHOWN=true;
-  const lb=$("kpModeLabel");if(lb)lb.textContent="⌨ 隱藏";
+  const tk=$("touchKeypad"),rb=$("kpReopenBtn");
+  if(tk)tk.style.display="flex";
+  if(rb)rb.style.display="none";
+  KP_SHOWN=true;
   schedScale();
 }
-
 function hideKeypad(){
-  const tk=$("touchKeypad");if(!tk)return;
-  tk.style.display="none";KP_SHOWN=false;
-  const lb=$("kpModeLabel");if(lb)lb.textContent="⌨ 鍵盤";
+  const tk=$("touchKeypad"),rb=$("kpReopenBtn");
+  if(tk)tk.style.display="none";
+  KP_SHOWN=false;
+  if(rb&&isTouchDevice()&&!hasPhys&&(VIEW==="PRACTICE"||VIEW==="EXAM_RUN"))rb.style.display="block";
   schedScale();
 }
-
-function toggleKeypadShow(){KP_SHOWN?hideKeypad():showKeypad();snd.nav()}
-
 function cycleKeypadPos(){
   const order=["FULL","LEFT","RIGHT"],labels={FULL:"▣ 原大",LEFT:"◧ 置左",RIGHT:"◨ 置右"};
   KP_POS=order[(order.indexOf(KP_POS)+1)%3];
   const tk=$("touchKeypad"),lb=$("kpPosLabel");
   if(tk){tk.classList.toggle("kp-left",KP_POS==="LEFT");tk.classList.toggle("kp-right",KP_POS==="RIGHT")}
   if(lb)lb.textContent=labels[KP_POS];
-  snd.nav();schedScale();
+  sound.nav();schedScale();
 }
-
-function isDesktopOnly(){
-  return !_hadTouch&&!mqT("(any-pointer:coarse)")&&mqT("(pointer:fine)")&&mqT("(hover:hover)");
-}
-
+function applyHandheldLand(){document.body.classList.toggle("handheld-land",isTouchDevice()&&window.innerWidth>window.innerHeight)}
 function maybeAutoKeypad(){
-  const want=(VIEW==="PRACTICE"||VIEW==="EXAM_RUN")&&!hasPhys&&!isDesktopOnly();
-  if(want)showKeypad();
-  else hideKeypad();
+  const rb=$("kpReopenBtn");
+  if(!isTouchDevice()||hasPhys){
+    if(KP_SHOWN)hideKeypad();
+    if(rb)rb.style.display="none";
+    return;
+  }
+  const typing=(VIEW==="PRACTICE"&&!PR.done&&!PR.lock)||VIEW==="EXAM_RUN";
+  if(typing&&!KP_SHOWN)showKeypad();
+  else if(!typing){if(KP_SHOWN)hideKeypad();if(rb)rb.style.display="none"}
 }
 
-/* ================= 啟動與全域事件綁定（DOMContentLoaded 立即執行） ================= */
+let rafId=null;
+const schedScale=()=>{if(rafId)cancelAnimationFrame(rafId);rafId=requestAnimationFrame(scaleScreen)};
+function scaleScreen(){
+  const el=$("dosScreen");if(!el)return;
+  const vv=window.visualViewport,W=vv?.width>0?vv.width:innerWidth,H=vv?.height>0?vv.height:innerHeight;
+  let availW=W,availH=H;
+  if(KP_SHOWN){
+    const tk=$("touchKeypad");
+    if(KP_POS==="FULL"&&tk)availH=Math.max(240,H-(tk.offsetHeight||210));
+    else availW=W*0.6;
+  }
+  const sc=Math.min((availW-12)/960,(availH-12)/540);
+  el.style.transform=`scale(${Math.max(0.25,sc).toFixed(4)})`;
+}
+window.addEventListener("resize",()=>{applyHandheldLand();schedScale()});
+window.addEventListener("orientationchange",()=>setTimeout(()=>{applyHandheldLand();schedScale()},150));
+window.visualViewport?.addEventListener("resize",schedScale);
+
+/* ================= 實體鍵盤完整監聽（教材及簡介：上下捲動、左右轉頁） ================= */
+window.addEventListener("keydown",safe(e=>{
+  if(["F5","F12"].includes(e.key)||e.ctrlKey||e.metaKey||e.altKey||(e.repeat&&e.key!=="Backspace"&&e.key!=="ArrowUp"&&e.key!=="ArrowDown"))return;
+  const el=document.activeElement,isIn=!!(el&&(el.tagName==="INPUT"||el.tagName==="TEXTAREA"));
+
+  if(!isIn&&(/^Key[A-Z]$|^Digit[0-9]$|^(Space|Backspace|Enter)$/.test(e.code||""))&&!hasPhys){
+    hasPhys=true;
+    if(KP_SHOWN)hideKeypad();
+  }
+
+  if(e.key==="Tab"){
+    e.preventDefault();
+    toggleMode();
+    return;
+  }
+
+  if(VIEW==="EXIT_CONFIRM"){
+    e.preventDefault();
+    const k=e.key.toUpperCase();
+    if(e.key==="ArrowLeft"||e.key==="ArrowRight"){
+      const isY=$("btnExitYes").classList.contains("focused-choice");
+      setExitChoice(!isY);
+      sound.nav();
+    }else if(k==="Y"){
+      $("btnExitYes").click();
+    }else if(k==="X"||k==="N"||e.key==="Escape"){
+      $("btnExitNo").click();
+    }else if(e.key==="Enter"){
+      footerEnter();
+    }
+    return;
+  }
+
+  if(VIEW==="EXIT"){
+    if(e.key==="Enter"){e.preventDefault();location.reload()}
+    return;
+  }
+
+  if(e.key==="Escape"){
+    e.preventDefault();
+    footerEsc();
+    return;
+  }
+
+  if(VIEW==="MENU"){
+    e.preventDefault();
+    if(e.key==="ArrowUp")menuSelMove(-1);
+    else if(e.key==="ArrowDown")menuSelMove(1);
+    else if(/^[1-7]$/.test(e.key))menuGo(+e.key);
+    else if(e.key==="Enter")menuActivate();
+    return;
+  }
+
+  /* 教材 48 頁：↑↓ 上下捲動，← → / PageUp / PageDown 左右轉頁！ */
+  if(VIEW==="TUTORIAL"){
+    if(e.key==="ArrowUp"){e.preventDefault();footerUp();return}
+    if(e.key==="ArrowDown"){e.preventDefault();footerDown();return}
+    if(e.key==="ArrowLeft"||e.key==="PageUp"){e.preventDefault();tutNav(-1);return}
+    if(e.key==="ArrowRight"||e.key==="PageDown"||e.key==="Enter"){e.preventDefault();tutNav(1);return}
+    if(tutPage===-1&&/^[a-z]$/i.test(e.key)){
+      const k=e.key.toLowerCase();
+      const idx=initData.findIndex(it=>it.id===k);
+      if(idx!==-1){e.preventDefault();sound.nav();goTut(idx);return}
+    }
+    return;
+  }
+
+  /* 軟體簡介、排行榜、查碼：↑↓ 上下捲動！ */
+  if(VIEW==="ABOUT"||VIEW==="LEADER"||VIEW==="QUERY"){
+    if(!isIn&&e.key==="ArrowUp"){e.preventDefault();footerUp();return}
+    if(!isIn&&e.key==="ArrowDown"){e.preventDefault();footerDown();return}
+    if(!isIn&&e.key==="Enter"&&VIEW!=="QUERY"){e.preventDefault();goMenu();return}
+    return;
+  }
+
+  if(VIEW==="EXAM_SETUP"){
+    if(e.key==="Enter"){e.preventDefault();if(isIn)el.blur();examStart()}
+    else if(!isIn&&e.key==="1")setExamSrc("computer");
+    else if(!isIn&&e.key==="2")setExamSrc("custom");
+    return;
+  }
+
+  if(VIEW==="PRACTICE"&&!isIn){
+    if(e.key==="ArrowLeft"){
+      e.preventDefault();
+      if(!PR.done&&!PR.lock&&PR.i>0){PR.i--;PR.buf="";sound.nav();renderPractice()}
+      return;
+    }
+    if(e.key==="ArrowRight"){
+      e.preventDefault();
+      if(!PR.done&&!PR.lock){PR.buf="";if(PR.i+1>=PR.list.length)PR.done=true;else PR.i++;sound.nav();renderPractice()}
+      return;
+    }
+    if(e.key==="?"||e.key==="？"){e.preventDefault();sound.key();practiceQuery();return}
+    if(e.key==="Enter"&&PR.done){e.preventDefault();practiceStart(PR.stage);return}
+    if(e.key===" "||e.key==="Enter"||e.key==="Backspace"||/^[a-zA-Z]$/.test(e.key)){
+      e.preventDefault();
+      practiceKey(e.key);
+    }
+    return;
+  }
+
+  if(VIEW==="EXAM_RUN"&&!isIn){
+    if(e.key==="?"||e.key==="？"){e.preventDefault();examKey("?");return}
+    if(e.key===" "||e.key==="Enter"||e.key==="Backspace"||e.key==="="||e.key==="-"||e.key==="."||e.key===","||e.key==="["||e.key==="]"||e.key==="PageUp"||e.key==="PageDown"||/^[a-zA-Z0-9]$/.test(e.key)){
+      e.preventDefault();
+      examKey(e.key);
+    }
+    return;
+  }
+}));
+
+/* ================= 啟動程序（即時無阻塞啟動＋背景載入外掛） ================= */
 const bootApp=()=>{
   if(bootApp._done)return;bootApp._done=true;
   try{
-    initKeypad();
-    bindKeypad();
-    $("touchKeypad").style.display="none";
-
-    $("btnEnter").onclick=footerEnter;
-    $("btnEsc").onclick=footerEsc;
-    $("btnUp").onclick=footerUp;
-    $("btnDown").onclick=footerDown;
+    initKeypad();bindKeypad();applyHandheldLand();
+    const unlockAudioOnce=()=>{sound.unlock();if(sound.ctx?.state==="running")["touchend","keydown","click"].forEach(ev=>window.removeEventListener(ev,unlockAudioOnce,true))};
+    ["touchend","keydown","click"].forEach(ev=>window.addEventListener(ev,unlockAudioOnce,true));
+    document.addEventListener("visibilitychange",()=>{if(!document.hidden&&sound.en&&sound.ctx&&sound.ctx.state!=="running")sound._ensure()});
 
     window.addEventListener("touchstart",()=>{
-      _hadTouch=true;hasPhys=false;
-      if((VIEW==="PRACTICE"||VIEW==="EXAM_RUN")&&!KP_SHOWN)showKeypad();
+      hasPhys=false;
+      if((VIEW==="PRACTICE"&&!PR.done&&!PR.lock)||VIEW==="EXAM_RUN"){
+        if(!KP_SHOWN)showKeypad();
+      }
     },{passive:true});
 
-    window.addEventListener("keydown",e=>{
-      const t=e.target;
-      const isIn=!!(t&&/INPUT|TEXTAREA/.test(t.tagName));
-      if(isIn){
-        if(e.key==="Escape"){t.blur();e.preventDefault()}
-        return;
-      }
-      if(!isIn&&(/^Key[A-Z]$|^Digit[0-9]$|^(Space|Backspace|Enter)$/.test(e.code||""))&&!hasPhys){
-        hasPhys=true;
-        if(KP_SHOWN)hideKeypad();
-      }
-      if(e.ctrlKey||e.metaKey||e.altKey)return;
-      const k=e.key;
-      if(k==="Tab"){e.preventDefault();toggleMode();return}
-      if(VIEW==="EXIT_CONFIRM"){if(k==="y"||k==="Y")$("btnExitYes").click();else if(k==="x"||k==="X"||k==="Escape")$("btnExitNo").click();return}
-      if(VIEW==="EXIT"){if(k==="Enter")$("btnRestartDos").click();return}
-      if(k==="Escape"){e.preventDefault();footerEsc();return}
-      if(VIEW==="MENU"){
-        if(k==="ArrowUp"){e.preventDefault();footerUp()}
-        else if(k==="ArrowDown"){e.preventDefault();footerDown()}
-        else if(k==="Enter"){e.preventDefault();footerEnter()}
-        else if(/^[1-7]$/.test(k)){e.preventDefault();menuGo(+k)}
-        return;
-      }
-      if(k==="ArrowUp"){e.preventDefault();footerUp();return}
-      if(k==="ArrowDown"){e.preventDefault();footerDown();return}
-      if(VIEW==="TUTORIAL"){
-        if(k==="ArrowRight"||k==="PageDown"){e.preventDefault();tutNav(1)}
-        else if(k==="ArrowLeft"||k==="PageUp"){e.preventDefault();tutNav(-1)}
-        return;
-      }
-      if(VIEW==="PRACTICE"){
-        if(/^[a-zA-Z]$/.test(k)||k==="Backspace"||k===" "||k==="Enter"){e.preventDefault();practiceKey(k)}
-        else if(k==="ArrowRight"){e.preventDefault();footerDown()}
-        else if(k==="ArrowLeft"){e.preventDefault();footerUp()}
-        else if(k==="?"){e.preventDefault();practiceQuery()}
-        return;
-      }
-      if(VIEW==="EXAM_SETUP"){if(k==="Enter"){e.preventDefault();examStart()}return}
-      if(VIEW==="EXAM_RUN"){
-        if(/^[a-zA-Z0-9]$/.test(k)||k==="Backspace"||k===" "||k==="="||k==="-"||k==="."||k===","||k==="?"||k==="Enter"){e.preventDefault();examKey(k)}
-        return;
-      }
-      if(VIEW==="RESULT"){if(k==="Enter"){e.preventDefault();saveResult()}return}
-      if(VIEW==="QUERY"){if(k==="Enter"){e.preventDefault();doQuery()}return}
+    /* 主選單單一事件委派（杜絕 pointerdown + click 雙觸發） */
+    let menuLastT=0;
+    const triggerMenuRow=safe(e=>{
+      const row=e.target.closest&&e.target.closest(".menu-item-row");
+      if(!row||VIEW!=="MENU")return;
+      const now=Date.now();
+      if(now-menuLastT<220)return;
+      menuLastT=now;
+      if(e.cancelable)e.preventDefault();
+      menuGo(+row.dataset.i||0);
     });
+    $("menuPanel").addEventListener("pointerdown",triggerMenuRow);
 
-    plgLoadAll();
-    effCache={};
-    updateDialogUI();
+    /* 底部四按鈕單一事件綁定 */
+    const bindSingleBtn=(id,fn)=>{
+      const el=$(id);if(!el)return;
+      let lastT=0;
+      const handler=safe(e=>{
+        const now=Date.now();if(now-lastT<160)return;lastT=now;
+        if(e.cancelable)e.preventDefault();
+        fn();
+      });
+      el.addEventListener("pointerdown",handler);
+    };
+    bindSingleBtn("btnEnter",footerEnter);
+    bindSingleBtn("btnEsc",footerEsc);
+    bindSingleBtn("btnUp",footerUp);
+    bindSingleBtn("btnDown",footerDown);
+
     setView("MENU");
-    scaleScreen();
+    schedScale();
+    window.__BOOT_OK=true;
+
+    /* 背景非同步還原 IndexedDB 外掛字庫 */
+    setTimeout(async()=>{
+      await plgLoadAll();
+      deriveMissingHK();
+      updateDialogUI();
+    },40);
   }catch(e){
     const b=$("errorBanner");
     if(b){b.style.display="block";b.textContent="⚠️ 啟動錯誤："+(e?.message||e)}
@@ -1345,5 +1776,6 @@ const bootApp=()=>{
 };
 document.readyState==="loading"?document.addEventListener("DOMContentLoaded",bootApp):setTimeout(bootApp,0);
 </script>
+<script>setTimeout(()=>{if(!window.__BOOT_OK){const b=document.getElementById("errorBanner");if(b){b.style.display="block";b.textContent="⚠️ 主腳本啟動失敗（語法錯誤或載入中斷）——程式無法回應任何操作"}}},900);</script>
 </body>
 </html>
