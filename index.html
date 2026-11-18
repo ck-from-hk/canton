@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
-<title>快快快樂學粵拼 - 港式粵拼與人名拼音互動教室 (簡倉定型版 v1.5)</title>
+<title>快快快樂學粵拼</title>
 <meta name="description" content="九十年代 DOS 打字教學程式致敬之作。含 48 頁粵拼／港式拼音教材、分階打字練習、實力測驗（中途可切碼表）、粵拼查碼與最佳成績排行榜。支援 jyut.js／canton.js 預設碼表、yaml 外掛、觸控鍵盤與橫向模式。">
 <script>document.documentElement.classList.add("js");</script>
 <style>
@@ -171,7 +171,7 @@ html.js #jsNote{display:none}
 #touchKeypad{position:fixed;bottom:0;left:0;right:0;width:100%;display:none;background:rgba(20,20,20,.96);border-top:2px solid #555;padding:6px 6px calc(12px + env(safe-area-inset-bottom,0px));flex-direction:column;gap:4px;z-index:9999;touch-action:none}
 #touchKeypad.kp-left{width:40%;left:0;right:auto;border-right:2px solid #555}
 #touchKeypad.kp-right{width:40%;left:auto;right:0;border-left:2px solid #555}
-#touchKeypad.kp-left .tk-btn,#touchKeypad.kp-right .tk-btn{font-size:13px;height:34px;min-width:0}
+#touchKeypad.kp-left .tk-btn,#touchKeypad.kp-right .tk-btn{font-size:13px;min-width:0}
 .tk-row{display:flex;justify-content:center;gap:4px}
 .tk-sp{pointer-events:none;visibility:hidden}
 .tk-btn{background:#c0c0c0;border:2px solid;border-color:#fff #404040 #404040 #fff;font-weight:bold;font-size:16px;height:40px;flex:1;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:0;font-family:Consolas,monospace;color:#000}
@@ -497,12 +497,13 @@ function parseDict(text){
       if(c&&os.length){ch=c;codes=os}
     }
     if(ch&&[...ch].length===1){
-      codes.forEach(cc=>{cc=String(cc||"").trim().toLowerCase();if(/^[a-z]+[1-6]?$/.test(cc))(d[ch]=d[ch]||[]).push(cc)});
+      codes.forEach(cc=>{cc=String(cc).trim().toLowerCase();if(/^[a-z]+[1-6]?$/.test(cc))(d[ch]=d[ch]||[]).push(cc)});
     }
   });
   return d;
 }
 
+/* ============ 預設碼表 jyut.js／canton.js ============ */
 function ingestTable(raw,mode){
   if(raw==null)return 0;
   let d=null;
@@ -510,13 +511,11 @@ function ingestTable(raw,mode){
   else if(typeof raw==="object"){
     d={};
     for(const k in raw){
-      if(!Object.prototype.hasOwnProperty.call(raw,k))continue;
       const v=raw[k];
       if(isCJK(k)&&[...k].length===1){
-        String(Array.isArray(v)?v.join(" "):v).split(/[\s,，、/]+/).forEach(c=>{c=String(c||"").trim().toLowerCase();if(/^[a-z]+[1-6]?$/.test(c))(d[k]=d[k]||[]).push(c)});
+        String(Array.isArray(v)?v.join(" "):v).split(/[\s,，、/]+/).forEach(c=>{c=String(c).trim().toLowerCase();if(/^[a-z]+[1-6]?$/.test(c))(d[k]=d[k]||[]).push(c)});
       }else if(!isCJK(k)&&typeof v==="string"&&isCJK(v)&&[...v].length===1){
-        const codeStr=String(k||"").trim().toLowerCase();
-        if(/^[a-z]+[1-6]?$/.test(codeStr))(d[v]=d[v]||[]).push(codeStr);
+        (d[v]=d[v]||[]).push(String(k).trim().toLowerCase());
       }
     }
   }
@@ -524,8 +523,7 @@ function ingestTable(raw,mode){
   const tgt=mode==="jp"?JP_DICT:HK_DICT;
   let n=0;
   for(const ch in d){
-    if(!Array.isArray(d[ch]))continue;
-    const valid=d[ch].map(c=>stripT(String(c||""))).filter(c=>/^[a-z]+$/.test(c));
+    const valid=d[ch].map(stripT).filter(c=>/^[a-z]+$/.test(c));
     if(!valid.length)continue;
     valid.forEach(c=>{(tgt[ch]=tgt[ch]||new Set()).add(c)});
     if(!SRC[ch])SRC[ch]=mode==="jp"?"preset-jp":"preset-hk";
@@ -533,22 +531,21 @@ function ingestTable(raw,mode){
   }
   return n;
 }
-
 const PRESET_N={jp:0,hk:0};
 try{PRESET_N.jp=ingestTable(window.JYUT_TABLE,"jp")}catch(e){}
 try{PRESET_N.hk=ingestTable(window.CANTON_TABLE,"hk")}catch(e){}
 (function(){const m={};for(const ch in JP_DICT){const hs=HK_DICT[ch];if(!hs)continue;JP_DICT[ch].forEach(b=>{hs.forEach(h=>{(m[b]=m[b]||new Set()).add(h)})})}for(const ch in JP_DICT){if(HK_DICT[ch])continue;JP_DICT[ch].forEach(b=>{const s=m[b];if(s&&s.size===1)addHK(ch,[...s][0])})}})();
 const modeKey=()=>isHKMode?"hk":"jp";
 
-/* ================= 外掛字庫 ================= */
+/* ============ 外掛字庫 ============ */
 const PLG={jp:null,hk:null,mode:"jp"};
 let effCache={};
-function effDict(mode){if(effCache[mode])return effCache[mode];const base=mode==="hk"?HK_DICT:JP_DICT;const m={};for(const k in base)m[k]=base[k];const p=PLG[mode];if(p){for(const ch in p){const codes=(p[ch]||[]).map(c=>stripT(String(c||""))).filter(Boolean);if(!codes.length)continue;m[ch]=new Set(m[ch]?[...m[ch]]:[]);codes.forEach(c=>m[ch].add(c))}}effCache[mode]=m;return m}
-function plgChars(mode){const p=PLG[mode];if(!p)return[];const d=effDict(mode);return Object.keys(p).filter(ch=>{const cs=(p[ch]||[]).map(c=>stripT(String(c||""))).filter(Boolean);return cs.length&&d[ch]})}
+function effDict(mode){if(effCache[mode])return effCache[mode];const base=mode==="hk"?HK_DICT:JP_DICT;const m={};for(const k in base)m[k]=base[k];const p=PLG[mode];if(p){for(const ch in p){const codes=p[ch].map(stripT).filter(Boolean);if(!codes.length)continue;m[ch]=new Set(m[ch]?[...m[ch]]:[]);codes.forEach(c=>m[ch].add(c))}}effCache[mode]=m;return m}
+function plgChars(mode){const p=PLG[mode];if(!p)return[];const d=effDict(mode);return Object.keys(p).filter(ch=>{const cs=(p[ch]||[]).map(stripT).filter(Boolean);return cs.length&&d[ch]})}
 function plgSave(){try{["jp","hk"].forEach(m=>{const p=PLG[m];localStorage.setItem("jp_plg_"+m,p?JSON.stringify({name:p._name,text:p._text}):"")})}catch(e){}}
 function plgLoadAll(){try{["jp","hk"].forEach(m=>{const raw=localStorage.getItem("jp_plg_"+m);if(raw){const o=JSON.parse(raw);if(o&&o.text){const d=parseDict(o.text);d._name=o.name;d._text=o.text;PLG[m]=d}}})}catch(e){}}
 function plgCount(){return plgChars("jp").length+plgChars("hk").length}
-function showCodes(ch){const s=effDict(modeKey())[ch];return s?[...s].join("/"):"—"}
+function showCodes(ch){const s=effDict(modeKey())[ch];if(!s)return"—";return[...s].join("/")}
 const SRC_LABEL={init:"聲母教材",final:"韻母教材",name:"姓氏人名",kouyu:"口語字",lazy:"懶音正音",place:"地名站名","preset-jp":"預設碼表 jyut.js","preset-hk":"預設碼表 canton.js"};
 
 /* ================= 教材（48 頁） ================= */
@@ -690,8 +687,9 @@ function setView(v){
   $("exitConfirmDialog").style.display=v==="EXIT_CONFIRM"?"flex":"none";
   $("dosExitScreen").style.display=v==="EXIT"?"flex":"none";
   updateMenuSel();
-  if(v==="MENU")$("footerHint").textContent="↑↓ 選擇，Enter 進入 ｜ Esc 離開程式";
+  if(v==="MENU")$("footerHint").textContent=(isTouch()?"💡 觸控裝置進入練習／測驗自動彈出虛擬鍵盤｜":"")+"↑↓ 選擇，Enter 進入 ｜ Esc 離開程式";
   maybeAutoKeypad();
+  schedScale();
 }
 function updateMenuSel(){document.querySelectorAll(".menu-item-row").forEach(r=>{r.classList.toggle("selected",+r.dataset.i===menuSel+1)})}
 
@@ -733,11 +731,11 @@ function renderAbout(){
   <div style="margin-top:10px;font-weight:bold;color:#ff5">▶ 預設與外掛碼表</div>
   • 程式自動偵測同目錄的 <b style="color:#5ff">jyut.js（粵拼版）</b>與 <b style="color:#5ff">canton.js（港式版）</b>預設碼表：檔內以 <code>window.JYUT_TABLE</code>／<code>window.CANTON_TABLE</code> 匯出字串或物件（「字=碼」「碼 字」「字: 碼」皆可，支援一字多碼）。<br>
   • 亦可於「實力測驗 → 測驗設定」手動掛載 .txt／.cin／.yaml 碼表（支援 YAML「字: 碼」「碼: 字」），綁定粵拼或港拼，存入瀏覽器（localStorage）下次自動套用，並解鎖練習第六階。<br>
-  <div style="margin-top:10px;font-weight:bold;color:#ff5">▶ 觸控操作（簡倉機制）</div>
+  <div style="margin-top:10px;font-weight:bold;color:#ff5">▶ 觸控操作（移植自簡倉定型版）</div>
   • 觸控裝置自動彈出<b style="color:#5ff">純英文虛擬鍵盤</b>：可循環「原大／置左 40%／置右 40%」；橫向模式畫面錨定頂部，鍵盤靠邊騰出中央；實體鍵盤輸入自動隱藏，點觸螢幕自動喚回。<br>
   <div style="margin-top:10px;font-weight:bold;color:#ff5">▶ 粵拼查碼／排行榜</div>
   • 查碼支援單字或詞組，顯示雙系統編碼與來源（教材／預設碼表／外掛）；成績榜保存最快 50 筆（localStorage）。<br>
-  <div style="margin-top:14px;text-align:right"><span style="color:#888;font-family:Consolas,monospace;margin-right:16px">v1.4</span></div></div>
+  <div style="margin-top:14px;text-align:right"><span style="color:#888;font-family:Consolas,monospace;margin-right:16px">v0.89</span></div></div>
   <div style="text-align:right"><button class="key-button" id="closeAboutBtn" onclick="goMenu()">確定 [Esc]</button></div>`;
 }
 
@@ -850,7 +848,8 @@ function practiceQuery(){
   clearTimeout(practiceQuery._t);practiceQuery._t=setTimeout(()=>{if(el)el.textContent=""},2000);
 }
 function practiceKey(k){
-  if(PR.done||PR.lock||!PR.list.length)return;
+  if(PR.done){if(k===" "||k==="Enter"){snd.key();practiceStart(PR.stage)}return}
+  if(PR.lock||!PR.list.length)return;
   const en=PR.list[PR.i];const d=effDict(modeKey());
   if(!d[en]){practiceSkipMissing();renderPractice();return}
   const a=expAns(en);
@@ -923,7 +922,7 @@ function poolStrings(type,mode){
   if(type==="basic")return Array.from({length:160},()=>combo(basic,2));
   return places.concat(Array.from({length:50},nameOf)).concat(Array.from({length:50},()=>combo(kouyu,2))).concat(Array.from({length:50},()=>combo(basic,2)));
 }
-const SKIP_PUNCT=new Set(["v","、","，","。","！","？","；","："," ","　"]);
+const SKIP_PUNCT=new Set(["、","，","。","！","？","；","："," ","　"]);
 function examStart(){
   const mins=Math.max(1,Math.min(30,+$("examTimeInput").value||3));EX.mins=mins;
   const mode=modeKey();const d=effDict(mode);
@@ -1097,6 +1096,7 @@ $("btnExitYes").onclick=()=>{setView("EXIT");$("footerHint").textContent=""};
 $("btnExitNo").onclick=()=>{setView("MENU");$("footerHint").textContent="↑↓ 選擇，Enter 進入 ｜ Esc 離開程式"};
 $("btnRestartDos").onclick=()=>location.reload();
 
+/* ================= 碼表切換（練習／測驗途中皆可） ================= */
 function toggleMode(){
   isHKMode=!isHKMode;
   $("dosScreen").classList.toggle("hk-mode",isHKMode);
@@ -1111,6 +1111,7 @@ function toggleMode(){
   else if(VIEW==="MENU"||VIEW==="EXAM_SETUP"){updateMenuSel();if(VIEW==="EXAM_SETUP")updateDialogUI()}
 }
 
+/* ================= 主路由 / 右下 ↑↓＝翻頁鍵 ================= */
 function goMenu(){setView("MENU")}
 function footerEnter(){
   snd.nav();
@@ -1139,112 +1140,210 @@ function footerUp(){
   else if(VIEW==="TUTORIAL")tutNav(-1);
   else if(VIEW==="PRACTICE"){if(!PR.done&&!PR.lock){PR.i=Math.max(PR.i-1,0);PR.buf="";renderPractice()}}
   else if(VIEW==="EXAM_RUN"){if(EX.candPage>0){EX.candPage--;updateExamUI()}}
-  else{const b=document.querySelector(".tut-content");if(b)b.scrollBy({top:-95,behavior:"smooth"})}}
+  else{const b=document.querySelector(".tut-content");if(b)b.scrollBy({top:-95,behavior:"smooth"})}
+}
 function footerDown(){
   snd.nav();
   if(VIEW==="MENU")menuSelMove(1);
   else if(VIEW==="TUTORIAL")tutNav(1);
   else if(VIEW==="PRACTICE"){if(!PR.done&&!PR.lock){PR.buf="";if(PR.i+1>=PR.list.length)PR.done=true;else PR.i++;renderPractice()}}
   else if(VIEW==="EXAM_RUN"){if((EX.candPage+1)*9<EX.cands.length){EX.candPage++;updateExamUI()}}
-  else{const b=document.querySelector(".tut-content");if(b)b.scrollBy({top:95,behavior:"smooth"})}}
+  else{const b=document.querySelector(".tut-content");if(b)b.scrollBy({top:95,behavior:"smooth"})}
+}
 
-/* 觸控鍵盤綁定與修復 */
-const isTouchDevice=()=>('ontouchstart' in window)||navigator.maxTouchPoints>0;
-let KP_POS="FULL",KP_SHOWN=false;
+/* ================= 觸控鍵盤（移植自簡倉定型版）＋ 橫豎屏轉向自適應縮放 ================= */
+const mqT=q=>window.matchMedia(q).matches;
+let _hadTouch=false,rafId=null,hasPhys=false,KP_POS="FULL",KP_SHOWN=false;
+window.addEventListener("touchstart",()=>_hadTouch=true,{passive:true});
+const isTouch=()=>_hadTouch||mqT("(pointer:coarse)")||mqT("(any-pointer:coarse)")||('ontouchstart' in window)||navigator.maxTouchPoints>0;
+const schedScale=()=>{if(rafId)cancelAnimationFrame(rafId);rafId=requestAnimationFrame(scaleScreen)};
+
+function scaleScreen(){
+  const el=$("dosScreen");if(!el)return;
+  try{
+    const vv=window.visualViewport,W=vv?.width>0?vv.width:innerWidth,H=vv?.height>0?vv.height:innerHeight,
+    handLand=isTouch()&&W>H;
+    document.body.classList.toggle("handheld-land",handLand);
+    if(handLand){
+      const sc=Math.min((W*.8)/960,(H*.8)/540);
+      el.style.transform=`scale(${Math.max(.25,sc).toFixed(4)})`;
+    }else{
+      const tk=$("touchKeypad");
+      const kpH=(tk&&tk.style.display==="flex"&&KP_POS==="FULL")?(tk.offsetHeight||230):0;
+      const kpW=(tk&&tk.style.display==="flex"&&KP_POS!=="FULL")?(W*0.4):0;
+      const sc=Math.min((W-kpW-16)/960,(H-kpH-16)/540);
+      el.style.transform=`scale(${Math.max(.25,sc).toFixed(4)})`;
+    }
+  }catch(e){el.style.transform="scale(.5)"}
+}
+window.addEventListener("resize",schedScale);
+window.addEventListener("orientationchange",()=>setTimeout(schedScale,300));
+window.visualViewport?.addEventListener("resize",schedScale);
+
 function initKeypad(){
-  const kb=k=>`<button type="button" class="tk-btn" data-k="${k}">${k.toUpperCase()}</button>`;
-  const r1='<div class="tk-row">'+[..."1234567890"].map(kb).join("")+'</div>';
+  const sp=f=>`<div class="tk-sp" style="flex:${f}"></div>`;
+  const kb=k=>`<button type="button" class="tk-btn" data-k="${k}">${String(k).toUpperCase()}</button>`;
+  const r1='<div class="tk-row">'+sp(.5)+[1,2,3,4,5,6,7,8,9,0].map(kb).join("")+sp(.5)+'</div>';
   const r2='<div class="tk-row">'+[..."QWERTYUIOP"].map(kb).join("")+'</div>';
-  const r3='<div class="tk-row">'+[..."ASDFGHJKL"].map(kb).join("")+'</div>';
-  const r4='<div class="tk-row">'+[..."ZXCVBNM"].map(kb).join("")+'<button type="button" class="tk-btn" data-k="BACKSPACE" style="flex:1.5;color:#800">⌫</button></div>';
+  const r3='<div class="tk-row">'+sp(.5)+[..."ASDFGHJKL"].map(kb).join("")+sp(.5)+'</div>';
+  const r4='<div class="tk-row">'+sp(1.5)+[..."ZXCVBNM"].map(kb).join("")+'<button type="button" class="tk-btn" data-k="BACKSPACE" style="flex:1.5;color:#800">⌫</button></div>';
   const r5='<div class="tk-row">'
     +'<button type="button" class="tk-btn" data-k="ESC" style="flex:1.15;color:#800">Esc</button>'
     +'<button type="button" class="tk-btn" data-k="?" style="flex:.7">?</button>'
     +'<button type="button" class="tk-btn" data-k=" " style="flex:4;color:#008">[Space]</button>'
-    +'<button type="button" class="key-button" data-k="UP" style="flex:.9;font-size:13px;height:40px">↑</button>'
-    +'<button type="button" class="key-button" data-k="DOWN" style="flex:.9;font-size:13px;height:40px">↓</button>'
+    +'<button type="button" class="tk-btn" data-k="UP" style="flex:.9;font-size:13px">↑</button>'
+    +'<button type="button" class="tk-btn" data-k="DOWN" style="flex:.9;font-size:13px">↓</button>'
     +'<button type="button" class="tk-btn" data-k="ENTER" style="flex:1.3;color:#008">Enter</button></div>';
   $("kpAbc").innerHTML=r1+r2+r3+r4+r5;
 }
+
 function kpDispatch(raw){
   if(!raw)return;
-  const k=String(raw).toLowerCase();
+  const now=Date.now(),winK=(raw===" "||raw==="ENTER"||raw==="BACKSPACE")?50:80,st=kpDispatch;
+  if(st._k===raw&&now-(st._t||0)<winK)return;st._k=raw;st._t=now;
   snd.key();
-  if(k==="esc")return footerEsc();
-  if(k==="enter")return footerEnter();
-  if(k==="up")return footerUp();
-  if(k==="down")return footerDown();
-  if(VIEW==="TUTORIAL")return;
+  if(raw==="ESC")return footerEsc();
+  if(raw==="ENTER")return footerEnter();
+  if(raw==="UP")return footerUp();
+  if(raw==="DOWN")return footerDown();
   if(VIEW==="PRACTICE"){
-    if(k==="?")return practiceQuery();
-    if(/^[a-z0-9]$/.test(k)||k===" ")practiceKey(k);
-    else if(k==="backspace")practiceKey("Backspace");
+    if(raw==="?")return practiceQuery();
+    if(/^[a-zA-Z0-9]$/.test(raw)||raw===" ")practiceKey(raw);
+    else if(raw==="BACKSPACE")practiceKey("Backspace");
     return;
   }
   if(VIEW==="EXAM_RUN"){
-    if(k==="?")return examKey("?");
-    if(/^[a-z0-9]$/.test(k)||k===" "||k==="="||k==="-"||k==="."||k===",")examKey(k);
-    else if(k==="backspace")examKey("Backspace");
+    if(raw==="?")return examKey("?");
+    if(/^[a-zA-Z0-9]$/.test(raw)||raw===" "||raw==="="||raw==="-"||raw==="."||raw===",")examKey(raw);
+    else if(raw==="BACKSPACE")examKey("Backspace");
     return;
   }
 }
+
 function bindKeypad(){
   const tk=$("touchKeypad");if(!tk||tk._bound)return;tk._bound=true;
   const onPad=ev=>{
-    const b=ev.target.closest&&ev.target.closest(".tk-btn,.key-button");
+    const b=ev.target.closest&&ev.target.closest(".tk-btn");
     if(!b||!tk.contains(b))return;
     if(ev.cancelable)ev.preventDefault();
     kpDispatch(b.dataset.k);
   };
   tk.addEventListener("pointerdown",onPad);
-  tk.addEventListener("click",onPad);
+  tk.addEventListener("touchstart",onPad,{passive:false});
 }
-function showKeypad(){const tk=$("touchKeypad");if(!tk)return;tk.style.display="flex";KP_SHOWN=true;$("kpModeLabel").textContent="⌨ 隱藏";scaleScreen()}
-function hideKeypad(){const tk=$("touchKeypad");if(!tk)return;tk.style.display="none";KP_SHOWN=false;$("kpModeLabel").textContent="⌨ 鍵盤";scaleScreen()}
+
+function showKeypad(){
+  const tk=$("touchKeypad");if(!tk)return;
+  tk.style.display="flex";KP_SHOWN=true;
+  const lb=$("kpModeLabel");if(lb)lb.textContent="⌨ 隱藏";
+  schedScale();
+}
+
+function hideKeypad(){
+  const tk=$("touchKeypad");if(!tk)return;
+  tk.style.display="none";KP_SHOWN=false;
+  const lb=$("kpModeLabel");if(lb)lb.textContent="⌨ 鍵盤";
+  schedScale();
+}
+
 function toggleKeypadShow(){KP_SHOWN?hideKeypad():showKeypad();snd.nav()}
+
 function cycleKeypadPos(){
   const order=["FULL","LEFT","RIGHT"],labels={FULL:"▣ 原大",LEFT:"◧ 置左",RIGHT:"◨ 置右"};
   KP_POS=order[(order.indexOf(KP_POS)+1)%3];
   const tk=$("touchKeypad"),lb=$("kpPosLabel");
   if(tk){tk.classList.toggle("kp-left",KP_POS==="LEFT");tk.classList.toggle("kp-right",KP_POS==="RIGHT")}
   if(lb)lb.textContent=labels[KP_POS];
-  snd.nav();scaleScreen();
+  snd.nav();schedScale();
 }
-function applyHandheldLand(){document.body.classList.toggle("handheld-land",isTouchDevice()&&window.innerWidth>window.innerHeight)}
-function maybeAutoKeypad(){
-  if(!isTouchDevice())return;
-  const typing=(VIEW==="PRACTICE"&&!PR.done&&!PR.lock)||VIEW==="EXAM_RUN";
-  if(typing&&!KP_SHOWN)showKeypad();
-  else if(!typing&&KP_SHOWN)hideKeypad();
-}
-function scaleScreen(){
-  const el=$("dosScreen");if(!el)return;
-  let availW=window.innerWidth,availH=window.innerHeight;
-  try{
-    if(KP_SHOWN){
-      const tk=$("touchKeypad");
-      if(KP_POS==="FULL"&&tk)availH=availH-tk.offsetHeight;
-      else availW=availW*0.6;
-    }
-  }catch(e){}
-  const sc=Math.min((availW-12)/960,(availH-12)/540);
-  el.style.transform=`scale(${Math.max(0.25,sc).toFixed(4)})`;
-}
-window.addEventListener("resize",()=>{applyHandheldLand();scaleScreen()});
-window.addEventListener("orientationchange",()=>setTimeout(()=>{applyHandheldLand();scaleScreen()},120));
 
-/* 啟動初始化 */
-window.onload=function(){
-  scaleScreen();plgLoadAll();effCache={};updateDialogUI();setView("MENU");
-  initKeypad();bindKeypad();applyHandheldLand();
-  
-  // 雙重保險：確保左下方 Enter / Esc 按鈕 100% 靈敏
-  const bindFooter=(id,fn)=>{const el=$(id);if(el){el.addEventListener("pointerdown",e=>{e.preventDefault();fn()});el.addEventListener("click",fn)}};
-  bindFooter("btnEnter",footerEnter);
-  bindFooter("btnEsc",footerEsc);
-  bindFooter("btnUp",footerUp);
-  bindFooter("btnDown",footerDown);
+function isDesktopOnly(){
+  return !_hadTouch&&!mqT("(any-pointer:coarse)")&&mqT("(pointer:fine)")&&mqT("(hover:hover)");
+}
+
+function maybeAutoKeypad(){
+  const want=(VIEW==="PRACTICE"||VIEW==="EXAM_RUN")&&!hasPhys&&!isDesktopOnly();
+  if(want)showKeypad();
+  else hideKeypad();
+}
+
+/* ================= 啟動與全域事件綁定（DOMContentLoaded 立即執行） ================= */
+const bootApp=()=>{
+  if(bootApp._done)return;bootApp._done=true;
+  try{
+    initKeypad();
+    bindKeypad();
+    $("touchKeypad").style.display="none";
+
+    $("btnEnter").onclick=footerEnter;
+    $("btnEsc").onclick=footerEsc;
+    $("btnUp").onclick=footerUp;
+    $("btnDown").onclick=footerDown;
+
+    window.addEventListener("touchstart",()=>{
+      _hadTouch=true;hasPhys=false;
+      if((VIEW==="PRACTICE"||VIEW==="EXAM_RUN")&&!KP_SHOWN)showKeypad();
+    },{passive:true});
+
+    window.addEventListener("keydown",e=>{
+      const t=e.target;
+      const isIn=!!(t&&/INPUT|TEXTAREA/.test(t.tagName));
+      if(isIn){
+        if(e.key==="Escape"){t.blur();e.preventDefault()}
+        return;
+      }
+      if(!isIn&&(/^Key[A-Z]$|^Digit[0-9]$|^(Space|Backspace|Enter)$/.test(e.code||""))&&!hasPhys){
+        hasPhys=true;
+        if(KP_SHOWN)hideKeypad();
+      }
+      if(e.ctrlKey||e.metaKey||e.altKey)return;
+      const k=e.key;
+      if(k==="Tab"){e.preventDefault();toggleMode();return}
+      if(VIEW==="EXIT_CONFIRM"){if(k==="y"||k==="Y")$("btnExitYes").click();else if(k==="x"||k==="X"||k==="Escape")$("btnExitNo").click();return}
+      if(VIEW==="EXIT"){if(k==="Enter")$("btnRestartDos").click();return}
+      if(k==="Escape"){e.preventDefault();footerEsc();return}
+      if(VIEW==="MENU"){
+        if(k==="ArrowUp"){e.preventDefault();footerUp()}
+        else if(k==="ArrowDown"){e.preventDefault();footerDown()}
+        else if(k==="Enter"){e.preventDefault();footerEnter()}
+        else if(/^[1-7]$/.test(k)){e.preventDefault();menuGo(+k)}
+        return;
+      }
+      if(k==="ArrowUp"){e.preventDefault();footerUp();return}
+      if(k==="ArrowDown"){e.preventDefault();footerDown();return}
+      if(VIEW==="TUTORIAL"){
+        if(k==="ArrowRight"||k==="PageDown"){e.preventDefault();tutNav(1)}
+        else if(k==="ArrowLeft"||k==="PageUp"){e.preventDefault();tutNav(-1)}
+        return;
+      }
+      if(VIEW==="PRACTICE"){
+        if(/^[a-zA-Z]$/.test(k)||k==="Backspace"||k===" "||k==="Enter"){e.preventDefault();practiceKey(k)}
+        else if(k==="ArrowRight"){e.preventDefault();footerDown()}
+        else if(k==="ArrowLeft"){e.preventDefault();footerUp()}
+        else if(k==="?"){e.preventDefault();practiceQuery()}
+        return;
+      }
+      if(VIEW==="EXAM_SETUP"){if(k==="Enter"){e.preventDefault();examStart()}return}
+      if(VIEW==="EXAM_RUN"){
+        if(/^[a-zA-Z0-9]$/.test(k)||k==="Backspace"||k===" "||k==="="||k==="-"||k==="."||k===","||k==="?"||k==="Enter"){e.preventDefault();examKey(k)}
+        return;
+      }
+      if(VIEW==="RESULT"){if(k==="Enter"){e.preventDefault();saveResult()}return}
+      if(VIEW==="QUERY"){if(k==="Enter"){e.preventDefault();doQuery()}return}
+    });
+
+    plgLoadAll();
+    effCache={};
+    updateDialogUI();
+    setView("MENU");
+    scaleScreen();
+  }catch(e){
+    const b=$("errorBanner");
+    if(b){b.style.display="block";b.textContent="⚠️ 啟動錯誤："+(e?.message||e)}
+    console.error(e);
+  }
 };
+document.readyState==="loading"?document.addEventListener("DOMContentLoaded",bootApp):setTimeout(bootApp,0);
 </script>
 </body>
 </html>
