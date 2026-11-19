@@ -3,10 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
-<title>快快快樂學粵拼 0.90</title>
-<meta name="description" content="以仿九十年代 DOS 打字教學程式為基礎，再製作單一 HTML 檔，依然離線可玩。含 48 頁粵拼／港式拼音教材、六階打字練習、實力測驗（中途可切碼表、無限覆題、外掛題目優先）、粵拼查碼與最佳成績排行榜。">
+<title>快快快樂學粵拼</title>
+<meta name="description" content="以仿九十年代 DOS 打字教學程式為基礎，再製作單一 HTML 檔，依然離線可玩。含 48 頁粵拼／港式拼音教材、六階打字練習、實力測驗（雙行顯示、中途可切碼表、無限覆題、外掛題目優先）、粵拼查碼與最佳成績排行榜。">
 <script>
-/* 預設碼表快照：jyut.js／canton.js 即使同名匯出亦各自歸位；支援 window 屬性與頂層 const */
 window.__presetEvents=[];
 window.__presetLoad=function(m){
   const names=["JYUT_TABLE","CANTON_TABLE","EXTERNAL_JYUT_TT","EXTERNAL_CANTON_TT","EXTERNAL_CHINESE_TT"];
@@ -24,7 +23,6 @@ window.__presetErr=function(m){window.__presetEvents.push({m:m,ok:false})};
 <script src="jyut.js" onload="window.__presetLoad('jp')" onerror="window.__presetErr('jp')"></script>
 <script src="canton.js" onload="window.__presetLoad('hk')" onerror="window.__presetErr('hk')"></script>
 <script>
-/* 外掛題目 multi-1..4：優先認 MULTI_POOLS[n]（name+articles）集中池，其次 MULTI1 等變數 */
 window.__extQEvents=[];
 window.__extQLoad=function(n){
   try{
@@ -111,6 +109,8 @@ body.handheld-land .dos-screen{transform-origin:top center}
 .exam-line{width:100%;flex:1;min-height:0;display:flex;align-items:center;white-space:pre;overflow:hidden;font-size:20px;line-height:1}
 .exam-line-status1{background:#000080;color:#ff5;padding:0 8px;justify-content:space-between;font-size:16px;font-weight:bold}
 .exam-line-status2{background:#005a52;color:#fff;padding:0 8px;justify-content:space-between;font-size:15px;border-bottom:1px solid #000}
+.exam-mode-btn{background:#000080;color:#ff5;border:1px solid #ff5;height:20px;font-size:12px;font-weight:bold;padding:0 7px;cursor:pointer;font-family:Consolas,"Microsoft JhengHei",monospace;margin-left:8px}
+.exam-mode-btn:active{background:#ff5;color:#000080}
 .char-grid-row{display:grid;grid-template-columns:repeat(16,1fr);width:100%;flex:1;min-height:0;align-items:center}
 .char-cell{text-align:center;font-size:20px;font-weight:bold;line-height:1;height:100%;display:flex;align-items:center;justify-content:center;color:#000}
 .typed-row .char-cell.correct{color:#00f}
@@ -276,7 +276,6 @@ body.handheld-land .dos-screen{transform-origin:top center}
    <div style="display:flex;justify-content:center;gap:20px"><button type="button" class="key-button" id="btnExitYes" style="color:#800000;height:30px;font-size:15px;padding:0 18px">[Y] 離開</button><button type="button" class="key-button focused-choice" id="btnExitNo" style="color:#000080;height:30px;font-size:15px;padding:0 18px">[X] 返回</button></div>
   </div>
   <div class="dialog-box" id="examSetupDialog">
-   <div class="dialog-title"><span>測驗設定</span><span style="font-size:12px;color:#555">[Esc] 取消</span></div>
    <div style="display:flex;flex-direction:column;gap:8px">
     <div style="font-size:15px;font-weight:bold;color:#000080">請選擇命題方式：</div>
     <div class="dialog-option-row" id="optComputer"><div class="dialog-radio active" id="radioComputer"></div><div class="dialog-label">1. 電腦命題</div></div>
@@ -302,6 +301,14 @@ body.handheld-land .dos-screen{transform-origin:top center}
     <textarea id="customInputString" class="dialog-input" rows="3" maxlength="4000" style="resize:vertical;font-size:15px">陳大文喺元朗朗屏屏山、再到上水粉嶺粉嶺、沙田大圍火炭、葵青青衣荔景、屯門兆康藍地。</textarea>
     <div style="font-size:11.5px;color:#555">💡 未收錄之字會自動以灰色跳過，不計分；打完一頁如時間未到會自動覆題。</div>
    </div>
+   <div style="display:flex;align-items:center;gap:10px">
+    <span class="dialog-label">時限：</span>
+    <input type="number" id="examTimeInput" class="dialog-input" value="3" min="1" max="30" style="width:70px;text-align:center">
+    <span class="dialog-label" style="font-size:13px">分鐘</span>
+    <span style="flex:1"></span>
+    <button type="button" class="key-button" id="btnCancelExamSetup">取消</button>
+    <button type="button" class="key-button" id="btnStartExam" style="color:#800000">開始 [Enter]</button>
+   </div>
    <div style="border-top:1px solid #888;margin:2px 0;padding-top:6px;display:flex;flex-direction:column;gap:6px">
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
      <span style="font-size:13px;font-weight:bold;color:#000080">外掛字庫：</span>
@@ -315,18 +322,10 @@ body.handheld-land .dos-screen{transform-origin:top center}
     <div style="font-size:11px;color:#666;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">💡 掛載 .txt／.cin／.yaml 碼表（UTF-8／Big5），存入瀏覽器記憶並解鎖練習第六階。</div>
    </div>
    <div style="font-size:13px;color:#004080;font-weight:bold" id="examSetupMsg">💡 內建教材字庫已就緒；jyut.js／canton.js 預設碼表自動掛接，可立即開始測驗！</div>
-   <div style="display:flex;align-items:center;gap:10px">
-    <span class="dialog-label">時限：</span>
-    <input type="number" id="examTimeInput" class="dialog-input" value="3" min="1" max="30" style="width:70px;text-align:center">
-    <span class="dialog-label" style="font-size:13px">分鐘</span>
-    <span style="flex:1"></span>
-    <button type="button" class="key-button" id="btnCancelExamSetup">取消</button>
-    <button type="button" class="key-button" id="btnStartExam" style="color:#800000">開始 [Enter]</button>
-   </div>
   </div>
   <div class="sub-window" id="subWin"></div>
   <div class="exam-18-screen" id="exam18Screen">
-   <div class="exam-line exam-line-status1"><span id="exam18Title">【實力測驗】電腦命題</span><span id="exam18Timer">剩餘時間：03:00（按首碼開始計時）</span></div>
+   <div class="exam-line exam-line-status1"><span style="display:inline-flex;align-items:center;gap:8px"><span id="exam18Title">【實力測驗】電腦命題</span><button type="button" class="exam-mode-btn" id="examModeBtn" onclick="toggleMode()" title="中途切換碼表（同 Tab）：切換後缺字自動跳過">［標準粵拼］</button></span><span id="exam18Timer">剩餘時間：03:00（按首碼開始計時）</span></div>
    <div class="exam-line exam-line-status2"><span id="exam18Stats">已輸入：0（正確 0 錯誤 0）｜準確率：100%｜速度：0.0字/分</span><span>[Space]唯一碼上屏 [1-9]重碼選字 [PU/PD]翻頁 [?]反查 [Esc]清除/退出</span></div>
    <div id="exam7GroupsContainer" style="display:flex;flex-direction:column;flex:14;min-height:0;width:100%"></div>
    <div class="exam-line exam-line-17"><span>重碼選字：</span><span id="candidateListText" style="color:#000080">（無重碼）</span></div>
@@ -357,7 +356,6 @@ body.handheld-land .dos-screen{transform-origin:top center}
  </div>
  <div id="kpAbc"></div>
 </div>
-
 <script>
 "use strict";
 const $=id=>document.getElementById(id),
@@ -368,7 +366,6 @@ pick=a=>a[Math.random()*a.length|0],
 safe=fn=>function(ev){try{return fn.call(this,ev)}catch(e){const b=$("errorBanner");if(b){b.style.display="block";b.textContent="處理器錯誤："+(e?.message||e)}console.error(e)}};
 window.onerror=(m,u,l)=>{if(/jyut\.js|canton\.js|multi-\d\.js/i.test(String(u||"")))return true;const b=$("errorBanner");if(b){b.style.display="block";b.textContent=`系統警告 (L${l}):${m}`}return false};
 function sfxToast(msg,dark){const b=$("errorBanner");if(!b)return;const ob=b.style.backgroundColor;b.style.backgroundColor=dark?"#2a2a2a":"#a00";b.style.display="block";b.textContent=msg;clearTimeout(sfxToast._t);sfxToast._t=setTimeout(()=>{b.style.display="none";b.style.backgroundColor=ob||"#a00"},3200)}
-/* 音效引擎（iOS 解鎖＋封鎖偵測＋visibilitychange 還原） */
 const sound={en:false,ctx:null,resuming:null,_t:[],
 _clear(){this._t.forEach(clearTimeout);this._t=[]},
 _ensure(){try{if(!this.ctx){const C=window.AudioContext||window.webkitAudioContext;if(!C)return false;this.ctx=new C()}if(this.ctx.state!=="running"){try{const p=this.ctx.resume();this.resuming=p?.then?p.finally(()=>{this.resuming=null}):null}catch(e){this.resuming=null}}return!!this.ctx}catch(e){return this.ctx=null,false}},
@@ -378,13 +375,11 @@ unlock(){if(this._ensure())this._tone(1,.002,"sine",.001)},
 key(){this.beep(950,.05)},err(){this.beep(160,.16,"sawtooth")},nav(){this.beep(500,.04)},
 ok(){this._clear();this.beep(523,.08);this._t.push(setTimeout(()=>this.beep(659,.08),70))},
 alarm(){if(!this.en)return;this._clear();this.beep(880,.15);this._tone(880,.15,"square",.12,.18);this._tone(1174,.35,"square",.12,.36)}};
-/* IndexedDB＋解碼 */
 const IDB={DB:"jyutping_kv",STORE:"kv",db:null,
 open(){return new Promise((res,rej)=>{if(IDB.db)return res(IDB.db);try{const r=indexedDB.open(IDB.DB,1);r.onupgradeneeded=()=>{try{r.result.createObjectStore(IDB.STORE)}catch(e){}};r.onsuccess=()=>res(IDB.db=r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}})},
 get(k){return IDB.open().then(db=>new Promise((res,rej)=>{const r=db.transaction(IDB.STORE,"readonly").objectStore(IDB.STORE).get(k);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}))},
 set(k,v){return IDB.open().then(db=>new Promise((res,rej)=>{const r=db.transaction(IDB.STORE,"readwrite").objectStore(IDB.STORE).put(v,k);r.onsuccess=()=>res();r.onerror=()=>rej(r.error)}))}};
 const decodeBuf=buf=>{let t;try{t=new TextDecoder("utf-8",{fatal:true}).decode(buf)}catch(e){t=new TextDecoder("big5").decode(buf)}return t.replace(/^\uFEFF/,"").trim()};
-/* 教材資料 */
 let isHKMode=false;
 const initData=[
 {id:"b",ipa:"[p]",jp:"b",hk:"P/B",desc:"雙唇不送氣清塞音",tip:"切勿讀成英文 b，應讀如英文 spy 的 p。",contrast:"手掌放嘴前，讀 b 無氣流，讀 p 會有強烈氣流。",big:[["巴","baa1","Pa","巴士"],["波","bo1","Po","波浪"],["爸","baa4","Pa","爸爸"],["班","baan1","Pan","班級"]],more:[["寶","bou2","Po"],["白","baak6","Pak"],["比","bei2","Pei"],["必","bit1","Pit"],["冰","bing1","Ping"],["百","baak3","Pak"]]},
@@ -530,7 +525,6 @@ const KOUYU_24=[["嘅","ge3"],["喺","hai2"],["唔","m4"],["佢","keoi5"],["咗"
 const KOUYU_HK={嘅:["ke"],喺:["hai"],唔:["m"],佢:["kui"],咗:["tso","cho"],緊:["kan"],啲:["ti"],咁:["kam","kum"],嘢:["ye"],咩:["me"],冇:["mou","mo"],仲:["chung","tsung"],嚟:["lai","lei"],返:["fan"],搵:["wan"],睇:["tai"],傾:["king"],偈:["kai"],畀:["pei"],攞:["lo"],度:["dou","to"],晒:["sai"],埋:["mai"],嗰:["go","ko"]};
 const EXCLUDE_HK=new Set(["中環","金鐘","銅鑼灣","太子","北角","炮台山","鰂魚涌","香港仔","赤柱","太平山","半山區","跑馬地","渣甸山","香港大學","海洋公園","海怡半島","會展","馬場","大學","西九龍","九龍灣","九龍城","第一城","車公廟","康城","黃金海岸","蝴蝶灣","欣澳","迪士尼","機場","博覽館","奧運","淺水灣","深水灣","旺角","旺角東","吐露港","打鼓嶺","古洞","大埔墟","堅尼地城","大嶼山","南丫島","太古城"]);
 const TAIL_WORDS=new Set(["road","bay","island","park","hill","point","centre","center","temple","market","peak","harbour","harbor","valley","town","city","east","west","north","south","resort","expo","shing"]);
-/* 內建雙碼庫 */
 const JP_DICT={},HK_DICT={},SRC={};
 const isCJK=s=>{if(!s)return false;const cp=s.codePointAt(0);return(cp>=0x3400&&cp<=0x9FFF)||(cp>=0xF900&&cp<=0xFAFF)||(cp>=0x20000&&cp<=0x323AF)};
 function addJP(ch,jpsrc){if(!ch||[...ch].length!==1)return;String(jpsrc||"").split("/").forEach(tk=>{const b=stripT(tk).toLowerCase();if(/^[a-z]+$/.test(b)){(JP_DICT[ch]=JP_DICT[ch]||new Set()).add(b)}})}
@@ -590,7 +584,6 @@ function deriveMissingHK(){
  for(const ch in JP_DICT){if(HK_DICT[ch])continue;JP_DICT[ch].forEach(b=>{const s=m[b];if(s&&s.size===1)addHK(ch,[...s][0])})}
 }
 const modeKey=()=>isHKMode?"hk":"jp";
-/* 預設碼表掛接（快照收割＋動態後備＋純文字 fetch 後備） */
 const PRESET_N={jp:0,hk:0},PRESET_MSG={jp:"偵測中…",hk:"偵測中…"};
 const PRESET_FILE={jp:"jyut.js",hk:"canton.js"};
 const PRESET_VARS={jp:["JYUT_TABLE","EXTERNAL_JYUT_TT","EXTERNAL_CHINESE_TT"],hk:["CANTON_TABLE","EXTERNAL_CANTON_TT","EXTERNAL_CHINESE_TT"]};
@@ -642,7 +635,6 @@ async function presetFallback(){
  deriveMissingHK();effCache={};
  if(VIEW==="MENU"||VIEW==="EXAM_SETUP")updateDialogUI();
 }
-/* 外掛題目 multi-1..4 */
 const EXTQ={1:null,2:null,3:null,4:null};
 const EXTQ_NAME={1:"",2:"",3:"",4:""};
 const EXTQ_MSG={1:"偵測中…",2:"偵測中…",3:"偵測中…",4:"偵測中…"};
@@ -671,7 +663,6 @@ function extQFor(pool){
  if(pool==="all")return ["1","2","3","4"].filter(n=>EXTQ[n]).flatMap(n=>[...(EXTQ[n].join(""))]);
  return null;
 }
-/* 外掛字庫（IndexedDB＋localStorage 後備） */
 const PLG={jp:null,hk:null,mode:"jp"};
 let effCache={};
 function effDict(mode){
@@ -688,9 +679,6 @@ async function plgLoadAll(){for(const m of["jp","hk"]){let raw=null;try{raw=awai
 function plgCount(){return plgChars("jp").length+plgChars("hk").length}
 function showCodes(ch){const s=effDict(modeKey())[ch];return s?[...s].join("/"):"—"}
 const SRC_LABEL={init:"聲母教材",final:"韻母教材",name:"姓氏人名",kouyu:"口語字",lazy:"懶音正音",place:"地名站名","preset-jp":"預設碼表 jyut.js","preset-hk":"預設碼表 canton.js"};
-
-<script>
-/* ================= 48 頁教材 ================= */
 let tutPage=-1;
 function goTut(idx){tutPage=idx;renderTut()}
 function renderTut(){
@@ -749,7 +737,6 @@ function renderSpecial(p,navBtns){
  return `<div class="sub-win-title"><div><span>📖 專題六：五日粵拼速成特訓路線（P.48 / 48）</span></div>${navBtns}</div><div class="tut-content" id="tutPageContent"><div class="tut-h">▶ Day 1：破除英文拼音習慣（j、z、c）</div><div style="font-size:13.5px;padding:2px 6px">牢記三大轉換：j 讀 y (人 jan4)、z 讀不送氣知 (張 zoeng1)、c 讀送氣雌 (陳 can4)，徹底告別 ch / sh / y。</div><div class="tut-h g">▶ Day 2：長短音 aa/a 與圓唇音 oe/eo/yu</div><div style="font-size:13.5px;padding:2px 6px">對比：三 saam1 vs 心 sam1；熟打：佢 keoi5、想 soeng2、魚 jyu4。</div><div class="tut-h c">▶ Day 3：攻克五大懶音與入聲韻尾</div><div style="font-size:13.5px;padding:2px 6px">專練 n-/l-、ng-/零聲母、gw-/kw- 及 -p/-t/-k 尾音。</div><div class="tut-h">▶ Day 4：港府人名地名轉換與口語字實戰</div><div style="font-size:13.5px;padding:2px 6px">用身邊朋友英文名練習：Cheung Ka Wai → zoeng1 gaa1 wai5；Tsim Sha Tsui → zim1 saa1 zeoi2。</div><div class="tut-h g">▶ Day 5：港府拼音特例與意譯地名</div><div style="font-size:13.5px;padding:2px 6px">練習意譯地名：Aberdeen → hoeng1 gong2 zai2 (香港仔)、Mong Kok → wong6 gok3 (旺角)。<br>🎉 完成後接續前往「打字練習」「實力測驗」實戰吧！</div></div>`;
 }
 function tutNav(d){sound.nav();goTut(tutPage===-1?(d>0?0:47):(tutPage+d>47?-1:(tutPage+d<0?47:tutPage+d)))}
-/* 通用捲動 */
 function getActiveScrollBox(){
  const sels=["#tutPageContent","#aboutScrollBox","#lbScrollBox","#queryDetails","#examSetupDialog"];
  for(const s of sels){const el=document.querySelector(s);if(el&&el.offsetParent!==null)return el}
@@ -757,7 +744,6 @@ function getActiveScrollBox(){
 }
 function scrollActiveBox(deltaY){const box=getActiveScrollBox();if(!box)return false;box.scrollBy({top:deltaY,behavior:"smooth"});return true}
 window.addEventListener("wheel",e=>{const box=getActiveScrollBox();if(!box)return;if(!box.contains(e.target))box.scrollTop+=e.deltaY},{passive:true});
-/* 視圖切換 */
 let VIEW="MENU",hasPhys=false;
 function setView(v){
  clearInterval(EX.timer);clearTimeout(PR.advTimer);PR.advTimer=null;
@@ -779,7 +765,6 @@ function setView(v){
  maybeAutoKeypad();schedScale();setTimeout(schedScale,120);
 }
 function updateMenuSel(){document.querySelectorAll(".menu-item-row").forEach(r=>{r.classList.toggle("selected",+r.dataset.i===menuSel+1)})}
-/* 主選單 */
 let menuSel=0;
 function menuGo(n){
  if(n<1||n>7)return;
@@ -800,13 +785,11 @@ function menuGo(n){
 }
 function menuSelMove(d){menuSel=(menuSel+d+7)%7;sound.nav();updateMenuSel()}
 function menuActivate(){menuGo(menuSel+1)}
-/* 軟體簡介 */
 function renderAbout(){
  $("subWin").className="sub-window n660";
  $("footerHint").textContent="📖 ↑↓ / 滾輪上下捲動 ｜ Tab 切換碼表 ｜ Enter / Esc 返回主選單";
- $("subWin").innerHTML=`<div class="sub-win-title"><span>軟體簡介</span><span style="font-size:13px;color:#aaa">[↑↓] 捲動 [Esc] 返回</span></div><div class="scroll-box" id="aboutScrollBox" style="font-size:14px;color:#fff;line-height:1.8;flex:1;padding-right:6px">本作「致敬」九十年代風行之 DOS 打字教學程式，並特別針對<b style="color:#ff5">標準粵拼（Jyutping）與政府式香港拼音</b>雙系統的使用習慣進行全面重構。香港人的身分證英文姓名與街道地名採用港式英文拼音，而手機電腦輸入法則採用粵拼，兩者極易混淆——本程式以 <b style="color:#5ff">Tab 一鍵切換</b>雙碼庫，練習、測驗、查碼全部同步對應，且<b style="color:#5ff">練習與測驗途中均可即時切換碼表</b>（測驗切換後，新碼表未收錄的餘下字元自動以灰色跳過）。<br><div style="margin-top:10px;font-weight:bold;color:#ff5">▶ 名詞辨析</div>• <b style="color:#5ff">粵拼（Jyutping）</b>：香港語言學學會粵語拼音方案（1993），一音一碼，即本程式「標準粵拼」模式。<br>• <b style="color:#5ff">政府式香港拼音</b>：殖民地時期「標準羅馬字」省略送氣符號簡化而來，用於身分證英文姓名與街道地名，即本程式「香港拼音」模式。<br>• 近親方案：耶魯、劉錫祥、廣州話拼音等——可經外掛碼表擴充支援。<br><div style="margin-top:10px;font-weight:bold;color:#ff5">▶ 粵拼入門（48 頁）</div>• 聲母 20 頁＋韻母 22 頁＋專題 6 頁；↑↓ 捲動、← → / PU / PD 翻頁；目錄頁按聲母字母 a–z 快跳。<br><div style="margin-top:10px;font-weight:bold;color:#ff5">▶ 打字練習（六階）</div>• 基礎聲韻 → 韻母入聲 → 懶音正音 → 高頻口語 → 姓氏地名 → 外掛字庫；每組 20 字；← → / PU / PD 切換上下題。<br><div style="margin-top:10px;font-weight:bold;color:#ff5">▶ 實力測驗</div>• 電腦命題九選一（外掛題目各成獨立選項）或自訂命題；7×16 字格<b style="color:#5ff">雙行顯示（上行已打、下行提示）</b>；唯一碼打滿自動上屏；重碼須以 1–9 選出；按首碼開始計時；打滿一頁自動覆題。<b style="color:#5ff">揀「內建綜合」時外掛題目依 1→4 優先，用畢方落內建題庫；揀「題庫一～四」純內建。</b><br><div style="margin-top:10px;font-weight:bold;color:#ff5">▶ 預設與外掛碼表</div>• 自動掛接 jyut.js／canton.js；外掛題目 multi-1.js～multi-4.js 支援 MULTI_POOLS 集中池或字串陣列，開站自動掛載。<br>• 測驗設定可手動掛載 .txt／.cin／.yaml 碼表，存入瀏覽器記憶並解鎖練習第六階。<br><div style="margin-top:10px;font-weight:bold;color:#ff5">▶ 觸控操作</div>• 觸控裝置自動彈出純英文虛擬鍵盤（1-9／QWERTY／PU／PD），可循環原大／置左／置右；實體鍵盤打字自動隱藏，點觸螢幕喚回。<br><div style="margin-top:14px;text-align:right"><span style="color:#888;font-family:Consolas,monospace;margin-right:16px">v0.90（雙行測驗＋鍵盤移植維修版）</span></div></div><div style="text-align:right;margin-top:6px"><button type="button" class="key-button" onclick="goMenu()">確定 [Enter / Esc]</button></div>`;
+ $("subWin").innerHTML=`<div class="sub-win-title"><span>軟體簡介</span><span style="font-size:13px;color:#aaa">[↑↓] 捲動 [Esc] 返回</span></div><div class="scroll-box" id="aboutScrollBox" style="font-size:14px;color:#fff;line-height:1.8;flex:1;padding-right:6px">本作「致敬」九十年代風行之 DOS 打字教學程式，並特別針對<b style="color:#ff5">標準粵拼（Jyutping）與政府式香港拼音</b>雙系統的使用習慣進行全面重構。香港人的身分證英文姓名與街道地名採用港式英文拼音，而手機電腦輸入法則採用粵拼，兩者極易混淆——本程式以 <b style="color:#5ff">Tab 一鍵切換</b>雙碼庫，練習、測驗、查碼全部同步對應，且<b style="color:#5ff">練習與測驗途中均可即時切換碼表</b>（測驗切換後，新碼表未收錄的餘下字元自動以灰色跳過）。<br><div style="margin-top:10px;font-weight:bold;color:#ff5">▶ 名詞辨析</div>• <b style="color:#5ff">粵拼（Jyutping）</b>：香港語言學學會粵語拼音方案（1993），一音一碼，即本程式「標準粵拼」模式。<br>• <b style="color:#5ff">政府式香港拼音</b>：殖民地時期「標準羅馬字」省略送氣符號簡化而來，用於身分證英文姓名與街道地名，即本程式「香港拼音」模式。<br><div style="margin-top:10px;font-weight:bold;color:#ff5">▶ 與其他廣東話拼音方案之異同（速覽）</div>• <b style="color:#5ff">標調</b>：粵拼用數字 1–6（三 saam1）；耶魯用變音符號（sāam）；本程式輸入一律<b>不標調</b>。<br>• <b style="color:#5ff">送氣與否</b>：粵拼以 b/d/g（無氣流）對 p/t/k（有氣流）分音；港式、耶魯等一律以 P/T/K、Ts/Ch 標示。<br>• <b style="color:#5ff">例字對照</b>：子＝粵拼 zi2｜港式 Tsz｜耶魯 ji｜劉錫祥 ji｜廣州話拼音 zi；可＝粵拼 ho2｜港式 Ho／Hoh｜耶魯 ho；張＝zoeng1／Cheung／jeung；去＝heoi3／Hui／hui；佢＝keoi5／Kui／kui。<br>• <b style="color:#5ff">圓唇韻</b>：粵拼以 oe／eo／yu 三組精細區分（想 soeng2／信 seon3／書 syu1）；港式籠統作 eung／un／u（Sheung／Shun／Shu），容易混淆。<br>• <b style="color:#5ff">規則統一性</b>：粵拼一音一碼；港式因歷史習慣多變體（李 Lee/Li、蔡 Choi/Tsoi、周 Chow/Chau），本程式碼表已收錄常見變體。<br><div style="margin-top:10px;font-weight:bold;color:#ff5">▶ 粵拼入門（48 頁）</div>• 聲母 20 頁＋韻母 22 頁＋專題 6 頁；↑↓ 捲動、← → / PU / PD 翻頁；目錄頁按聲母字母 a–z 快跳。<br><div style="margin-top:10px;font-weight:bold;color:#ff5">▶ 打字練習（六階）</div>• 基礎聲韻 → 韻母入聲 → 懶音正音 → 高頻口語 → 姓氏地名 → 外掛字庫；每組 20 字；← → / PU / PD 切換上下題。<br><div style="margin-top:10px;font-weight:bold;color:#ff5">▶ 實力測驗</div>• 電腦命題九選一（外掛題目各成獨立選項）或自訂命題；7×16 字格<b style="color:#5ff">雙行顯示（上行已打、下行提示）</b>；唯一碼打滿自動上屏；重碼須以 1–9 選出；按首碼開始計時；打滿一頁自動覆題；Backspace 可倒退已上屏字重打；<b style="color:#5ff">「?」反查當前目標字之編碼</b>；<b style="color:#5ff">狀態列按鈕／Tab 中途切換碼表</b>。<b style="color:#5ff">揀「內建綜合」時外掛題目依 1→4 優先，用畢方落內建題庫；揀「題庫一～四」純內建。</b><br><div style="margin-top:10px;font-weight:bold;color:#ff5">▶ 預設與外掛碼表</div>• 自動掛接 jyut.js／canton.js；外掛題目 multi-1.js～multi-4.js 支援 MULTI_POOLS 集中池或字串陣列，開站自動掛載。<br>• 測驗設定可手動掛載 .txt／.cin／.yaml 碼表，存入瀏覽器記憶並解鎖練習第六階。<br><div style="margin-top:10px;font-weight:bold;color:#ff5">▶ 觸控操作</div>• 觸控裝置自動彈出純英文虛擬鍵盤（1-9／QWERTY／PU／PD），可循環原大／置左／置右（顯示大小不變）；實體鍵盤打字自動隱藏，點觸螢幕喚回。<br><div style="margin-top:14px;display:flex;justify-content:flex-end;align-items:center;gap:16px"><span style="color:#888;font-family:Consolas,monospace">0.89</span><a href="https://www.github.com/ck-from-hk/canton" target="_blank" rel="noopener" style="color:#5ff;font-weight:bold;text-decoration:none">🔗 www.github.com/ck-from-hk/canton</a></div></div><div style="text-align:right;margin-top:6px"><button type="button" class="key-button" onclick="goMenu()">確定 [Enter / Esc]</button></div>`;
 }
-/* 粵拼查碼 */
 function renderQuery(){
  $("subWin").className="sub-window n620";
  $("footerHint").textContent="🔍 輸入漢字按 Enter 查詢 ｜ ↑↓ 捲動結果 ｜ Esc 返回主選單";
@@ -827,7 +810,6 @@ function doQuery(){
  }).join("");
  box.innerHTML=rows||"（無結果）";box.style.display="flex";sound.ok();
 }
-/* 打字練習 */
 const STAGES=["基礎聲韻","韻母入聲","懶音正音","高頻口語","姓氏地名","外掛字庫"];
 const PR={stage:1,list:[],i:0,ok:0,err:0,t0:0,buf:"",reveal:false,lock:false,done:false,advTimer:null};
 function charsBySrc(srcs){const out=[];for(const ch in SRC)if(srcs.includes(SRC[ch]))out.push(ch);return out}
@@ -860,6 +842,19 @@ function expAns(en){
 }
 function practiceAdvance(){clearTimeout(PR.advTimer);PR.advTimer=null;PR.i++;PR.buf="";PR.reveal=false;PR.lock=false;practiceSkipMissing();if(PR.i>=PR.list.length)PR.done=true;renderPractice()}
 function practiceWrong(){PR.err++;sound.err();PR.lock=true;PR.reveal=true;PR.buf="";renderPractice();clearTimeout(PR.advTimer);PR.advTimer=setTimeout(()=>{if(VIEW==="PRACTICE"){PR.reveal=false;practiceAdvance()}},900)}
+function practiceNext(){
+ if(!PR.list.length||PR.lock||PR.done)return;
+ PR.buf="";PR.reveal=false;
+ if(PR.i+1>=PR.list.length)PR.done=true;else PR.i++;
+ practiceSkipMissing();
+ renderPractice();
+}
+function practicePrev(){
+ if(!PR.list.length||PR.lock||PR.done||PR.i<=0){sound.err();return}
+ PR.i--;PR.buf="";PR.reveal=false;
+ practiceSkipMissing();
+ renderPractice();
+}
 function renderPractice(){
  const win=$("subWin");win.className="sub-window";
  $("footerHint").textContent="⌨️ A–Z 輸入拼音 ｜ Backspace 修正 ｜ ← → / PU PD 切換上下題 ｜ ? 查碼 ｜ Tab 切換碼表 ｜ Esc 返回";
@@ -921,7 +916,6 @@ function practiceKey(k){
  }
  renderPractice();
 }
-/* 實力測驗 */
 const POOL_LABELS={all:"內建綜合",basic:"題庫一・基礎聲韻",lazy:"題庫二・懶音正音",kouyu:"題庫三・高頻口語",name:"題庫四・姓氏地名"};
 function poolLabel(p){
  const m=/^ext([1-4])$/.exec(p||"");
@@ -1044,7 +1038,7 @@ function examStart(){
  const extNames=[1,2,3,4].filter(n=>EXTQ[n]&&EXTQ_NAME[n]).map(n=>EXTQ_NAME[n]).join("／");
  $("exam18Title").textContent=examTitleText(hasExt&&EX.pool==="all"?("＋外掛題目"+(extNames?"（"+extNames+"）":"")):"");
  updateExamUI();renderExamGrid();
- $("footerHint").textContent="a–z 輸入拼音 ｜ Space 唯一碼上屏 ｜ 重碼按 1–9 或點擊選字 ｜ [ ] / = − / PU PD 翻頁 ｜ ? 反查 ｜ Tab 切換碼表";
+ $("footerHint").textContent="a–z 輸入拼音 ｜ Space 唯一碼上屏 ｜ 重碼按 1–9 或點擊選字 ｜ [ ] / = − / PU PD 翻頁 ｜ ? 反查目標字碼 ｜ Tab／狀態列按鈕切換碼表";
 }
 function advanceSkips(){
  let guard=0;
@@ -1102,7 +1096,6 @@ function updateExamUI(){
   });
  });
 }
-/* 雙行顯示（移植自倉頡版）：上行已打＋游標，下行提示全文 */
 function renderExamGrid(){
  const box=$("exam7GroupsContainer");
  const startOffset=Math.floor(EX.i/112)*112;
@@ -1112,14 +1105,14 @@ function renderExamGrid(){
   for(let c=0;c<16;c++){
    const idx=startOffset+r*16+c;
    const u=EX.units[idx]||{ch:" ",skip:true,codes:null};
-   const out=(EX.out&&EX.out[idx])||"";
+   const outv=(EX.out&&EX.out[idx])||"";
    const pad=!u.ch||u.ch===" ";
    const deco=!pad&&u.skip;
    let tcls="char-cell";
    if(deco)tcls+=" skipped";
-   else if(out)tcls+=out===u.ch?" correct":" wrong";
+   else if(outv)tcls+=outv===u.ch?" correct":" wrong";
    else if(idx===EX.i&&!u.skip)tcls+=" active-cursor";
-   tr+=`<div class="${tcls}">${esc(deco?u.ch:out)}</div>`;
+   tr+=`<div class="${tcls}">${esc(deco?u.ch:outv)}</div>`;
    pr+=`<div class="char-cell${deco?" skipped":""}">${esc(pad?"":u.ch)}</div>`;
   }
   html+=`<div style="display:flex;flex-direction:column;flex:2;min-height:0"><div class="char-grid-row typed-row">${tr}</div><div class="char-grid-row prompt-row">${pr}</div></div>`;
@@ -1140,13 +1133,15 @@ function examKey(k){
  if(EX.escSt===1){EX.escSt=0;clearTimeout(EX.escTimer);$("exam18Title").textContent=examTitleText()}
  if(k==="Backspace"){
   if(EX.buf.length>0){EX.buf=EX.buf.slice(0,-1);updateCands();EX.candPage=0;updateExamUI();sound.key();return}
-  /* 倒退已上屏字（移植自倉頡版 backSpace） */
   if(EX.i>0){
-   sound.key();
-   EX.i--;
-   while(EX.i>0&&EX.units[EX.i].skip)EX.i--;
-   const u=EX.units[EX.i];
-   if(u&&EX.out[EX.i]){if(EX.out[EX.i]===u.ch)EX.ok=Math.max(0,EX.ok-1);else EX.err=Math.max(0,EX.err-1);EX.out[EX.i]=""}
+   let j=EX.i-1;
+   while(j>0&&EX.units[j].skip)j--;
+   const u=EX.units[j];
+   if(u&&!u.skip&&EX.out[j]){
+    if(EX.out[j]===u.ch)EX.ok=Math.max(0,EX.ok-1);else EX.err=Math.max(0,EX.err-1);
+    EX.out[j]="";EX.i=j;
+    sound.key();
+   }
    updateExamUI();renderExamGrid();
   }
   return;
@@ -1156,19 +1151,20 @@ function examKey(k){
   const b=stripT(EX.buf);
   if(!b)return;
   updateCands();
-  if(!EX.cands.length){
+  const exact=u.codes.some(c=>c===b);
+  if(!exact){
    sound.err();
    $("line18HintMsg").textContent=EX.hasPrefix?"⚠️ 前綴不完整，請繼續輸入或按 Backspace 修正":"⚠️ 此碼無匹配字，請按 Backspace 修正";
    clearTimeout(examKey._t);examKey._t=setTimeout(()=>{$("line18HintMsg").textContent="按「?」可反查字碼"},2200);
    return;
   }
-  if(u.codes.some(c=>c===b)){
-   if(EX.cands.length>1){
-    sound.err();
-    $("line18HintMsg").textContent="⚠️ 出現重碼，請按數字鍵 1–9 或點擊候選字（★ 為目標）！";
-    clearTimeout(examKey._t);examKey._t=setTimeout(()=>{$("line18HintMsg").textContent="按「?」可反查字碼"},2200);
-   }else examCommit(EX.cands[0].ch);
-  }else examCommit(EX.cands[0].ch);
+  if(EX.cands.length>1){
+   sound.err();
+   $("line18HintMsg").textContent="⚠️ 出現重碼，請按數字鍵 1–9 或點擊候選字（★ 為目標）！";
+   clearTimeout(examKey._t);examKey._t=setTimeout(()=>{$("line18HintMsg").textContent="按「?」可反查字碼"},2200);
+   return;
+  }
+  examCommit(EX.cands[0].ch);
   return;
  }
  if(/^[a-zA-Z]$/.test(k)){
@@ -1196,12 +1192,20 @@ function examKey(k){
  if(k==="="||k==="."||k==="]"||k==="PageDown"){if((EX.candPage+1)*9<EX.cands.length){EX.candPage++;sound.nav();updateExamUI()}return}
  if(k==="-"||k===","||k==="["||k==="PageUp"){if(EX.candPage>0){EX.candPage--;sound.nav();updateExamUI()}return}
  if(k==="?"){
-  const u=EX.units[EX.i];if(u&&!u.skip){
-   sound.key();
-   const jpS=effDict("jp")[u.ch],hkS=effDict("hk")[u.ch];
-   $("line18HintMsg").textContent=`提示「${u.ch}」：粵拼 ${jpS?[...jpS].join("/"):"—"}｜港式 ${hkS?[...hkS].join("/"):"—"}`;
-   clearTimeout(examKey._t);examKey._t=setTimeout(()=>{$("line18HintMsg").textContent="按「?」可反查字碼"},2500);
+  const u=EX.units[EX.i];
+  if(!u||u.skip){
+   sound.err();
+   $("line18HintMsg").textContent="（此位置為標點／跳過字，無可查字）";
+   clearTimeout(examKey._t);examKey._t=setTimeout(()=>{$("line18HintMsg").textContent="按「?」可反查字碼"},2000);
+   return;
   }
+  sound.key();
+  const jpS=effDict("jp")[u.ch],hkS=effDict("hk")[u.ch];
+  const jpStr=jpS?[...jpS].join("/"):"—";
+  const hkStr=hkS?[...hkS].join("/"):"—";
+  const segs=isHKMode?(`港拼 ${hkStr} ｜ 粵拼 ${jpStr}`):(`粵拼 ${jpStr} ｜ 港式 ${hkStr}`);
+  $("line18HintMsg").textContent=`反查「${u.ch}」＝ ${segs}`;
+  clearTimeout(examKey._t);examKey._t=setTimeout(()=>{$("line18HintMsg").textContent="按「?」可反查字碼"},4000);
   return;
  }
 }
@@ -1237,11 +1241,10 @@ function saveResult(){
  $("saveMsg").textContent="✅ 已保存至排行榜！";sound.ok();
  setTimeout(()=>{renderLeader();setView("LEADER")},450);
 }
-/* 排行榜 */
 function exportDictJs(mode){
  const dict=effDict(mode);
  const ks=Object.keys(dict).sort((a,b)=>a.localeCompare(b,"zh-Hant"));
- let s=`# ${mode==="hk"?"政府式香港拼音":"標準粵拼"}碼表 (v0.90)\n`;
+ let s=`# ${mode==="hk"?"政府式香港拼音":"標準粵拼"}碼表 (0.89)\n`;
  ks.forEach(c=>dict[c].forEach(v=>s+=`${c} ${v}\n`));
  const varName=mode==="hk"?"CANTON_TABLE":"JYUT_TABLE";
  const fn=mode==="hk"?"canton.js":"jyut.js";
@@ -1265,7 +1268,6 @@ function renderLeader(){
   else{try{localStorage.removeItem("jyutping_lb_v1")}catch(e){}EX.lastId=0;sound.err();renderLeader()}
  };
 }
-/* 離開確認與模式切換 */
 function openExitConfirm(){setView("EXIT_CONFIRM");$("footerHint").textContent="[← →] 選擇 ｜ [Y / Enter] 離開 ｜ [X / Esc] 返回"}
 function setExitChoice(yesFocused){
  const y=$("btnExitYes"),n=$("btnExitNo");
@@ -1280,6 +1282,7 @@ function toggleMode(){
  isHKMode=!isHKMode;
  $("dosScreen").classList.toggle("hk-mode",isHKMode);
  $("btnModeToggle").textContent=isHKMode?"［香港拼音］":"［標準粵拼］";
+ const emb=$("examModeBtn");if(emb)emb.textContent=isHKMode?"［香港拼音］":"［標準粵拼］";
  sound.nav();
  if(VIEW==="TUTORIAL")renderTut();
  else if(VIEW==="PRACTICE"){clearTimeout(PR.advTimer);PR.buf="";PR.reveal=false;PR.lock=false;practiceSkipMissing();renderPractice()}
@@ -1290,7 +1293,6 @@ function toggleMode(){
  else if(VIEW==="MENU"||VIEW==="EXAM_SETUP"){updateMenuSel();if(VIEW==="EXAM_SETUP")updateDialogUI()}
 }
 function goMenu(){setView("MENU")}
-/* 底部四鍵路由 */
 function footerEnter(){
  sound.nav();
  if(VIEW==="MENU")menuActivate();
@@ -1335,7 +1337,6 @@ function footerDown(){
  else if(VIEW==="EXAM_RUN"){if((EX.candPage+1)*9<EX.cands.length){EX.candPage++;sound.nav();updateExamUI()}}
  else if(scrollActiveBox(95))sound.nav();
 }
-/* 觸控鍵盤（移植自倉頡版：正規化＋統一入口＋委派＋去抖） */
 const isTouchDevice=()=>('ontouchstart' in window)||navigator.maxTouchPoints>0||window.matchMedia("(pointer:coarse)").matches||window.matchMedia("(any-pointer:coarse)").matches;
 let KP_POS="FULL",KP_SHOWN=false;
 function initKeypad(){
@@ -1356,19 +1357,6 @@ function normalizeKpKey(raw){
  const up=k.toUpperCase();
  const ALIAS={PU:"PAGEUP",PGUP:"PAGEUP",PD:"PAGEDOWN",PGDN:"PAGEDOWN",DEL:"BACKSPACE",BKSP:"BACKSPACE",SPACE:" ",ESCAPE:"ESC",RETURN:"ENTER"};
  return ALIAS[up]||up;
-}
-function practiceNext(){
- if(!PR.list.length||PR.lock||PR.done)return;
- PR.buf="";PR.reveal=false;
- if(PR.i+1>=PR.list.length)PR.done=true;else PR.i++;
- practiceSkipMissing();
- renderPractice();
-}
-function practicePrev(){
- if(!PR.list.length||PR.lock||PR.done||PR.i<=0){sound.err();return}
- PR.i--;PR.buf="";PR.reveal=false;
- practiceSkipMissing();
- renderPractice();
 }
 function dispatchVirtualKey(k){
  if(!k)return;
@@ -1428,7 +1416,8 @@ function cycleKeypadPos(){
  const tk=$("touchKeypad"),lb=$("kpPosLabel");
  if(tk){tk.classList.toggle("kp-left",KP_POS==="LEFT");tk.classList.toggle("kp-right",KP_POS==="RIGHT")}
  if(lb)lb.textContent=labels[KP_POS];
- sound.nav();schedScale();
+ sound.nav();
+ /* 顯示大小不隨鍵盤位置改變——不再呼叫 schedScale */
 }
 function maybeAutoKeypad(){
  const rb=$("kpReopenBtn");
@@ -1441,38 +1430,36 @@ function maybeAutoKeypad(){
  if(typing&&!KP_SHOWN)showKeypad();
  else if(!typing){if(KP_SHOWN)hideKeypad();if(rb)rb.style.display="none"}
 }
-/* 縮放（移植自倉頡版） */
 let rafId=null;
 const schedScale=()=>{if(rafId)cancelAnimationFrame(rafId);rafId=requestAnimationFrame(scaleScreen)};
 function scaleScreen(){
  const el=$("dosScreen");if(!el)return;
  try{
   const vv=window.visualViewport,W=vv?.width>0?vv.width:innerWidth,H=vv?.height>0?vv.height:innerHeight;
-  const handLand=isTouchDevice()&&W>H;
+  /* 手持橫向（無實體鍵盤）：恆定 80%，與鍵盤狀態／位置完全無關 */
+  const handLand=isTouchDevice()&&!hasPhys&&W>H;
   document.body.classList.toggle("handheld-land",handLand);
   if(handLand){
    const sc=Math.min((W*.8)/960,(H*.8)/540);
    el.style.transform=`scale(${Math.max(.25,sc).toFixed(4)})`;
-  }else{
-   let availW=W,availH=H;
-   if(KP_SHOWN&&$("touchKeypad")?.style.display==="flex"){
-    if(KP_POS==="FULL")availH=Math.max(240,H-240);
-    else availW=W*.62;
-   }
-   const sc=Math.min((availW-12)/960,(availH-12)/540);
-   el.style.transform=`scale(${Math.max(.25,sc).toFixed(4)})`;
+   return;
   }
+  /* 其餘（直向／桌面／實體鍵盤）：寬度 100%−邊距；高度僅扣除「鍵盤有否顯示」，
+     不視乎原大／置左／置右 → 變換鍵盤大小顯示不變；桌面／實體鍵盤橫向為 100% 闊 */
+  const kpOn=KP_SHOWN&&$("touchKeypad")?.style.display==="flex";
+  const availH=kpOn?Math.max(240,H-250):H;
+  const sc=Math.min((W-16)/960,(availH-12)/540);
+  el.style.transform=`scale(${Math.max(.25,sc).toFixed(4)})`;
  }catch(e){el.style.transform="scale(.5)"}
 }
-function applyHandheldLand(){document.body.classList.toggle("handheld-land",isTouchDevice()&&window.innerWidth>window.innerHeight)}
+function applyHandheldLand(){document.body.classList.toggle("handheld-land",isTouchDevice()&&!hasPhys&&window.innerWidth>window.innerHeight)}
 window.addEventListener("resize",()=>{applyHandheldLand();schedScale()});
 window.addEventListener("orientationchange",()=>setTimeout(()=>{applyHandheldLand();schedScale()},150));
 window.visualViewport?.addEventListener("resize",schedScale);
-/* 實體鍵盤 */
 window.addEventListener("keydown",safe(e=>{
  if(["F5","F12"].includes(e.key)||e.ctrlKey||e.metaKey||e.altKey||(e.repeat&&e.key!=="Backspace"&&e.key!=="ArrowUp"&&e.key!=="ArrowDown"))return;
  const el=document.activeElement,isIn=!!(el&&(el.tagName==="INPUT"||el.tagName==="TEXTAREA"));
- if(!isIn&&(/^Key[A-Z]$|^Digit[0-9]$|^(Space|Backspace|Enter)$/.test(e.code||""))&&!hasPhys){hasPhys=true;if(KP_SHOWN)hideKeypad()}
+ if(!isIn&&(/^Key[A-Z]$|^Digit[0-9]$|^(Space|Backspace|Enter)$/.test(e.code||""))&&!hasPhys){hasPhys=true;if(KP_SHOWN)hideKeypad();schedScale();applyHandheldLand()}
  if(e.key==="Tab"){e.preventDefault();toggleMode();return}
  if(VIEW==="EXIT_CONFIRM"){
   e.preventDefault();
@@ -1533,7 +1520,6 @@ window.addEventListener("keydown",safe(e=>{
   return;
  }
 }));
-/* 啟動 */
 const bootApp=()=>{
  if(bootApp._done)return;bootApp._done=true;
  try{
@@ -1541,7 +1527,7 @@ const bootApp=()=>{
   const unlockAudioOnce=()=>{sound.unlock();if(sound.ctx?.state==="running")["touchend","keydown","click"].forEach(ev=>window.removeEventListener(ev,unlockAudioOnce,true))};
   ["touchend","keydown","click"].forEach(ev=>window.addEventListener(ev,unlockAudioOnce,true));
   document.addEventListener("visibilitychange",()=>{if(!document.hidden&&sound.en&&sound.ctx&&sound.ctx.state!=="running")sound._ensure()});
-  window.addEventListener("touchstart",()=>{hasPhys=false;if((VIEW==="PRACTICE"&&!PR.done&&!PR.lock)||VIEW==="EXAM_RUN"){if(!KP_SHOWN)showKeypad()}},{passive:true});
+  window.addEventListener("touchstart",()=>{if(hasPhys){hasPhys=false;applyHandheldLand();schedScale()}if((VIEW==="PRACTICE"&&!PR.done&&!PR.lock)||VIEW==="EXAM_RUN"){if(!KP_SHOWN)showKeypad()}},{passive:true});
   let menuLastT=0;
   const triggerMenuRow=safe(e=>{
    const row=e.target.closest&&e.target.closest(".menu-item-row");
@@ -1585,4 +1571,3 @@ document.readyState==="loading"?document.addEventListener("DOMContentLoaded",boo
 <script>setTimeout(()=>{if(!window.__BOOT_OK){const b=document.getElementById("errorBanner");if(b){b.style.display="block";b.textContent="⚠️ 主腳本啟動失敗（語法錯誤或載入中斷）——程式無法回應任何操作"}}},900);</script>
 </body>
 </html>
-
