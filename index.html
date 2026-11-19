@@ -284,10 +284,10 @@ body.handheld-land .dos-screen{transform-origin:top center}
    <div id="compPoolGroup" style="display:flex;flex-direction:column;gap:6px;background:#b0b0b0;padding:8px;border:1px inset #808080">
     <div style="font-size:13px;font-weight:bold;color:#000080"><span>電腦命題題庫：</span></div>
     <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-     <button type="button" class="key-button pool-btn" data-p="ext1" style="height:26px;font-size:13px;padding:0 10px">[multi-1.js]未載入</button>
-     <button type="button" class="key-button pool-btn" data-p="ext2" style="height:26px;font-size:13px;padding:0 10px">[multi-2.js]未載入</button>
-     <button type="button" class="key-button pool-btn" data-p="ext3" style="height:26px;font-size:13px;padding:0 10px">[multi-3.js]未載入</button>
-     <button type="button" class="key-button pool-btn" data-p="ext4" style="height:26px;font-size:13px;padding:0 10px">[multi-4.js]未載入</button>
+     <button type="button" class="key-button pool-btn" data-p="ext1" style="height:26px;font-size:13px;padding:0 10px">檔1未載入</button>
+     <button type="button" class="key-button pool-btn" data-p="ext2" style="height:26px;font-size:13px;padding:0 10px">檔2未載入</button>
+     <button type="button" class="key-button pool-btn" data-p="ext3" style="height:26px;font-size:13px;padding:0 10px">檔3未載入</button>
+     <button type="button" class="key-button pool-btn" data-p="ext4" style="height:26px;font-size:13px;padding:0 10px">檔4未載入</button>
      <button type="button" class="key-button pool-btn" data-p="all" style="height:26px;font-size:13px;padding:0 10px">內建綜合</button>
      <button type="button" class="key-button pool-btn" data-p="basic" style="height:26px;font-size:13px;padding:0 10px">基礎聲韻</button>
      <button type="button" class="key-button pool-btn" data-p="lazy" style="height:26px;font-size:13px;padding:0 10px">懶音正音</button>
@@ -321,7 +321,7 @@ body.handheld-land .dos-screen{transform-origin:top center}
     <div style="font-size:11px;color:#004080" id="presetStatus">預設碼表偵測中…</div>
     <div style="font-size:11px;color:#666;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">💡 掛載 .txt／.cin／.yaml 碼表（UTF-8／Big5），存入瀏覽器記憶並解鎖練習第六階。</div>
    </div>
-   <div style="font-size:13px;color:#004080;font-weight:bold" id="examSetupMsg">💡 內建教材字庫已就緒；jyut.js／canton.js 預設碼表自動掛接，可立即開始測驗！</div>
+   <div style="font-size:13px;color:#004080;font-weight:bold" id="examSetupMsg">💡 內建教材字庫 jyut.js／canton.js 已自動掛接，可立即開始測驗！</div>
   </div>
   <div class="sub-window" id="subWin"></div>
   <div class="exam-18-screen" id="exam18Screen">
@@ -1090,7 +1090,7 @@ function updateExamUI(){
  if(EX.candPage>=pages)EX.candPage=0;
  const tg=(EX.units[EX.i]||{}).ch;
  const page=EX.cands.slice(EX.candPage*9,EX.candPage*9+9);
- cl.innerHTML=page.map((c,i)=>`<span class="cand-item" data-idx="${EX.candPage*9+i}">[${i+1}]${c.ch===tg?"★":""}${esc(c.ch)}</span>`).join("")+(pages>1?`<span style="color:#004080;font-size:13px">（第${EX.candPage+1}/${pages}頁 [ ]翻頁）</span>`:"");
+ cl.innerHTML=page.map((c,i)=>`<span class="cand-item" data-idx="${EX.candPage*9+i}">${i+1}.${c.ch===tg?"★":""}${esc(c.ch)}</span>`).join("")+(pages>1?`<span style="color:#004080;font-size:13px">（第${EX.candPage+1}/${pages}頁 [ ]翻頁）</span>`:"");
  cl.querySelectorAll(".cand-item").forEach(sp=>{
   sp.addEventListener("pointerdown",ev=>{
    ev.preventDefault();
