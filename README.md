@@ -1,49 +1,54 @@
-
-<div align="center">
 # 🎵 快快快樂學粵拼
-**標準粵拼（Jyutping）⇄ 香港「政府式」拼音 雙碼表打字教學**
-[![Version](https://img.shields.io/badge/version-v0.89-blue)](#)
-[![Platform](https://img.shields.io/badge/platform-Web%20%2F%20Offline-green)](#)
-[![No Build](https://img.shields.io/badge/build-無需工具-orange)](#)
-[![Single File](https://img.shields.io/badge/單檔-HTML%20離線可玩-red)](#)
-**🔗 按此即可遊玩：<https://ck-from-hk.github.io/canton/>**
-*從「[快快快樂學倉頡](https://github.com/ck-from-hk/-)」fork 出來的粵拼／廣東拼音練習*
-</div>
+
+**標準粵拼（Jyutping）⇄ 政府式香港拼音 雙碼表打字教學**
+
+![Version](https://img.shields.io/badge/version-v0.89-blue) ![Platform](https://img.shields.io/badge/platform-Web%20%2F%20Offline-green) ![Build](https://img.shields.io/badge/build-無需工具-orange) ![SingleFile](https://img.shields.io/badge/單檔-HTML%20離線可玩-red)
+
+> 🔥 **按此即可遊玩：<https://ck-from-hk.github.io/canton/>**
+>
+> 從「快快快樂學倉頡」fork 出來的粵拼／廣東拼音練習。教學 HTML 檔只含**粵拼**和**狹義香港拼音**。網上即用版已包含港式／「廣東」拼音合併字庫，js 自動掛載。現用碼表來源：[fcitx5-table-extra](https://github.com/fcitx/fcitx5-table-extra/tree/master/tables)（cantonhk.txt + cantonese.txt / jyutping.txt），鳴謝 fcitx5 無私分享 🙏
+
 ---
+
 ## 📋 目錄
-- [簡介](#簡介)
-- [快速開始](#快速開始)
-- [功能總覽](#功能總覽)
-- [雙碼表系統](#雙碼表系統)
-- [48 頁入門教材](#48-頁入門教材)
-- [操作說明](#操作說明)
-- [自訂與外掛碼表](#自訂與外掛碼表)
-- [觸控裝置支援](#觸控裝置支援)
-- [資料儲存說明](#資料儲存說明)
-- [鳴謝](#鳴謝)
-- [授權](#授權)
+
+- [快速開始](#-快速開始)
+- [功能總覽](#-功能總覽)
+- [雙碼表系統](#-雙碼表系統)
+- [48 頁入門教材](#-48-頁入門教材)
+- [操作說明](#️-操作說明)
+- [自訂與外掛碼表](#️-自訂與外掛碼表)
+- [觸控裝置支援](#-觸控裝置支援)
+- [資料儲存說明](#-資料儲存說明)
+- [鳴謝](#-鳴謝)
+- [授權](#-授權)
+
 ---
-## 簡介
-**快快快樂學粵拼** 是向九十年代 DOS 打字教學程式致敬的互動網頁，由項目擁有人的《快快快樂學倉頡》fork 而來，全面重構為：
-- **標準粵拼（Jyutping）**——香港語言學學會方案（1993），一音一碼，手機電腦輸入法採用
-- **香港「政府式」拼音（港式／狹義廣東拼音）**——身分證英文姓名與街道地名所採用
-> 教學 HTML 檔只含**粵拼**與**狹義香港式拼音**雙系統對照。
-**網上即用版已內置港式／「廣東」拼音合併字庫，js 自動掛載**，單一 HTML 檔、離線可玩、無需任何工具或伺服器。
----
-## 快速開始
-### 🌐 網上即用（最簡單）
+
+## 🚀 快速開始
+
+### 網上即用（最簡單）
+
 直接開啟：**<https://ck-from-hk.github.io/canton/>**
-已預載港式／「廣東」拼音合併字庫，開箱即用。
-### 💻 本機離線版
-1. 下載 index.html
-2. （可選）將 jyut.js / canton.js 放同一資料夾 → 開啟時自動掛接
-3. 以瀏覽器（Chrome / Safari / Edge）開啟 index.html
+
+已預載港式／廣東拼音合併字庫，開箱即用。
+
+### 本機離線版
+
+1. 下載 `index.html`
+2. （可選）將 `jyut.js` / `canton.js` 放同一資料夾 → 開啟時自動掛接
+3. 以瀏覽器（Chrome / Safari / Edge）開啟 `index.html`
+
 > [!WARNING]
 > **iOS 注意**：從 WhatsApp／檔案 App 直接點開時，系統預覽器會停用 JavaScript，只見靜態畫面——此屬 iOS 安全限制，並非程式故障。
 > 請改用 **Safari 開啟部署網址**，或將檔案傳至電腦開啟。Android 以 Chrome 開啟即可完整執行。
+
 ---
-## 功能總覽
+
+## 🧩 功能總覽
+
 主選單七項（可按 `1`–`7` 快速進入）：
+
 | # | 功能 | 說明 |
 |:-:|------|------|
 | 1 | 軟體簡介 | 名詞辨析（粵拼？廣東拼音？港式拼音？）與使用指南 |
@@ -53,32 +58,45 @@
 | 5 | 粵拼查碼 | 輸入漢字即查雙系統編碼與來源 |
 | 6 | 成績排行榜 | 本機保存最快 50 筆，可匯出當前生效碼表 |
 | 7 | 音效 | 開關復古 DOS 提示音 |
+
 ### 測驗計分規則（貼近真實輸入法）
+
 - 打滿**唯一碼** → 自動上屏，計正確
 - 出現**重碼** → 必須以 `1`–`9` 或點擊候選字選字；直接按 Space **不保送**
-- 「姓氏地名」題庫於香港拼音模式自動剔除意譯／俗拼地名（如 Central、Mong Kok），確保題目皆可依音韻規則拼出
+- 「姓氏地名」題庫於政府式香港拼音模式自動剔除意譯／俗拼地名（如 Central、Mong Kok）
 - 打完一頁如時間未到，自動**無限覆題**直到結束
+
 ---
-## 雙碼表系統
-本程式最大特色：**一套介面、兩套碼表、隨時互切**。
+
+## 🔀 雙碼表系統
+
+一套介面、兩套碼表、隨時互切：
+
 | 模式 | 說明 | 例子 |
 |------|------|------|
-| 標準粵拼（Jyutping） | 語言學學會方案，一音一碼 | 陳 `can4`、張 `zoeng1` |
-| 香港政府拼音 | 身分證姓名與街道地名採用 | 陳 `Chan`、張 `Cheung` |
+| 標準粵拼（Jyutping） | 語言學學會方案（1993），一音一碼，手機電腦輸入法採用 | 陳 `can4`、張 `zoeng1` |
+| 政府式香港拼音 | 身分證英文姓名與街道地名採用 | 陳 `Chan`、張 `Cheung` |
+
 - 任何畫面按 **`Tab`** 即時切換，練習、測驗、查碼途中均有效
 - 測驗途中切換後，新碼表未收錄的字元自動以灰色跳過，不中斷作答
 - 程式會自動由粵拼碼**推導**未收錄字元的單一港式對應碼（音節一致性推導，遇歧義寧缺勿錯）
+
 <details>
 <summary>📖 名詞辨析：粵拼？廣東拼音？港式拼音？（點擊展開）</summary>
+
 | 名稱 | 涵義 |
 |------|------|
 | 廣東拼音／粵語拼音 | 泛稱，涵蓋所有以拉丁字母拼寫粵語的方案 |
 | 粵拼（Jyutping） | 語言學學會方案（1993），一音一碼；坊間亦稱「粵語拼音方案」 |
-| 港式拼音／香港政府拼音 | 殖民地時期「標準羅馬字」省略送氣符號簡化而來；亦稱「政府拼音」「港式英文拼音」 |
+| 政府式香港拼音 | 殖民地時期「標準羅馬字」省略送氣符號簡化而來；亦稱「政府拼音」「港式英文拼音」 |
 | 近親方案 | 耶魯（Yale）、劉錫祥（Sidney Lau）、廣州話拼音方案等，可經外掛碼表擴充支援 |
+
 </details>
+
 ---
-## 48 頁入門教材
+
+## 📖 48 頁入門教材
+
 | 頁數 | 內容 |
 |------|------|
 | P.01–P.20 | 19 聲母＋零聲母專講，每頁四大字例＋延伸字例＋發音對比防錯 |
@@ -89,9 +107,13 @@
 | P.46 | 香港 100 大姓氏＋40 個人名用字對照 |
 | P.47 | 全港鐵車站＋十八區地名對照總集（附意譯地名特例警示） |
 | P.48 | 五日速成特訓路線 |
+
 **目錄頁快捷鍵**：直接按聲母字母（`a`–`z`）即跳至對應聲母專講頁。
+
 ---
-## 操作說明
+
+## ⌨️ 操作說明
+
 | 按鍵 | 作用 |
 |------|------|
 | `A`–`Z` | 輸入拼音 |
@@ -105,70 +127,87 @@
 | `-` / `=`、`[` / `]` | 測驗候選翻頁 |
 | `?` | 反查當前字碼 |
 | `Esc` | 退出／清除（測驗中須雙重確認） |
+
 畫面底部 `Enter`｜`Esc`｜`↑`｜`↓` 四個 DOS 按鈕等同實體鍵盤，滑鼠／觸控皆可點按。
+
 ---
-## 自訂與外掛碼表
+
+## 🗂️ 自訂與外掛碼表
+
 ### 預設碼表（自動掛接）
+
 同目錄放置以下檔案即自動載入：
+
 | 檔案 | 模式 | 匯出變數 |
 |------|------|----------|
 | `jyut.js` | 標準粵拼 | `window.JYUT_TABLE`（或 `const JYUT_TABLE`） |
-| `canton.js` | 香港拼音 | `window.CANTON_TABLE`（或 `const CANTON_TABLE`） |
-支援字串、物件、陣列三種匯出形式；載入狀態於「測驗設定」頁顯示診斷訊息（✓ 字數／✗ 找不到／格式錯誤）。
-// jyut.js —— 四種寫法任選其一
-window.JYUTTABLE = "陳 can4\n張 zoeng1";                  // 逐行字串
-window.JYUTTABLE = ["陳 can4", "張 zoeng1"];              // 陣列逐行
-window.JYUTTABLE = { "陳": ["can4", "caa4"], "張": "zoeng1" }; // 物件（一字多碼）
-window.JYUTTABLE = { "can4": "陳", "zoeng1": "張" };      // 反向映射
+| `canton.js` | 政府式香港拼音 | `window.CANTON_TABLE`（或 `const CANTON_TABLE`） |
+
+支援字串、物件、陣列三種匯出形式；載入狀態於「測驗設定」頁顯示診斷訊息。
+
+`jyut.js` 四種寫法任選其一：
+
+    window.JYUT_TABLE = "陳 can4\n張 zoeng1";                       // 逐行字串
+    window.JYUT_TABLE = ["陳 can4", "張 zoeng1"];                   // 陣列逐行
+    window.JYUT_TABLE = { "陳": ["can4", "caa4"], "張": "zoeng1" }; // 物件（一字多碼）
+    window.JYUT_TABLE = { "can4": "陳", "zoeng1": "張" };           // 反向映射
+
 ### 手動外掛（測驗設定 → 外掛字庫）
+
 - 選取 `.txt` / `.cin` / `.yaml` / `.yml` 碼表檔，綁定**粵拼**或**港拼**
 - 支援格式：`字=碼`、`碼 字`、YAML `字: 碼` / `碼: 字`、同行多碼
 - **UTF-8 與 Big5 自動解碼**
 - 存入 **IndexedDB** 永久記憶，下次開啟自動套用，並解鎖練習第六階「外掛字庫」
+
 ### 排行榜匯出
+
 排行榜頁可一鍵匯出**當前生效**之碼表（內建教材字庫＋預設碼表＋外掛合併結果）為 `jyut.js` / `canton.js`，方便備份或分發。
+
 ---
-## 觸控裝置支援
+
+## 📲 觸控裝置支援
+
 - 進入練習／測驗時自動彈出**純英文 QWERTY 虛擬鍵盤**
 - 右上藥丸按鈕循環切換 **原大／置左 40%／置右 40%**
-- 橫屏自動切換頂部錨定縮放模式（`visualViewport` 精準計算，不遮擋）
+- 橫屏自動切換頂部錨定縮放模式（visualViewport 精準計算，不遮擋）
 - 接上實體鍵盤打字 → 虛擬鍵盤自動隱藏；點觸螢幕或右下角「⌨ 喚出鍵盤」→ 隨時喚回
 - 虛擬鍵盤 ◀ ▶ 鍵兼任翻頁／切題／候選翻頁
+
 ---
-## 資料儲存說明
+
+## 💾 資料儲存說明
+
 | 資料 | 儲存位置 | 說明 |
 |------|----------|------|
 | 外掛碼表 | IndexedDB（`jyutping_kv`） | 大型碼表亦安全；有 localStorage 後備 |
 | 排行榜成績 | localStorage | **只存本機**，不上傳、不同步裝置 |
 | 登錄姓名 | localStorage | 下次測驗自動填入 |
+
 > [!NOTE]
 > 清除瀏覽器「網站資料」即會全部消失。換裝置／換瀏覽器所見排行榜互不相通。
+
 ---
-## 鳴謝
-本程式現用碼表來源：
-**[fcitx5-table-extra](https://github.com/fcitx/fcitx5-table-extra/tree/master/tables)** — Fcitx 5 額外碼表集
-- `cantonhk.txt`（香港政府拼音）
-- `cantonese.txt` / `jyutping.txt`（粵拼）
+
+## 🙏 鳴謝
+
+本程式現用碼表來源：**[fcitx5-table-extra](https://github.com/fcitx/fcitx5-table-extra/tree/master/tables)** — Fcitx 5 額外碼表集
+
+- `cantonhk.txt`（較接近政府式香港拼音）
+- `cantonese.txt` (「廣東」拼音）
+- `jyutping.txt`（粵拼）
+
 特別鳴謝 **Fcitx5 專案無私分享** 🙏，使本教學程式得以覆蓋龐大的日常用字。
-本作為《[快快快樂學倉頡](https://github.com/ck-from-hk/-)》之粵拼 fork，重用了其經驗證的音效引擎、虛擬鍵盤架構與自適應縮放機制。
+
+本作為《快快快樂學倉頡》之粵拼 fork，重用了其經驗證的音效引擎、虛擬鍵盤架構與自適應縮放機制。
+
 ---
-## 授權
+
+## 📄 授權
+
 - 程式碼：隨本專案授權發佈
-- 碼表內容：源自 [fcitx5-table-extra](https://github.com/fcitx/fcitx5-table-extra)，請依該專案之授權（LGPL-2.1+）使用
-- 本程式為教學致敬之作，與任何商業打字教學軟體無關
+- 碼表內容：源自 [fcitx5-table-extra](https://github.com/fcitx/fcitx5-table-extra/tree/master/tables)，請依該專案之授權（LGPL-2.1+）使用
+- 本程式為入門chatbots交互打磨寫成的教學之作，與任何商業打字教學軟體無關，沒有任何逆向工程
+
 ---
-<div align="center">
-**🔥 按此即可遊玩：[https://ck-from-hk.github.io/canton/](https://ck-from-hk.github.io/canton/)**
-*用快樂的方式，學好香港人自己的拼音。*
-</div>
-本次格式調整重點（對比上一版）
-調整	原因
-遊玩連結改為 <https://...> 自動連結＋頂部／底部雙置	GitHub README 最重要的一行要夠顯眼且可點
-GitHub 警告框 > [!WARNING] / > [!NOTE] 取代 emoji 提示	GitHub 原生渲染更醒目（你的 GitHub 一定支援）
-長內容（名詞辨析）改 <details> 摺疊	保持首屏簡潔，GitHub 支援良好
-移除 inline style 的 emoji 標題重複、統一層級	目錄錨點才能正常跳轉（錨點由標題文字生成）
-徽章改 shields.io 標準寫法＋連結	原版部分徽章文字為自製樣式，GitHub 顯示一致較佳
-程式碼區塊明確標 js / text	GitHub 語法高亮
-表格加 :-: 對齊	GitHub 渲染更整齊
-移除 <div align="center"> 內的表格／過多 HTML	GitHub 對複雜巢狀 HTML 渲染不穩定，只保留標題與連結的置中
-存為 repo 根目錄 README.md 即可。若 repo 同時有 README.md 與 GitHub Pages 部署，建議把「本機離線版」一節的路徑補上實際檔名（如 index.html → 你的部署檔名）。
+
+🔥 **按此即可遊玩：[https://ck-from-hk.github.io/canton/](https://ck-from-hk.github.io/canton/)**
