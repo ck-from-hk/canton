@@ -1,0 +1,2203 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<title>快快快樂學輸入法 三合一生成器 v0.89 v2.1</title>
+<script src="https://cdn.jsdelivr.net/npm/opencc-js@1.0.5/dist/umd/full.js"></script>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html,body{margin:0;width:100%;background:#111;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;align-items:center;padding:8px env(safe-area-inset-right,8px) env(safe-area-inset-bottom,8px) env(safe-area-inset-left,8px);font-family:"BiauKaiHK","DFKai-SB","標楷體","Microsoft JhengHei",serif;overflow-x:hidden}
+input,textarea,select{font-family:inherit;max-width:100%}
+.dos-screen{width:100%;max-width:980px;background:#005a52;border:3px solid #808080;box-shadow:0 0 25px rgba(0,0,0,.9);display:flex;flex-direction:column}
+.dos-header{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;flex-shrink:0;border-bottom:2px solid #003d38}
+.slop-logo{display:flex;align-items:center;justify-content:center;width:80px;height:26px}
+.title-group{display:flex;align-items:center;flex:1;justify-content:center;gap:12px}
+.magenta-double-line{flex:1;height:6px;border-top:3px solid #f0f;border-bottom:3px solid #f0f}
+.dos-main-title{color:#ff0;font-size:20px;font-weight:bold;letter-spacing:4px;text-shadow:1px 1px #000;white-space:nowrap}
+.dos-subtitle{color:#0ff;font-size:12px;letter-spacing:2px;margin-left:8px}
+.dos-stage{padding:6px;display:flex;flex-direction:column;gap:6px}
+.panel{background:#c0c0c0;border:3px solid;border-color:#fff #404040 #404040 #fff;display:flex;flex-direction:column;min-width:0}
+.panel-row{display:flex;gap:6px;align-items:flex-start}
+.panel-row>.panel.tt{flex:1.22 1 0;min-width:0}
+.panel-row>.panel.wd{flex:1 1 0;min-width:0}
+.panel-head{padding:4px 10px;font-size:13px;font-weight:bold;color:#ff5;letter-spacing:1px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;flex-wrap:wrap;gap:6px}
+.panel.tt .panel-head{background:#5a3a00}
+.panel.wd .panel-head{background:#003d00}
+.panel-body{padding:6px 8px;display:flex;flex-direction:column;gap:5px;font-size:12px;color:#000;flex:1;min-height:0}
+.sec-title{background:#000080;color:#ff5;padding:3px 8px;font-size:12px;font-weight:bold;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;margin-top:4px;border-radius:1px}
+.sec-title.brown{background:#5a3a00;margin-top:0}
+.hint{font-size:11px;color:#222;line-height:1.45;background:rgba(255,255,255,.72);padding:5px 8px;border-left:3px solid #000080;border-radius:2px}
+.row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:11.5px}
+.row>strong{color:#800000;font-size:11.5px}
+.row label{cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:3px}
+.row input[type=radio],.row input[type=checkbox]{accent-color:#000080;margin:0}
+.srcList{display:flex;flex-direction:column}
+.srcRow{display:flex;align-items:center;gap:6px;padding:3px 6px;background:rgba(255,255,255,.72);border:1px solid #a0a0a0;border-radius:2px;font-size:11.5px;margin-bottom:3px}
+.srcRow>.lbl{flex:1;min-width:0;line-height:1.3}
+.srcRow>.lbl strong{font-size:12px;color:#000}
+.srcRow>.lbl small{color:#555;font-size:10.5px;display:block;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rankSel{font-size:11px;background:#fff;border:1px solid #404040;color:#000;padding:1px 2px;flex-shrink:0}
+.rankSel.r1{background:#ffe600;font-weight:bold}
+.modeSel{font-size:11px;background:#fff;border:1px solid #404040;color:#000080;padding:1px 4px;font-weight:bold;max-width:100%;min-width:0}
+.credBtn{font-size:10.5px;background:rgba(0,0,0,.1);border:1px solid rgba(0,0,0,.3);color:#000;padding:1px 5px;cursor:pointer;flex-shrink:0;line-height:1.4;font-family:Consolas,inherit}
+.credBtn:hover{background:rgba(0,0,0,.22)}
+.credBtn.active-rad{background:#000080;color:#ff0;border-color:#ff0;font-weight:bold}
+.credDiv{background:#fff;color:#444;border-left:3px solid #888;padding:4px 8px;margin:0 0 4px 8px;font-size:10.5px;display:none;white-space:pre-wrap;line-height:1.35}
+.panel.tt .credDiv{border-left-color:#5a3a00}
+.panel.wd .credDiv{border-left-color:#003d00}
+.manualOpts{display:none;padding:4px 6px;background:rgba(255,255,255,.88);border:1px dashed #666;border-radius:2px;font-size:11.5px}
+.manualOpts input[type=text]{width:100%;font-size:11.5px;padding:2px 5px;border:1px solid #808080;background:#fff;margin-top:2px;font-family:Consolas,monospace}
+.fileBtn{display:inline-block;font-size:11px;background:#808080;color:#fff;border:2px solid;border-color:#fff #404040 #404040 #fff;padding:1px 7px;cursor:pointer;font-weight:bold}
+.fileBtn:hover{background:#606060}
+.fileBtn input{display:none}
+.fileName{font-size:10.5px;color:#004080;font-weight:bold;margin-left:4px;word-break:break-all}
+.btn-main{font-size:12.5px;font-weight:bold;color:#000;background:#c0c0c0;border:2px solid;border-color:#fff #404040 #404040 #fff;padding:4px 12px;cursor:pointer;letter-spacing:1px;font-family:inherit}
+.btn-main:hover{background:#a8a8a8}
+.btn-main:active{border-color:#404040 #fff #fff #404040;background:#909090}
+.btn-main:disabled{color:#888;cursor:not-allowed;background:#d0d0d0}
+.panel.tt .btn-main{background:#ffcc66}
+.panel.tt .btn-main:hover:not(:disabled){background:#e6b84a}
+.panel.wd .btn-main{background:#88dd88}
+.panel.wd .btn-main:hover:not(:disabled){background:#66cc66}
+.dl-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;min-height:22px;padding:2px 4px;background:rgba(255,255,255,.45);border:1px dashed #888;border-radius:2px}
+.dl{display:none;font-size:12px;color:#000080;text-decoration:underline;margin:1px 4px;cursor:pointer}
+.dl:hover{color:#800000}
+.dl.ready{font-weight:bold;animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.log{white-space:pre-wrap;background:#000;color:#0f0;padding:6px 8px;border:2px solid;border-color:#404040 #fff #fff #404040;font-family:Consolas,monospace;font-size:11px;min-height:115px;max-height:185px;overflow-y:auto;line-height:1.38;margin-top:2px}
+.panel.tt .log{color:#fc6}
+.panel.wd .log{color:#6f6}
+.dos-footer{height:34px;background:#c0c0c0;border-top:2px solid #fff;display:flex;align-items:center;justify-content:space-between;padding:0 12px;font-size:11.5px;color:#333;flex-shrink:0}
+.dos-footer .tip{color:#800000;font-weight:bold}
+.dos-footer .ver{color:#004080;font-family:Consolas,monospace;font-weight:bold}
+.limRow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:11.5px;background:rgba(255,255,255,.72);padding:3px 6px;border:1px solid #a0a0a0}
+.limRow>strong{color:#000080;font-size:11.5px}
+.limTextarea{width:100%;font-size:11.5px;padding:4px 6px;border:2px solid;border-color:#404040 #fff #fff #404040;background:#fff;resize:vertical;min-height:48px;font-family:Consolas,monospace}
+.mixRow{background:#ffd;border:1px dashed #b8860b;padding:4px 8px;font-size:11.5px;border-radius:2px}
+.mixRow label{cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.mixRow input[type=checkbox]{accent-color:#b8860b;margin:0}
+.mixRow small{color:#555;display:block;font-size:10px;margin-top:1px;line-height:1.25;padding-left:16px}
+.hkscsRow{background:#e3f2fd;border:1px dashed #1565c0;padding:4px 8px;font-size:11.5px;border-radius:2px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.hkscsRow strong{color:#0d47a1}
+.hkscsRow label{cursor:pointer;display:inline-flex;align-items:center;gap:3px}
+.hkscsPlanLine{width:100%;font-size:10.8px;color:#0d47a1;font-weight:bold;background:rgba(255,255,255,.72);padding:2px 6px;border-left:3px solid #1565c0;margin-top:2px;font-family:Consolas,"Microsoft JhengHei",monospace;overflow-wrap:anywhere}
+.resetBtn{font-size:10.5px;background:rgba(0,0,0,.12);border:1px solid #555;color:#000;padding:1px 6px;cursor:pointer;font-family:inherit}
+.resetBtn:hover{background:rgba(0,0,0,.25)}
+.srcGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px}
+.chkCard{display:flex;flex-direction:column;gap:2px;padding:4px 6px;background:rgba(255,255,255,.8);border:2px solid #999;border-radius:2px;transition:background .15s,border-color .15s}
+.chkCard.active{background:#fff8cc;border-color:#000080}
+.chkCard.disabled-opt{opacity:.48;cursor:not-allowed}
+.chkCard label.topLbl{cursor:pointer;display:flex;align-items:center;gap:4px;font-weight:bold;font-size:11.5px;color:#000080}
+.chkCard small{color:#444;font-size:10px;padding-left:16px;line-height:1.2}
+.subBox{display:none;margin-top:2px;padding:3px 4px;background:rgba(0,0,0,.06);border:1px dashed #666;border-radius:2px}
+.chkCard.active .subBox{display:block}
+.statusBadge{display:inline-block;background:#002220;color:#5f5;border:1px solid #005a52;padding:1px 6px;font-size:10.5px;font-weight:bold;font-family:Consolas,monospace}
+@media(max-width:980px){.dos-screen{width:100%;max-width:980px}}
+@media(max-width:780px){
+  .panel-row{flex-direction:column}
+  .panel-row>.panel.tt,.panel-row>.panel.wd{flex:none;width:100%}
+  .dos-header{height:auto;min-height:42px;padding:6px 8px;gap:6px}
+  .slop-logo{width:56px;height:22px;flex-shrink:0}
+  .slop-logo svg{width:56px;height:22px}
+  .title-group{gap:6px;min-width:0}
+  .dos-main-title{font-size:15px;letter-spacing:1px;white-space:normal;text-align:center;line-height:1.25}
+  .dos-subtitle{display:block;margin-left:0;font-size:11px;letter-spacing:1px}
+  input[type=text],textarea{font-size:16px!important}
+}
+@media(max-width:480px){
+  html,body{padding:4px env(safe-area-inset-right,4px) env(safe-area-inset-bottom,4px) env(safe-area-inset-left,4px)}
+  .magenta-double-line{display:none}
+  .srcGrid{grid-template-columns:1fr}
+  .panel-body{padding:4px 6px;font-size:11.5px}
+  .log{font-size:10.5px;min-height:85px;max-height:130px}
+  .dos-footer{font-size:10.5px;height:auto;padding:4px 8px;flex-wrap:wrap;gap:2px}
+}
+</style>
+</head>
+<body>
+<div class="dos-screen">
+  <div class="dos-header">
+    <div class="slop-logo"><svg viewBox="0 0 120 40" width="80" height="26"><ellipse cx="60" cy="20" rx="55" ry="16" fill="none" stroke="#0ff" stroke-width="2"/><text x="50%" y="62%" text-anchor="middle" fill="#f0f" font-size="20" font-weight="900" font-style="italic" font-family="Arial">SLOP</text></svg></div>
+    <div class="title-group">
+      <div class="magenta-double-line"></div>
+      <div class="dos-main-title">快快快樂學輸入法<span class="dos-subtitle">三合一生成器 v0.89 v2.1</span></div>
+      <div class="magenta-double-line"></div>
+    </div>
+  </div>
+
+  <div class="dos-stage">
+    <div class="panel-row">
+
+      <!-- 左部面板：輸入法碼表 (tt / js / cin / yaml) ＋ 常用字範圍 (limit.js) -->
+      <section class="panel tt">
+        <div class="panel-head">
+          <span>📕📘 輸入法字庫 (tt / js / cin / yaml) ＆ 練習字表 (limit.js) v0.89 v2.1</span>
+          <span style="font-size:10px;opacity:.9">兩區可獨立或聯動輸出</span>
+        </div>
+        <div class="panel-body">
+
+          <!-- 字庫迷你體檢儀表板 -->
+          <div class="srcRow" id="dictStatsBar" style="background:#002220;color:#5f5;border-color:#00796b;display:none">
+            <div class="lbl" style="font-family:Consolas,monospace;font-size:11px;color:#5f5" id="dictStatsText">📊 字庫迷你體檢儀表板</div>
+          </div>
+
+          <!-- 第一區：輸入法碼表來源 -->
+          <div class="sec-title brown">
+            <span>① 輸入法碼表來源（最多可選 5 項；全選「無」則只輸出 limit.js）</span>
+            <span class="statusBadge" id="ttSrcBadge">已選碼表：0 / 5</span>
+          </div>
+          <div class="row">
+            <strong>重複處理：</strong>
+            <label><input type="radio" name="dupMode" value="ignore"> 忽略較後</label>
+            <label><input type="radio" name="dupMode" value="merge" checked> 容錯合併</label>
+            <strong style="margin-left:4px">輸出：</strong>
+            <label><input type="radio" name="outMode" value="replace" checked> 取代</label>
+            <label><input type="radio" name="outMode" value="append"> 疊加</label>
+            <span style="margin-left:auto;display:inline-flex;gap:4px">
+              <button class="resetBtn" id="clearAcc" type="button">🧹 重設基底</button>
+              <button class="resetBtn" id="btnClearIdb" type="button" title="清除主程式儲存在瀏覽器 IndexedDB 的舊字庫與題庫快取">🗑️ 清除快取記憶</button>
+            </span>
+          </div>
+          <div class="row">
+            <strong>首碼篩選（單字≤7碼｜詞條≤16碼）：</strong>
+            <label title="勾選時自動略過以 X 開頭的字碼"><input type="checkbox" id="filterXHead" checked> 篩除 X 字頭</label>
+            <label title="勾選時自動略過以 Z 開頭的字碼"><input type="checkbox" id="filterZHead" checked> 篩除 Z 字頭</label>
+          </div>
+
+          <div class="hkscsRow">
+            <strong>HKSCS / 粵拼轉換：</strong>
+            <select id="hkscsModeSel" class="modeSel">
+              <option value="auto">自動按非本機來源相對排名（主碼→容錯，忽略本機）</option>
+              <option value="cangjie">手動：只取倉頡碼 (cangjie)</option>
+              <option value="cantonhk">手動：港式廣東話 (cantonhk)</option>
+              <option value="ile">手動：教院式 (ILE / cantonese)</option>
+              <option value="jyutping">手動：原粵拼 (Jyutping)</option>
+            </select>
+            <label title="為所有粵拼來源（Fcitx5 粵拼、另一粵拼 LSHK、HKSCS 粵拼）自動轉換並追加港式／廣式拼音容錯；選取港式或廣東拼音時自動勾選，仍可手動取消"><input type="checkbox" id="jpConvertToCantonTol"> 粵拼轉港式／廣式拼音容錯</label>
+            <label title="當 HKSCS 抽取教院式或港式廣東碼且未另選粵拼時，自動追加原粵拼作為後備容錯碼"><input type="checkbox" id="keepJyutpingTol" checked> 追加原粵拼作後備容錯</label>
+            <div id="hkscsAutoBadge" class="hkscsPlanLine">HKSCS 抽取次序：主碼 倉頡（不含粵語）</div>
+          </div>
+
+          <div class="mixRow">
+            <label><input type="checkbox" id="mixCj35"> 混合編碼（三代＋五代並存）</label>
+            <small>勾選並選取 Cangjie5_HK 時，自動以容錯合併方式追加三代擴展碼表。</small>
+          </div>
+
+          <div id="srcList" class="srcList"></div>
+
+          <div class="manualOpts" id="mFileBox1">
+            <strong>本機檔案 1（chinese.tt / list.tt / .cin / .yaml / chinese_dict.js / HKSCS2016.json）</strong><br>
+            <label class="fileBtn">📁 選擇檔案 1<input type="file" id="manualFile1" accept=".tt,.txt,.cin,.tsv,.csv,.yaml,.yml,.js,.json"></label>
+            <span class="fileName" id="mFileName1">未選擇檔案</span>
+          </div>
+          <div class="manualOpts" id="mFileBox2">
+            <strong>本機檔案 2（chinese.tt / list.tt / .cin / .yaml / chinese_dict.js / HKSCS2016.json）</strong><br>
+            <label class="fileBtn">📁 選擇檔案 2<input type="file" id="manualFile2" accept=".tt,.txt,.cin,.tsv,.csv,.yaml,.yml,.js,.json"></label>
+            <span class="fileName" id="mFileName2">未選擇檔案</span>
+          </div>
+          <div class="manualOpts" id="mFileBox3">
+            <strong>本機檔案 3（chinese.tt / list.tt / .cin / .yaml / chinese_dict.js / HKSCS2016.json）</strong><br>
+            <label class="fileBtn">📁 選擇檔案 3<input type="file" id="manualFile3" accept=".tt,.txt,.cin,.tsv,.csv,.yaml,.yml,.js,.json"></label>
+            <span class="fileName" id="mFileName3">未選擇檔案</span>
+          </div>
+          <div class="manualOpts" id="mUrlBox">
+            <strong>自訂碼表 URL</strong><br>
+            <input type="text" id="manualUrl" placeholder="https://…">
+          </div>
+
+          <!-- 第二區：限制文字範圍 (limit.js) -->
+          <div class="sec-title">
+            <span>② 限制文字範圍（最多選 5 項聯集；全不選則輸出完整字庫）</span>
+            <span class="statusBadge" id="selSrcBadge">已選範圍：0 / 5</span>
+          </div>
+          <div class="srcGrid">
+            <div class="chkCard" id="card_file">
+              <label class="topLbl"><input type="checkbox" name="limSrc" value="file"> 1. 本機 limit.js / .txt</label>
+              <small>讀取單一字表或文字檔</small>
+              <div class="subBox">
+                <label class="fileBtn">📁 選擇檔案<input type="file" id="limFileInput" accept=".js,.txt,text/javascript,text/plain"></label>
+                <span class="fileName" id="limFileName">未選擇檔案</span>
+              </div>
+            </div>
+            <div class="chkCard" id="card_folder">
+              <label class="topLbl"><input type="checkbox" name="limSrc" value="folder"> 2. 全目錄 .txt / .atc</label>
+              <small>掃描資料夾內所有題庫檔</small>
+              <div class="subBox">
+                <label class="fileBtn">📂 選擇目錄<input type="file" id="limFolderInput" webkitdirectory directory multiple accept=".atc,.txt"></label>
+                <span class="fileName" id="limFolderName">未選擇目錄</span>
+              </div>
+            </div>
+            <div class="chkCard" id="card_hkpure">
+              <label class="topLbl"><input type="checkbox" name="limSrc" value="hkpure"> 3. 香港粵語特色字</label>
+              <small>地道口語字（已除小學重覆字）</small>
+            </div>
+            <div class="chkCard" id="card_norm">
+              <label class="topLbl"><input type="checkbox" name="limSrc" value="norm"> 4. 通用規範漢字表</label>
+              <small>完整 8,105 字（一／二／三級規範漢字）</small>
+            </div>
+            <div class="chkCard" id="card_school">
+              <label class="topLbl"><input type="checkbox" name="limSrc" value="school"> 5. 小學學習字詞表</label>
+              <small>香港教育局小學常用字集</small>
+            </div>
+            <div class="chkCard" id="card_ck">
+              <label class="topLbl"><input type="checkbox" name="limSrc" value="ck"> 6. 內嵌基礎預設範圍</label>
+              <small>基礎部首與入門常用單字</small>
+            </div>
+            <div class="chkCard" id="card_paste" style="grid-column:1 / -1">
+              <label class="topLbl"><input type="checkbox" name="limSrc" value="paste"> 7. 文本框貼上內容 ／ 專項字根篩選結果</label>
+              <small>直接貼上文章、charList，或點擊下方字根按鈕自動篩選填入</small>
+              <div class="subBox">
+                <textarea class="limTextarea" id="limPasteText" placeholder="在此貼上文字或 limit.js 內容…"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- 專項字根篩選按鈕列 -->
+          <div class="mixRow" style="background:#e0f2f1;border-color:#00796b">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px">
+              <strong style="color:#004d40">🎯 專項字根／難字篩選（自動填入第 7 項以生成專項 limit.js）：</strong>
+              <small style="padding:0;color:#004d40">支援直接篩選內建或已載入字庫</small>
+            </div>
+            <div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:4px" id="radFilterButtonsBox">
+              <button class="credBtn" type="button" data-rad="ALL" style="background:#004d40;color:#fff;font-weight:bold">全選字庫</button>
+              <button class="credBtn" type="button" data-rad="CLEAR" style="background:#800000;color:#fff">清空</button>
+            </div>
+          </div>
+
+          <div class="limRow">
+            <strong>字表範圍與排序：</strong>
+            <label><input type="radio" name="limRange" value="all" checked> 含擴展區漢字</label>
+            <label><input type="radio" name="limRange" value="bmp"> 只保留基本區 (BMP)</label>
+            <span style="margin-left:auto;color:#004080;font-weight:bold" id="limModeSummary">模式：請選取碼表或字表範圍</span>
+          </div>
+
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+            <button class="btn-main" id="go" disabled type="button">⚡ 開始生成 v0.89 v2.1</button>
+          </div>
+          <div class="dl-bar">
+            <span style="font-size:11px;color:#555">下載區：</span>
+            <a id="dl" class="dl" download="chinese.tt">⬇ chinese.tt</a>
+            <a id="dljs" class="dl" download="chinese_dict.js">⬇ chinese_dict.js</a>
+            <a id="dlRime" class="dl" download="cangjie_generated.dict.yaml">⬇ RIME .dict.yaml</a>
+            <a id="dlCin" class="dl" download="cangjie_dime.cin" title="供 DIME（SampleIME 分支）載入，於 Windows 建立自訂系統輸入法。">⬇ DIME .cin</a>
+            <a id="dllimit" class="dl" download="limit.js">⬇ limit.js</a>
+          </div>
+          <div class="hint">📌 <b>.cin 碼表：</b>供 DIME（SampleIME 分支）載入，於 Windows 建立自訂系統輸入法（<b>多字詞條於輸出 .cin 及 RIME .dict.yaml 時有效</b>，不寫入 .tt / .js）。</div>
+          <div class="log" id="log">就緒 (v0.89 v2.1)。
+• 支援 3 組獨立本機檔案來源，可自由排定 1～5 順位合併。
+• HKSCS / JSON 匯入方案嚴格依「非本機來源」的相對排名決定，不考慮未知碼表類型之本機來源。
+• 支援兩組粵拼來源：Fcitx5 粵拼（jyutping）及 另一粵拼（LSHK jyutping-table / list.tsv）。</div>
+        </div>
+      </section>
+
+      <!-- 右部面板：詞語/成語表 (words.txt / words_dict.js) ＆ 一般網頁/文章轉 .atc -->
+      <section class="panel wd">
+        <div class="panel-head">
+          <span>📗 words.txt — 詞語表 ＆ 網頁/文章轉 .atc v0.89 v2.1</span>
+          <span style="font-size:10px;opacity:.85">→ txt / js / atc</span>
+        </div>
+        <div class="panel-body">
+          <div class="row">
+            <strong>簡繁處理：</strong>
+            <label><input type="radio" name="wconv" value="conv" checked> 轉繁體</label>
+            <label><input type="radio" name="wconv" value="simp"> 轉簡體</label>
+            <label><input type="radio" name="wconv" value="keep"> 保留原樣</label>
+          </div>
+          <div class="row">
+            <strong>重複處理：</strong>
+            <label><input type="radio" name="wdupMode" value="ignore"> 忽略較後</label>
+            <label><input type="radio" name="wdupMode" value="merge" checked> 容錯合併</label>
+            <label style="margin-left:auto;color:#004d00;font-weight:bold" title="勾選後只保留左側已生成字庫（或內建示範字庫）有收錄的漢字"><input type="checkbox" id="wFilterByDict"> 過濾缺碼字</label>
+          </div>
+          <div class="row">
+            <strong>輸出方式：</strong>
+            <label><input type="radio" name="woutMode" value="replace" checked> 取代</label>
+            <label><input type="radio" name="woutMode" value="append"> 疊加</label>
+            <button class="resetBtn" id="wclearAcc" type="button" style="margin-left:auto">🧹 重設基底</button>
+          </div>
+          <div class="limRow">
+            <strong>輸入方式：</strong>
+            <label><input type="radio" name="wInput" value="sources" checked> 來源列表</label>
+            <label><input type="radio" name="wInput" value="text"> 文本框貼上</label>
+            <label><input type="radio" name="wInput" value="webatc"> 🌐 一般網頁轉 .atc</label>
+          </div>
+
+          <!-- 一般網頁轉 .atc 專用操作區 -->
+          <div id="wWebAtcBox" style="display:none;background:#e8f5e9;border:1px solid #2e7d32;padding:6px 8px;border-radius:2px">
+            <strong style="color:#1b5e20">🌐 任意網頁或文章一鍵轉為 .atc 文章卷題庫：</strong>
+            <div style="display:flex;gap:5px;align-items:center;margin-top:4px;flex-wrap:wrap">
+              <input type="text" id="inpWebUrl" placeholder="貼上網頁 URL（如 https://zh.wikipedia.org/wiki/...）" style="flex:1;min-width:180px;font-size:11.5px;padding:3px 6px;border:1px solid #2e7d32;background:#fff">
+              <button class="btn-main" id="btnFetchWebAtc" type="button" style="background:#a5d6a7;padding:3px 10px">🌐 抓取網頁轉 .atc</button>
+            </div>
+            <div style="margin-top:5px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
+                <span style="font-size:11px;color:#1b5e20;font-weight:bold">📄 或直接貼上網頁內文／文章（防爬蟲阻擋備援）：</span>
+                <input type="text" id="inpAtcTitle" placeholder="自訂檔名（選填，如：news_01）" style="width:155px;font-size:11px;padding:1px 5px;border:1px solid #888">
+              </div>
+              <textarea class="limTextarea" id="inpWebRawText" rows="4" placeholder="若目標網站阻擋跨域抓取，可直接全選複製網頁文字貼於此處，再按下方「📄 將貼上文字轉為 .atc」…"></textarea>
+              <div style="display:flex;justify-content:flex-end;margin-top:3px">
+                <button class="btn-main" id="btnRawTextToAtc" type="button" style="background:#ffe082;padding:2px 10px;font-size:11.5px">📄 將貼上文字轉為 .atc</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 文本框貼上區 -->
+          <div id="wTextBox" style="display:none">
+            <textarea class="limTextarea" id="wText" rows="4" placeholder="貼上詞語或文章內容（可按「生成詞語表」提取 2~8 字詞語，或按「📄 轉為 .atc 文章卷」輸出整篇連打題庫）…"></textarea>
+          </div>
+
+          <div id="wSourcesBox">
+            <div id="wsrcList" class="srcList"></div>
+            <div class="manualOpts" id="wmFileBox1">
+              <strong>本機檔案 1（支援 .txt / .csv / .json / .atc / words_dict.js）</strong><br>
+              <label class="fileBtn">📁 選擇檔案 1<input type="file" id="wmanualFile1" accept=".txt,.csv,.json,.js,.atc"></label>
+              <span class="fileName" id="wmFileName1">未選擇檔案</span>
+            </div>
+            <div class="manualOpts" id="wmFileBox2">
+              <strong>本機檔案 2（支援 .txt / .csv / .json / .atc / words_dict.js）</strong><br>
+              <label class="fileBtn">📁 選擇檔案 2<input type="file" id="wmanualFile2" accept=".txt,.csv,.json,.js,.atc"></label>
+              <span class="fileName" id="wmFileName2">未選擇檔案</span>
+            </div>
+            <div class="manualOpts" id="wmFileBox3">
+              <strong>本機檔案 3（支援 .txt / .csv / .json / .atc / words_dict.js）</strong><br>
+              <label class="fileBtn">📁 選擇檔案 3<input type="file" id="wmanualFile3" accept=".txt,.csv,.json,.js,.atc"></label>
+              <span class="fileName" id="wmFileName3">未選擇檔案</span>
+            </div>
+            <div class="manualOpts" id="wmUrlBox">
+              <strong>URL</strong><br>
+              <input type="text" id="wmanualUrl" placeholder="https://…">
+            </div>
+          </div>
+
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:2px">
+            <button class="btn-main" id="wgo" disabled type="button">⚡ 生成詞語表</button>
+            <button class="btn-main" id="wTextToAtcBtn" type="button" style="background:#ffe082;display:none">📄 轉為 .atc 文章卷</button>
+            <button class="btn-main" id="dlAtcZip" style="background:#ffcc66" type="button">📦 .atc示範題庫包</button>
+          </div>
+          <div class="dl-bar">
+            <span style="font-size:11px;color:#555">下載區：</span>
+            <a id="wdl" class="dl" download="words.txt">⬇ words.txt</a>
+            <a id="wdljs" class="dl" download="words_dict.js">⬇ words_dict.js</a>
+            <a id="wdlAtc" class="dl" download="article.atc">⬇ 下載 .atc 文章卷</a>
+          </div>
+          <div class="hint" id="atcStatsHint">📦 .atc示範題庫包：解壓後於主程式「電腦命題」選資料夾，即隨機抽整篇文章測驗。</div>
+          <div class="log" id="wlog">就緒 (v0.89 v2.1)。為來源選定次序後按「生成詞語表」，或切換至「🌐 一般網頁轉 .atc」。</div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <div class="dos-footer">
+    <span class="tip">💡 支援 3 組本機檔案、Fcitx5／LSHK 雙粵拼與 HKSCS 非本機相對排名自動轉換</span>
+    <span class="ver">v0.89 v2.1</span>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+/* ===== 基礎工具與常數 ===== */
+const $ = id => document.getElementById(id);
+const VER = "v0.89 v2.1";
+const isHan = c => {
+  if(!c || [...c].length !== 1) return false;
+  const cp = c.codePointAt(0);
+  return (cp >= 0x3400 && cp <= 0x9FFF) || (cp >= 0xF900 && cp <= 0xFAFF) || (cp >= 0x20000 && cp <= 0x323AF);
+};
+const isBMPHan = c => {
+  if(!c || [...c].length !== 1) return false;
+  const cp = c.codePointAt(0);
+  return (cp >= 0x3400 && cp <= 0x9FFF) || (cp >= 0xF900 && cp <= 0xFAFF);
+};
+const isHanPhrase = s => {
+  if(!s) return false;
+  const chars = [...s];
+  return chars.length >= 2 && chars.every(isHan);
+};
+const isWord = w => {
+  if(!w) return false;
+  const chars = [...w];
+  return chars.length >= 2 && chars.length <= 8 && chars.every(isHan);
+};
+function hanCmp(a, b){
+  const A = [...a], B = [...b], m = Math.min(A.length, B.length);
+  for(let i = 0; i < m; i++){
+    const d = A[i].codePointAt(0) - B[i].codePointAt(0);
+    if(d) return d;
+  }
+  return A.length - B.length;
+}
+const TEXT_CACHE = new Map();
+
+/* ===== 倉頡中文字根轉英文字母（相容 HKSCS2016.json 內如 "口尸卜日" 之字根寫法） ===== */
+const CJ_RAD_TO_KEY = {
+  "日":"A","月":"B","金":"C","木":"D","水":"E","火":"F","土":"G",
+  "竹":"H","戈":"I","十":"J","大":"K","中":"L","一":"M","弓":"N",
+  "人":"O","心":"P","手":"Q","口":"R","尸":"S","廿":"T","山":"U",
+  "女":"V","田":"W","難":"X","卜":"Y","重":"Z"
+};
+function normalizeCangjieToken(tok){
+  let s = String(tok || "").trim();
+  if(!s) return "";
+  if([...s].some(ch => CJ_RAD_TO_KEY[ch])){
+    s = [...s].map(ch => CJ_RAD_TO_KEY[ch] || ch).join("");
+  }
+  return s.toUpperCase();
+}
+
+/* ===== 內建常用字範圍字表 ===== */
+const CK_FROM_HK_CHARLIST = ["一","乙","丁","七","乃","九","了","二","人","儿","入","八","幾","刀","刁","力","匕","十","卜","又","三","下","丈","上","丫","丸","凡","久","么","也","乞","于","亡","兀","刃","勺","千","叉","口","土","士","夕","大","女","子","孑","孓","寸","小","尢","尸","山","川","工","己","已","巳","巾","干","廾","弋","弓","才","丑","丐","不","中","丰","丹","之","尹","予","云","井","互","五","亢","仁","什","仃","仆","仇","仍","今","介","仄","元","允","內","六","兮","公","冗","凶","分","切","刈","勻","勾","勿","化","匹","午","升","卅","卞","厄","友","及","反","壬","天","夫","太","夭","孔","少","尤","尺","屯","巴","幻","廿","弔","引","心","戈","戶","手","扎","支","文","斗","斤","方","日","曰","月","木","欠","止","歹","毋","比","毛","氏","水","火","爪","父","爻","片","牙","牛","犬","王","丙","世","丕","且","丘","主","乍","乏","乎","以","付","仔","仕","他","仗","代","令","仙","仞","充","兄","冉","冊","冬","凹","出","凸","刊","加","功","包","匆","北","匝","仟","半","卉","卡","占","卯","卮","去","可","古","右","召","叮","叩","叨","叼","司","叵","叫","另","只","史","叱","台","句","叭","叻","四","囚","外","央","失","奴","奶","孕","它","尼","巨","巧","左","市","布","平","幼","弁","弘","弗","必","戊","打","扔","扒","扑","斥","旦","朮","本","未","末","札","正","母","民","氐","永","汁","汀","氾","犯","玄","玉","瓜","瓦","甘","生","用","甩","田","由","甲","申","疋","白","皮","皿","目","矛","矢","石","示","禾","穴","立","丞","丟","乒","乓","乩","亙","交","亦","亥","仿","伉","伙","伊","伕","伍","伐","休"];
+
+const SCHOOL_CHARLIST = ["一","丁","七","丈","三","上","下","不","丐","丑","且","丕","世","丘","丙","丞","丟","両","並","丫","中","串","丸","丹","主","乃","久","之","乍","乎","乏","乒","乓","乖","乘","乙","九","乞","也","乩","乳","乾","亂","了","予","事","二","于","云","互","五","井","亙","些","亞","亟","亡","交","亥","亦","亨","享","京","亭","亮","人","什","仁","仃","仄","仆","仇","今","介","仍","仔","仕","他","仗","付","仙","仞","仟","代","令","以","仰","仲","仳","件","任","份","仿","企","伉","伊","伍","伏","伐","休","伕","伙","伯","估","伴","伶","伸","伺","似","伽","佃","但","佇","佈","位","低","住","佐","佑","佔","何","佗","余","佛","作","佝","佞","你","佣","佩","佬","佯","佰","佳","併","佻","使","侃","來","侈","例","侍","侏","侖","供","依","侮","侯","侵","侶","便","係","促","俄","俊","俎","俏","俐","俑","俗","俘","俚","保","俞","俟","俠","信","修","俯","俱","俳","俸","俺","俾","倀","倆","倉","個","倌","倍","倏","們","倒","倔","倖","倘","候","倚","借","倡","倣","倥","倦","倨","倩","倪","倫","倭","值","偃","假","偉","偌","偎","偏","偕","做","停","健","側","偵","偶","偷","偽","傀","傅","傍","傑","傖","傘","備","傢","催","傭","傲","傳","債","傷","傻","傾","僅","像","僑","僕","僖","僚","僥","僧","僭","僮","僱","僵","價","僻","儀","儂","億","儈","儉","儐","儒","儔","儘","償","儡","優","儲","儷","儼","兀","允","元","兄","充","兆","兇","先","光","克","免","兑","兒","兔","兕","兗","兜","兢","入","內","全","兩","八","公","六","兮","共","兵","其","具","典","兼","冀","冉","冊","再","冑","冒","冕","冠","冢","冤","冥","冬","冰","冶","冷","冽","准","凋","凌","凍","凜","凝","几","凡","凰","凱","凳","凶","凸","凹","出","函","刀","刁","刃","分","切","刈","刊","刎","刑","划","列","初","判","別","刨","利","刪","刮","到","制","刷","券","刺","刻","剁","剃","則","削","剋","剌","前","剎","剔","剖","剛","剜","剝","剩","剪","副","割","剴","創","剷","剽","剿","劃","劇","劈","劉","劍","劑","力","功","加","劣","助","努","劫","劬","効","劾","勁","勃","勇","勉","勒","動","勗","勘","務","勛","勝","勞","募","勢","勤","勵","勸","勻","勾","勿","包","匆","匈","匍","匏","匐","匕","化","北","匙","匝","匠","匡","匣","匪","匯","匱","匹","匾","匿","區","十","千","卅","升","午","卉","半","卑","卒","卓","協","南","博","卜","卞","占","卡","卦","卧","卮","卯","印","危","即","卵","卷","卸","卹","卻","卿","厄","厘","厚","原","厥","厭","厲","去","叁","參","又","叉","及","友","反","叔","取","受","叛","叟","叢","口","古","句","另","叨","叩","只","叫","召","叭","叮","可","台","叱","史","右","叵","司","叼","吁","吃","各","吆","合","吉","吊","吋","同","名","后","吏","吐","向","吒","君","吝","吞","吟","吠","否","吧","吩","含","吭","吮","吱","吳","吵","吶","吸","吹","吻","吼","吾","呀","呂","呃","呆","呈","告","呎","呢","周","呱","味","呵","呶","呷","呸","呻","呼","命","咀","咄","咆","咋","和","咎","咐","咒","咕","咖","咚","咦","咧","咨","咩","咪","咫","咬","咯","咱","咳","咸","咻","咽","哀","品","哂","哄","哇","哈","哉","哎","員","哥","哦","哨","哩","哪","哭","哮","哲","哺","哼","唁","唆","唉","唐","唔","唧","唬","售","唯","唱","唳","唷","唸","唾","啁","啃","啄","商","啊","問","啕","啖","啜","啞","啟","啡","啣","啤","啥","啦","啪","啻","啼","啾","喀","喂","喃","善","喇","喉","喊","喋","喔","喘","喚","喜","喝","喟","喧","喪","喬","單","喱","喲","喳","喻","嗅","嗆","嗇","嗎","嗑","嗓","嗚","嗜","嗟","嗡","嗣","嗤","嗥","嗦","嗨","嗯","嗷","嗽","嗾","嘀","嘈","嘉","嘍","嘔","嘖","嘗","嘛","嘟","嘩","嘮","嘯","嘰","嘲","嘴","嘶","嘹","嘻","嘿","噎","噓","噗","噙","噢","噤","噥","器","噩","噪","噫","噬","噯","噱","噴","噸","噹","嚀","嚅","嚇","嚎","嚏","嚐","嚕","嚥","嚨","嚮","嚴","嚶","嚷","嚼","囀","囁","囂","囈","囉","囊","囌","囑","囚","四","回","因","囤","困","囱","固","圃","圈","國","圍","園","圓","圖","團","土","在","圬","圭","圯","地","圳","圾","址","均","坊","坍","坎","坏","坐","坑","坡","坤","坦","坩","坪","坷","坼","垂","垃","型","垠","垢","垣","垮","埃","埋","城","埔","域","埠","執","培","基","堂","堅","堆","堡","堤","堪","堯","堰","報","場","堵","塊","塌","塑","塔","塗","塘","塚","塞","塢","填","塵","塹","塾","墀","境","墅","墊","墓","墜","增","墟","墨","墮","墳","墾","壁","壅","壇","壑","壓","壕","壘","壙","壞","壟","壤","壩","士","壬","壯","壹","壺","壽","夏","夕","外","夙","多","夜","夠","夢","夤","夥","大","天","太","夫","夭","央","失","夷","夸","夾","奄","奇","奈","奉","奎","奏","奐","契","奔","奕","套","奘","奚","奠","奢","奧","奩","奪","奮","女","奴","奶","奸","她","好","如","妃","妄","妊","妍","妒","妓","妖","妙","妝","妞","妣","妤","妥","妨","妮","妯","妳","妹","妻","妾","姆","姊","始","姍","姐","姑","姒","姓","委","姘","姚","姜","姣","姥","姦","姨","姪","姬","姻","姿","威","娃","娌","娑","娓","娘","娛","娜","娟","娠","娣","娥","娩","娶","娼","婀","婁","婆","婉","婊","婚","婢","婦","婪","婷","婿","媒","媚","媛","媲","媳","媼","媽","媾","嫁","嫂","嫉","嫌","嫖","嫗","嫘","嫡","嫣","嫦","嫩","嫵","嫻","嬉","嬋","嬌","嬝","嬤","嬪","嬰","嬴","嬸","孀","子","孑","孓","孔","孕","字","存","孚","孜","孝","孟","季","孤","孩","孫","孰","孱","孳","孵","學","孺","孽","孿","宂","它","宅","宇","守","安","宋","完","宏","宗","官","宙","定","宛","宜","客","宣","室","宥","宦","宮","宰","害","宴","宵","家","容","宿","寂","寄","寅","密","寇","富","寐","寒","寓","寞","察","寡","寢","寤","寥","實","寧","寨","審","寫","寬","寮","寵","寶","寸","寺","封","射","將","專","尉","尊","尋","對","導","小","少","尖","尚","尤","尬","就","尷","尸","尹","尺","尼","尾","尿","局","屁","居","屆","屈","屋","屍","屎","屏","屐","屑","展","屜","屠","屢","層","履","屬","屯","山","屹","岌","岐","岑","岔","岡","岩","岫","岱","岳","岷","岸","峙","峨","峪","峭","峯","島","峻","峽","崆","崇","崎","崑","崔","崖","崗","崙","崛","崢","崩","嵌","嵐","嵩","嶄","嶇","嶝","嶺","嶼","嶽","巍","巒","巔","巖","川","州","巡","巢","工","左","巧","巨","巫","差","己","已","巳","巴","巷","巽","巾","市","布","帆","希","帑","帕","帖","帘","帚","帛","帝","帥","師","席","帳","帶","帷","常","帽","幀","幅","幌","幔","幕","幗","幛","幟","幢","幣","幫","干","平","年","并","幸","幹","幺","幻","幼","幽","幾","庇","序","底","庖","店","庚","府","庠","度","座","庫","庭","庵","庶","康","庸","庾","廁","廂","廈","廉","廊","廓","廖","廚","廝","廟","廠","廢","廣","廬","廳","延","廷","建","廿","弁","弄","弈","弊","式","弒","弓","弔","引","弗","弘","弛","弟","弦","弧","弩","弭","弱","張","強","弼","彆","彈","彌","彎","彗","彙","彝","形","彤","彥","彩","彪","彫","彬","彭","彰","影","彷","役","彼","彿","往","征","待","徇","很","徊","律","後","徐","徑","徒","得","徘","徙","從","御","徨","復","循","徬","微","徵","德","徹","徽","心","必","忌","忍","忖","志","忘","忙","忝","忠","快","忱","念","忽","忿","怎","怏","怒","怔","怕","怖","思","怠","怡","急","性","怨","怪","怯","怵","恃","恆","恍","恐","恕","恙","恢","恣","恤","恥","恨","恩","恪","恫","恬","恭","息","恰","恿","悄","悉","悌","悍","悔","悖","悚","悟","悠","患","悦","您","悲","悴","悵","悶","悸","悻","悼","悽","情","惆","惋","惑","惕","惘","惚","惜","惟","惠","惡","惦","惰","惱","想","惴","惶","惹","惺","惻","愀","愁","愈","愉","愎","意","愕","愚","愛","愜","感","愠","愣","愧","愴","愾","愿","慄","慇","慈","態","慌","慎","慕","慘","慚","慝","慟","慢","慣","慧","慨","慫","慮","慰","慳","慶","慷","慼","慾","憂","憊","憎","憐","憑","憔","憚","憤","憧","憩","憫","憬","憲","憶","憾","懂","懇","懈","應","懊","懍","懣","懦","懲","懵","懶","懷","懸","懺","懼","懿","戀","戈","戊","戌","戍","戎","成","我","戒","戕","或","戚","戛","戟","戡","戢","截","戮","戰","戲","戳","戴","户","戾","房","所","扁","扇","扈","扉","手","才","扎","扒","打","扔","托","扛","扣","扭","扮","扯","扳","扶","批","扼","找","承","技","抄","抉","把","抑","抒","抓","投","抖","抗","折","抨","披","抬","抱","抵","抹","押","抽","抿","拂","拄","拆","拇","拈","拉","拋","拌","拍","拎","拐","拒","拓","拔","拖","拗","拘","拙","拚","招","拜","括","拭","拮","拯","拱","拳","拴","拷","拼","拽","拾","拿","持","指","挈","按","挑","挖","挨","挪","挫","振","挺","挽","挾","捂","捆","捉","捌","捍","捎","捏","捐","捕","捧","捨","捩","捫","捱","捲","捶","捷","捻","掀","掃","掄","授","掉","掌","掏","排","掖","掘","掙","掛","掠","採","探","掣","接","控","推","掩","措","掬","揀","揆","揉","揍","描","提","插","揖","揚","換","握","揣","揩","揪","揭","揮","援","揹","損","搏","搓","搔","搖","搗","搜","搞","搪","搬","搭","搶","搽","搾","摑","摒","摔","摘","摟","摧","摩","摯","摸","摹","摺","撇","撈","撐","撒","撓","撕","撚","撞","撤","撥","撩","撫","撬","播","撮","撰","撲","撻","撼","撿","擁","擂","擄","擅","擇","擊","擋","操","擎","擒","擔","擘","據","擠","擦","擬","擰","擱","擲","擴","擺","擻","擾","攀","攆","攏","攔","攘","攙","攜","攝","攣","攤","攪","攫","攬","支","收","改","攻","放","政","故","效","敍","敏","救","敖","敗","教","敝","敞","敢","散","敦","敬","敲","整","敵","敷","數","斂","斃","文","斐","斑","斕","斗","料","斜","斟","斡","斤","斥","斧","斫","斬","斯","新","斷","方","於","施","旁","旅","旋","旌","旎","族","旖","旗","既","日","旦","旨","早","旬","旭","旱","旺","昂","昆","昇","昌","明","昏","易","昔","星","映","春","昧","昨","昭","是","時","晃","晉","晌","晏","晚","晝","晤","晦","晨","普","景","晰","晴","晶","智","暇","暈","暉","暑","暖","暗","暢","暨","暫","暮","暴","暹","曆","曉","曖","曙","曝","曠","曦","曬","曰","曱","曲","曳","更","曷","書","曹","曼","曾","替","最","會","月","有","朋","服","朔","朕","朗","望","朝","期","朦","朧","木","未","末","本","札","朮","朱","朴","朵","朽","杆","杉","李","杏","材","村","杖","杜","杞","束","杧","杭","杯","杰","東","杳","杵","杷","松","板","枇","枉","析","枕","林","枚","果","枝","枯","枱","枴","架","枸","柄","柏","某","柑","柒","染","柔","柚","查","柩","柬","柯","柱","柳","柴","柵","柿","栓","栗","校","栩","株","核","根","格","栽","桀","桂","桃","桅","框","案","桌","桐","桑","桓","桔","桶","桿","梁","梃","梅","梆","梓","梗","梘","條","梟","梢","梧","梨","梭","梯","械","梳","梵","棄","棉","棋","棍","棒","棕","棗","棘","棚","棟","棠","棣","棧","森","棲","棵","棹","棺","椅","植","椎","椒","椰","楊","楓","楔","楚","楞","楠","楨","楫","業","極","楷","楹","概","榆","榔","榕","榛","榜","榦","榨","榭","榮","榴","榷","榻","槁","構","槌","槍","槐","槓","槤","槨","槳","槽","樁","樂","樊","樑","樓","標","樞","樟","模","樣","樵","樸","樹","樺","樽","橄","橇","橋","橘","橙","機","橡","橢","橫","檀","檄","檔","檜","檢","檬","檳","檸","檻","櫂","櫃","櫓","櫚","櫛","櫝","櫥","櫻","欄","權","欖","欠","次","欣","欲","欺","欽","款","歇","歉","歌","歎","歐","歟","歡","止","正","此","步","武","歧","歪","歲","歷","歸","歹","死","歿","殃","殆","殉","殊","殖","殘","殤","殮","殯","殲","段","殷","殺","殼","殿","毀","毅","毆","毋","母","每","毒","毓","比","毗","毛","毫","毯","毽","氈","氏","氐","民","氓","氖","氛","氟","氣","氤","氦","氧","氨","氫","氮","氯","氲","水","永","氾","汀","汁","求","汐","汕","汗","汝","汞","江","池","污","汨","汪","汰","汲","決","汽","汾","沁","沃","沅","沈","沉","沌","沐","沒","沖","沙","沛","沫","沮","沱","河","沸","油","治","沼","沽","沾","沿","況","泄","泅","泉","泊","泌","泓","法","泗","泛","泡","波","泣","泥","注","泰","泱","泳","洋","洗","洛","洞","津","洪","洱","洲","洶","活","洽","派","流","浙","浚","浦","浩","浪","浬","浮","浴","海","浸","涇","消","涉","涌","涎","涓","涕","涮","涯","液","涵","涸","涼","淄","淅","淆","淇","淋","淌","淑","淒","淘","淙","淚","淞","淡","淤","淨","淪","淫","淮","深","淳","淵","混","淹","淺","添","清","渙","渚","減","渝","渠","渡","渣","渤","渥","渦","温","測","渭","港","渲","渴","游","渺","渾","湃","湊","湍","湔","湖","湘","湛","湧","湮","湯","溉","源","準","溘","溜","溝","溢","溥","溪","溯","溶","溺","滂","滄","滅","滇","滋","滌","滑","滓","滔","滬","滯","滲","滴","滾","滿","漁","漂","漆","漏","漓","演","漕","漠","漢","漣","漩","漪","漫","漬","漱","漲","漳","漸","漾","漿","潑","潔","潘","潛","潢","潤","潦","潭","潮","潰","潸","潺","潼","澀","澄","澆","澈","澎","澗","澡","澤","澧","澱","澳","澹","激","濁","濂","濃","濕","濘","濛","濟","濠","濡","濤","濫","濬","濯","濱","濺","濾","瀆","瀉","瀋","瀏","瀑","瀕","瀚","瀛","瀝","瀟","瀨","瀰","瀾","灌","灑","灘","灣","火","灰","灶","灸","灼","災","炊","炎","炒","炕","炙","炫","炬","炭","炮","炯","炳","炸","為","烈","烊","烏","烘","烙","烤","烹","烽","焉","焊","焗","焙","焚","無","焦","焰","然","煉","煌","煎","煙","煜","煞","煤","煥","煦","照","煨","煩","煬","煮","煲","煽","熄","熊","熏","熒","熔","熙","熟","熨","熬","熱","熹","熾","燃","燄","燈","燉","燎","燐","燒","燕","燙","燜","營","燥","燦","燧","燬","燭","燮","燴","燻","燼","爆","爍","爐","爛","爨","爪","爬","爭","爰","爵","父","爸","爹","爺","爻","爽","爾","牀","牆","片","版","牌","牒","牖","牘","牙","牛","牝","牟","牠","牡","牢","牧","物","牯","牲","牴","特","牽","犀","犁","犄","犒","犖","犛","犢","犧","犬","犯","狀","狂","狄","狎","狐","狗","狙","狠","狡","狩","狷","狸","狹","狼","狽","猖","猙","猛","猜","猥","猩","猴","猶","猷","猾","猿","獄","獅","獎","獐","獗","獨","獰","獲","獵","獷","獸","獺","獻","玀","玄","率","玉","王","玖","玟","玩","玫","玲","玳","玷","玻","珀","珊","珍","珠","班","珮","現","球","琅","理","琉","琊","琢","琥","琦","琪","琳","琴","琵","琶","琺","琿","瑁","瑕","瑙","瑚","瑛","瑜","瑞","瑟","瑣","瑤","瑩","瑪","瑯","瑰","璀","璃","璋","璜","璣","璦","璧","璨","環","璽","瓊","瓏","瓜","瓠","瓢","瓣","瓦","瓶","瓷","甄","甌","甕","甘","甚","甜","生","產","甥","甦","用","甩","甫","甬","甭","田","由","甲","申","甴","男","甸","界","畏","畔","留","畚","畜","畝","畢","略","畦","番","畫","異","當","畸","疆","疇","疊","疋","疏","疑","疙","疚","疝","疤","疥","疫","疲","疳","疵","疹","疼","疽","疾","病","症","痊","痔","痕","痘","痙","痛","痞","痢","痣","痰","痱","痳","痴","痺","痿","瘀","瘁","瘋","瘍","瘓","瘟","瘠","瘡","瘤","瘦","瘧","瘩","瘴","瘸","療","癆","癌","癒","癖","癘","癢","癥","癩","癬","癮","癱","癲","癸","登","發","白","百","皂","的","皆","皇","皈","皎","皓","皖","皚","皮","皰","皴","皺","皿","盂","盃","盆","盈","益","盍","盎","盒","盔","盛","盜","盞","盟","盡","監","盤","盥","盧","盪","目","盯","盲","直","相","盹","盼","盾","省","眉","看","真","眠","眨","眩","眶","眷","眸","眺","眼","眾","着","睇","睏","睛","睜","睞","睡","督","睥","睦","睨","睪","睫","睬","睹","睽","睿","瞄","瞇","瞌","瞎","瞑","瞞","瞟","瞠","瞥","瞧","瞪","瞬","瞭","瞰","瞳","瞻","瞽","瞿","矇","矓","矗","矚","矛","矜","矢","矣","知","矩","短","矮","矯","石","矽","砂","砌","砍","研","砝","砥","砧","砭","砰","砲","破","砸","硃","硝","硫","硬","硯","硼","碉","碌","碎","碑","碗","碘","碟","碧","碩","碰","碳","確","碼","碾","磁","磅","磊","磋","磐","磕","磚","磨","磬","磯","磴","磷","磺","礁","礎","礙","礦","礪","礫","礬","示","社","祀","祁","祆","祇","祈","祉","祐","祕","祖","祗","祚","祝","神","祟","祠","祥","票","祭","祺","祿","禁","禍","禎","福","禦","禧","禪","禮","禱","禹","禽","禾","禿","秀","私","秉","秋","科","秒","租","秣","秤","秦","秧","秩","移","稀","稈","程","稍","税","稔","稚","稜","稟","稠","種","稱","稷","稻","稼","稽","稿","穀","穆","穌","積","穎","穗","穡","穢","穩","穫","穴","究","穹","空","穿","突","窄","窈","窒","窕","窖","窗","窘","窟","窠","窩","窪","窮","窯","窺","窿","竄","竅","竇","竊","立","站","竟","章","竣","童","竭","端","競","竹","竺","竽","竿","笆","笑","笙","笛","笞","笠","符","笨","第","筆","等","筋","筍","筏","筐","筒","答","策","筠","筵","筷","箋","箏","箔","箕","算","箝","管","箭","箱","箴","節","篁","範","篆","篇","築","篙","篡","篤","篩","篷","篾","簇","簍","簞","簡","簣","簧","簪","簫","簷","簸","簽","簾","簿","籃","籌","籍","籟","籠","籤","籬","籮","籲","米","籽","粉","粒","粕","粗","粟","粥","粧","粱","粳","粵","粹","粽","精","糊","糕","糖","糙","糜","糞","糟","糠","糢","糧","糯","系","糾","紀","紂","約","紅","紇","紉","紊","紋","納","紐","純","紕","紗","紙","級","紛","紜","素","紡","索","紫","紮","累","細","紳","紹","紼","絀","終","絃","組","絆","結","絕","絞","絡","絢","給","絨","絮","統","絲","絹","綁","綏","綑","經","綜","綞","綠","綢","維","綰","綱","網","綴","綵","綸","綺","綻","綽","綾","綿","緇","緊","緋","緒","緘","線","緝","緞","締","緣","編","緩","緬","緯","練","緻","縈","縊","縑","縛","縣","縫","縮","縱","縲","縷","總","績","繁","繃","繅","繆","織","繕","繚","繞","繡","繩","繪","繫","繭","繳","繹","繼","繽","纂","續","纏","纓","纖","纜","缶","缸","缺","缽","罄","罈","罐","罔","罕","罟","罩","罪","置","罰","署","罵","罷","罹","羅","羈","羊","羌","美","羔","羚","羞","羣","羨","義","羯","羲","羶","羸","羹","羽","羿","翁","翅","翌","翎","習","翔","翕","翟","翠","翡","翩","翰","翱","翳","翹","翻","翼","耀","老","考","者","耆","而","耍","耐","耒","耕","耗","耘","耙","耜","耳","耶","耽","耿","聆","聊","聖","聘","聚","聞","聯","聰","聱","聲","聳","聶","職","聽","聾","聿","肄","肅","肆","肇","肉","肋","肌","肓","肖","肘","肚","肛","肝","股","肢","肥","肩","肪","肫","肯","肱","育","肴","肺","胃","背","胎","胖","胚","胛","胞","胡","胤","胥","胭","胰","胱","胳","胴","胸","能","脂","脅","脆","脈","脊","脖","脣","脩","脯","脱","脹","脾","腆","腋","腎","腐","腑","腔","腕","腥","腦","腫","腮","腰","腱","腳","腸","腹","腺","腿","膀","膈","膊","膏","膚","膛","膜","膝","膠","膨","膩","膳","膺","膽","膾","膿","臀","臂","臃","臆","臉","臍","臏","臘","臚","臟","臣","臧","臨","自","臭","至","致","臻","臼","臾","舀","舂","舅","與","興","舉","舊","舌","舍","舐","舒","舔","舖","舛","舜","舞","舟","舢","舨","航","舫","般","舵","舶","舷","船","艇","艘","艙","艦","艮","良","艱","色","艾","芋","芍","芒","芙","芝","芟","芥","芬","芭","花","芳","芹","芻","芽","苑","苒","苓","苔","苗","苛","苞","苟","苣","若","苦","苧","英","茁","茂","范","茄","茅","茉","茗","茫","茱","茲","茴","茵","茶","茸","茹","荀","荃","草","荊","荏","荒","荔","荷","荸","荻","荼","莉","莊","莎","莒","莓","莖","莘","莞","莠","莢","莫","莽","菁","菅","菇","菊","菌","菜","菠","菩","華","菰","菱","菲","菸","菽","萃","萄","萊","萋","萌","萍","萎","萬","萱","萵","萸","萼","落","葉","著","葛","葡","董","葦","葩","葫","葬","葱","葵","葷","蒂","蒐","蒙","蒜","蒞","蒲","蒸","蒼","蒿","蓀","蓄","蓆","蓉","蓋","蓑","蓓","蓬","蓮","蔑","蔓","蔔","蔗","蔚","蔡","蔣","蔬","蔭","蔽","蕃","蕉","蕊","蕙","蕨","蕩","蕪","蕭","蕾","薄","薇","薑","薔","薛","薦","薩","薪","薯","薰","藉","藍","藏","藐","藕","藝","藤","藥","藩","藪","藴","藹","藺","藻","蘆","蘇","蘋","蘑","蘚","蘭","蘸","蘿","虎","虐","虔","處","虛","虜","虞","號","虧","虫","虯","虱","虹","蚊","蚌","蚓","蚣","蚤","蚩","蚪","蚯","蚱","蚶","蛀","蛆","蛇","蛋","蛔","蛙","蛛","蛟","蛤","蛭","蛹","蛾","蜀","蜂","蜃","蜇","蜈","蜒","蜓","蜕","蜘","蜚","蜜","蜢","蜥","蜴","蜻","蜿","蝌","蝕","蝗","蝙","蝠","蝦","蝨","蝴","蝶","蝸","螂","螃","融","螞","螟","螢","螫","螳","螺","螻","蟀","蟆","蟈","蟋","蟑","蟒","蟬","蟯","蟲","蟹","蟻","蠅","蠍","蠔","蠕","蠟","蠡","蠢","蠣","蠱","蠶","蠹","蠻","血","行","衍","術","街","衙","衝","衞","衡","衢","衣","表","衫","衰","衷","袁","袂","袈","袋","袍","袒","袖","袞","被","袱","裁","裂","裊","裏","裔","裕","裘","裙","補","裝","裟","裨","裳","裴","裸","裹","製","褂","複","褐","褒","褓","褚","褥","褪","褫","褲","褶","褸","褻","襄","襖","襟","襠","襤","襪","襯","襲","西","要","覃","覆","見","規","覓","視","覦","親","覬","覲","覺","覽","觀","角","解","觴","觸","言","訂","訃","計","訊","訌","討","訐","訓","訕","訖","託","記","訛","訝","訟","訣","訥","訪","設","許","訴","診","註","詁","詆","詐","詔","評","詛","詞","詠","詢","詣","試","詩","詫","詬","詭","詮","詰","話","該","詳","詹","詼","誅","誇","誌","認","誑","誓","誕","誘","語","誠","誡","誣","誤","誥","誦","誨","説","誰","課","誼","調","諂","諄","談","諉","請","諍","諒","論","諜","諦","諧","諫","諭","諮","諱","諷","諸","諺","諾","謀","謁","謂","謄","謊","謎","謗","謙","講","謝","謠","謨","謬","謹","譁","證","譎","譏","識","譚","譜","警","譬","譯","議","譴","護","譽","讀","變","讒","讓","讖","讚","谷","谿","豁","豆","豈","豉","豌","豎","豐","豔","豕","豚","象","豢","豪","豫","豬","豹","豺","貂","貉","貌","貓","貝","貞","負","財","貢","貧","貨","販","貪","貫","責","貯","貲","貳","貴","貶","買","貸","費","貼","貽","貿","賀","賁","賂","賃","賄","賅","資","賈","賊","賑","賒","賓","賜","賞","賠","賢","賣","賤","賦","質","賬","賭","賴","賺","購","賽","贅","贈","贊","贋","贍","贏","贓","贖","贛","赤","赦","赧","赫","赭","走","赳","赴","起","趁","超","越","趕","趙","趟","趣","趨","足","趴","趾","跆","跋","跌","跎","跑","跚","跛","距","跟","跡","跤","跨","跪","路","跳","跺","跼","踏","踐","踝","踟","踢","踩","踫","踱","踴","踵","踹","蹂","蹄","蹈","蹉","蹊","蹋","蹙","蹣","蹤","蹦","蹬","蹲","蹶","蹺","蹼","躁","躂","躅","躇","躉","躊","躍","躑","躡","躪","身","躬","躭","躲","躺","軀","車","軋","軌","軍","軒","軔","軛","軟","軸","軻","軼","軾","較","載","輊","輒","輓","輔","輕","輛","輜","輝","輟","輦","輩","輪","輯","輸","輻","輾","輿","轂","轄","轅","轉","轍","轎","轔","轟","轡","辛","辜","辟","辣","辦","辨","辭","辮","辯","辰","辱","農","迂","迄","迅","迎","近","返","迢","迤","迥","迦","迪","迫","迭","述","迴","迷","迸","迺","追","退","送","逃","逅","逆","逍","透","逐","途","逕","逖","逗","這","通","逛","逝","逞","速","造","逢","連","逮","週","進","逵","逸","逼","逾","遁","遂","遇","遊","運","遍","過","遏","遐","遑","道","達","違","遘","遙","遜","遞","遠","遣","遨","適","遭","遮","遲","遴","遵","遷","選","遺","遼","遽","避","邀","邁","邂","還","邇","邊","邏","邐","邑","邕","邢","那","邦","邨","邪","邱","邵","邸","郁","郊","郎","郡","部","郭","郵","都","鄂","鄉","鄒","鄙","鄧","鄭","鄰","鄱","酉","酊","酋","酌","配","酒","酗","酣","酥","酩","酪","酬","酵","酷","酸","醃","醇","醉","醋","醒","醖","醜","醣","醫","醬","醺","釀","釁","采","釉","釋","里","重","野","量","釐","金","釗","釘","釜","針","釣","釦","釧","釵","鈉","鈍","鈎","鈐","鈔","鈕","鈞","鈣","鈴","鈷","鈸","鈾","鉀","鉋","鉑","鉗","鉛","銀","銅","銓","銖","銘","銜","銬","銷","銻","銼","鋁","鋅","鋒","鋤","鋪","鋭","鋸","鋼","錄","錐","錘","錚","錠","錢","錦","錨","錫","錯","錳","錶","鍊","鍋","鍍","鍛","鍥","鍬","鍵","鍾","鎂","鎅","鎊","鎔","鎖","鎢","鎮","鎳","鏃","鏈","鏑","鏖","鏗","鏘","鏜","鏟","鏡","鏢","鏽","鐃","鐘","鐮","鐲","鐳","鐵","鐸","鐺","鑄","鑑","鑒","鑠","鑣","鑰","鑲","鑼","鑽","鑾","鑿","長","門","閂","閃","閉","開","閏","閑","閒","間","閔","閘","閡","閣","閤","閥","閨","閩","閭","閲","閻","闆","闈","闊","闋","闌","闐","闔","闖","關","闡","闢","阜","阡","阪","阮","阱","防","阻","阿","陀","附","陋","陌","降","限","陛","陝","陡","院","陣","除","陪","陰","陲","陳","陵","陶","陷","陸","陽","隅","隆","隊","隋","隍","階","隔","隕","隘","隙","際","障","隧","隨","險","隱","隴","隸","隻","雀","雁","雄","雅","集","雇","雉","雋","雌","雍","雕","雖","雙","雛","雜","雞","離","難","雨","雪","雯","雲","零","雷","雹","電","需","霄","霆","震","霉","霍","霎","霏","霑","霓","霖","霜","霞","霧","霪","露","霸","霹","霽","霾","靂","靄","靈","青","靖","靚","靛","靜","非","靠","靡","面","靦","靨","革","靴","靶","靼","鞅","鞋","鞍","鞏","鞘","鞠","鞣","鞦","鞭","韁","韃","韆","韋","韌","韓","韜","韭","音","韶","韻","響","頁","頂","頃","項","順","須","頌","預","頑","頒","頓","頗","領","頡","頤","頭","頰","頷","頸","頹","頻","顆","題","額","顎","顏","願","顛","類","顧","顫","顯","顰","顱","風","颯","颱","颳","颶","颺","颼","飄","飛","食","飢","飧","飩","飪","飭","飯","飲","飴","飼","飽","飾","餃","餅","餉","養","餌","餐","餒","餓","餘","餚","餛","餞","餡","館","餵","餸","餽","餾","餿","饅","饋","饑","饒","饜","饞","首","香","馥","馨","馬","馭","馮","馱","馳","馴","駁","駐","駑","駒","駕","駙","駛","駝","駟","駢","駭","駱","駿","騁","騎","騖","騙","騫","騮","騰","騷","騾","驀","驃","驅","驕","驗","驚","驛","驟","驢","驥","驪","骨","骯","骰","骷","骸","骼","髏","髒","髓","體","高","髦","髭","髮","髯","髻","鬃","鬆","鬍","鬚","鬢","鬥","鬧","鬨","鬱","鬼","魁","魂","魄","魅","魏","魔","魘","魚","魯","魷","鮑","鮫","鮮","鯉","鯊","鯨","鯽","鰍","鰓","鰥","鰭","鰱","鰻","鰾","鱔","鱖","鱗","鱷","鱸","鳥","鳩","鳳","鳴","鳶","鴆","鴉","鴕","鴛","鴣","鴦","鴨","鴻","鴿","鵑","鵝","鵠","鵡","鵪","鵬","鵰","鵲","鶉","鶯","鶴","鷂","鷓","鷗","鷥","鷹","鷺","鸚","鸞","鹵","鹹","鹼","鹽","鹿","麋","麒","麓","麗","麝","麟","麥","麩","麪","麴","麻","麼","麾","黃","黍","黎","黏","黑","黔","默","黛","黜","黝","點","黠","黨","黯","黴","黷","鼇","鼈","鼎","鼓","鼕","鼙","鼠","鼬","鼴","鼻","鼾","齊","齋","齒","齟","齡","齣","齦","齪","齬","齲","齷","龍","龐","龔","龜"];
+
+/* ===== 粵拼（Jyutping）檢核 ➔ 教院式 ILE / 港式 CantonHK 自動轉換引擎 ===== */
+const JP_INITIALS = new Set(["","b","p","m","f","d","t","n","l","g","k","ng","h","gw","kw","w","z","c","s","j"]);
+const JP_PURE_INITIALS = new Set(["b","p","f","d","t","n","l","g","k","h","gw","kw","w","z","c","s","j"]);
+const JP_FINALS = new Set([
+  "aa","aai","aau","aam","aan","aang","aap","aat","aak",
+  "a","ai","au","am","an","ang","ap","at","ak",
+  "e","ei","eu","em","en","eng","ep","et","ek",
+  "i","iu","im","in","ing","ip","it","ik",
+  "o","oi","ou","om","on","ong","op","ot","ok",
+  "u","ui","um","un","ung","up","ut","uk",
+  "oe","oei","oen","oeng","oet","oek",
+  "eoi","eon","eot",
+  "yu","yun","yut"
+]);
+const JP_STANDALONE_NASALS = new Set(["m","ng","hm","hng"]);
+
+function splitJyutping(rawSyllable){
+  const s = String(rawSyllable || "").trim().toLowerCase().replace(/[1-6]$/, "").replace(/[^a-z]/g, "");
+  if(!s) return null;
+  if(JP_STANDALONE_NASALS.has(s)) return ["", s];
+  const m = s.match(/^(ng|gw|kw|[bpmfdtnlgkhwzcsj])?([a-z]+)$/);
+  if(!m) return null;
+  const ini = m[1] || "", fin = m[2] || "";
+  if(!JP_FINALS.has(fin)) return null;
+  return [ini, fin];
+}
+
+function isValidJyutpingSyllable(rawSyllable){
+  const cleaned = String(rawSyllable || "").trim().toLowerCase();
+  if(!/^[a-z]{1,6}[1-6]?$/.test(cleaned)) return false;
+  return splitJyutping(cleaned) !== null;
+}
+
+function jyutpingToILE(jp){
+  const sp = splitJyutping(jp);
+  if(!sp) return "";
+  let [ini, fin] = sp;
+  if(ini === "z") ini = "dz";
+  else if(ini === "c") ini = "ts";
+  const FIN_MAP = { yu:"y", yun:"yn", yut:"yt", eoi:"oey", eon:"oen", eot:"oet" };
+  fin = FIN_MAP[fin] || fin;
+  return (ini + fin).toUpperCase();
+}
+
+function jyutpingToCantonHK(jp){
+  const sp = splitJyutping(jp);
+  if(!sp) return "";
+  let [ini, fin] = sp;
+  if(ini === "j" && fin.startsWith("yu")) ini = "";
+  else if(ini === "j") ini = "y";
+  else if(ini === "z") ini = "j";
+  else if(ini === "c") ini = "ch";
+  const FIN_MAP = {
+    aa:"a", aai:"ai", aau:"au", aam:"am", aan:"an", aang:"ang", aap:"ap", aat:"at", aak:"ak",
+    oe:"eu", oeng:"eung", oek:"euk",
+    eoi:"ui", eon:"un", eot:"ut",
+    ou:"o"
+  };
+  fin = FIN_MAP[fin] || fin;
+  return (ini + fin).toUpperCase();
+}
+
+/* ===== 內建示範基準碼表（供專項字根篩選直接使用） ===== */
+const unpack = s => {
+  const o = {};
+  for(const p of s.split(" ")){
+    if(!p) continue;
+    const ch = [...p][0], rest = p.slice(ch.length);
+    if(rest) o[ch] = rest.includes("/") ? rest.split("/") : [rest];
+  }
+  return o;
+};
+const BUILTIN_CJ_RAW =
+  "日A 月B 金C 木D 水E 火F 土G 竹H 戈I 十J 大K 中L 一M 弓N 人O 心P 手Q 口R 尸S 廿T 山U 女V 田W 難TOOG 卜Y 重HJWG " +
+  "快PDK 樂VID 學HBND 習SMHA 倉OIAR 頡GRMBC 輸JJOMN 入OH 法EGI 電MBLWU 腦BVVW 科HDYJ 技QJE 網VFBTV 絡VFHER 資IOBUC 訊YRNJ 時ADI 代OIP 發NONHE 展STV 社IFG 會OMWA 進YOG 步YLMH 文YK 化OP 育YIB 知OKR 識YRYIA 智ORA 慧QJSMP 創ORLN 新YDHML 思WP 維VFOG 理MGWG 想DUP 目BU 標DMWF 努VEKS 力KS 奮KOGW 鬥LN 成IHS 功MKS 勝BFQS 利HDLN 光FMU 明AB 前TBLN 途YOMD 希KKLB 望YBMG 未JD 來DOO 世PT 界WLL 和HDR 平MFJ 友KE 誼YRJBM 合OMR 作OHS 團WJII 結VFGR 互MVNM 助BMKS 關ANVIT 懷PYWV 愛BBPE 護YRTOE 環MGWLV 境GYTU 保ORD 生HQM 態IPP 自HBU 然BKF 風HNHLI 景AYRF 優OMBE 美TGK 健ONKQ 康ILE 運YBJJ 動HGKS 體BBTWT 魄HAHI 精FDQMB 神IFLWL 滿ETLB 熱GIF 誠YRIHS 服BSLE 務NHOKS 認YRSIP 真JBMC 負NBUC 責QMBUC 度ITE 禮IFTWT 貌BHHAU 師HRMLB 長SMV 孝JKND 父CK 母WYI 家JMSO 庭INKG 溫EWOT 幸GTJ 安JV 定JMYO 繁OKVIF 榮FFBD 經VFMVM 濟EYX 貿HHBUC 易APHH 融MBLMI 商YCBR 業TCTD 管HJRR 交YCK 通YNIB 建NKLQ 設YRHNE 規QOBUU 劃LMLN 醫SEMCW 療KKCF 衛HODBN 藝TGII 術HOICN 音YTA 書LGA 畫LGWM 閱ANCRU 讀YRGWC 寫JHXF 練VFDWF 測EBCN 試YRIPM 績VFQMC 良IAV " +
+  "高YRBR 率YIOJ 準EGJ 確MROBG 速YDL 清EQMB 楚DDNYO 白HA 簡HANA 單RRWJ 容JCOR 包PRU 忍SIP 耐MBDI 堅SEG 持QGDI 毅YOHNE 勇NBKS 敢MJOK 果WD 斷VIHML 策HDB 雙OGE 全OMG 春QKA 夏MUHE 秋HDF 冬HEY 四WC 季HDND 氣ONFD 候OLNK 變VFOK 陽NLAMH 燦FYED 爛FANW 微HOUNK 笑HHK 喜GRTR 悅PCRU 歡TGNO 欣HLNO 鼓GTJE 舞OTNIQ 讚YRHUC 賞FBRBC 肯YMB 川LLL 河EMNR 流EYIU 海EOWY 洋ETQ 廣ITMC 闊ANEHR 天MK 空JCM 蔚TSFI 藍TSIT 飛NOHTO 翔TQSMM 旅YSOHV 遊YYSD 探QBCD 索JBVIF 現MGBUU 奇KMNR 蹟RMQMC 歷MDYLM 史LK 傳OJII 統VFYIU 論YROMB 實JWJC 踐RMII 驗SFOMO 豐UJMRT 富JMRW 品RRR 質HLBUC 卓YAJ 越GOIV 領OIMBC 先HGHU 告HGR 骨BBB 直JBMM 占YR 計YRJ 效YKOK 雲MBMMI 彩BDHHH 順LLLC 尊TWDI 教JDOK 敬TROK 落TEHR 石MR 出UU 港ETCU 灣EVFN 香HDA 情PQMB 感IRP 緒VFJKA 物HQPHH 事JLLN 歲YMIHH 年OQ 慶IXE 朋BB 親YDBUU 暖ABME 意YTAP 義TGHQI 深EBCD 遠YGRV 星AHQM 辰MMMV 亮YRBU 柔NHD 細VFW 雨MLBY 島HAYU 嶼UHXC 森DDD 林DD 樹DGTI 花TOP 草TAJ 魚NWF 鳥HAYF 蟲LILII 獸RRIK 雪MBSM 菇TVJR 鯉NFWG 為IKNF 語YRMMR 回WR 王MG 求IJE 乙NU 二MM 丁MN 廠IFBK 七JU 乃NHS 八HO 九KN 几HN 刀SH 匕UH 又NK 三MMM 下MY 士JM 夕NI 子ND 寸DI 小NC 工MLM 己SU 已SU 巳RU 巾LB 干MJ 支JE 斤HML 方YHS 欠NO 止YLM 歹MNI 比PP 毛HQU 氏HVP 爪HLO 牛HQ 犬IK 玉MGI 瓜HVIO 瓦MVNI 甘TM 用BQ 皮DHE 皿BT 矛NINH 矢OK 示MMF 禾HD 穴JC 立YT 米FD 糸VIF 羊TQ 羽SMSIM 老JKP 而MBLL 耳SJ 肉OBO 臣SLSL 至MIG 臼HX 舌HJR 舟HBYI 艮AV 色NAU 血HBT 行HOMMN 衣YHV 見BUHU 角NBG 言YMMR 谷COR 豆MRT 貝BUC 赤GLNC 走GYO 足RYO 身HXH 車JWJ 辛YTJ 里WG 門AN 頁MBUC 食OIAV 首THBU 馬SQSF 鬼HI 鹿IXP 麥JOHE 麻IJCC 黃TMWC 黑WGF 鼠HXVYV 鼎BUVML 鼻HUWML 齊YX 齒YMUOO 決EDK 嘅RAIU 喺ROHF 睇BUCNH 嘢RWGN 咗RKM 哋RGPD 咁RTM 點WFYR 邊YHUS 搵QABT 諗YROIP 冇KB 拗QVIS 氹NE 邨PUNL 埗GYLH 㗎RKRD 喎RBBR 嘞RTJS 咪RFD 糉FDJCE 鰂NFBCN 嗰ROWR 啲RHAI 靚QBBUU 畀WML 嬲WVSW 嫲VIDD 爺CKSJL 仔OND 囡WV 囝WND 叻RKS 呃RMSU 唔RMMR 佢OSS 俾OHHJ 攰JEKS 瞓BULLL 唞RQYJ 晏AJV 忟PYK 憎PCWA 煲ODF 涌ENIB 劏FWLN 埞GJMO 掟QJMO 揼QMRE 撳QCNO 嚡RTJG 啫RJKA 嘥RHOO 啱RUMR 唓RJWJ 噏RORY 戇YJKP 嘩RTMJ 吖RMH 呀RMVH 吓RMY 嚟RHHE 掂QIYR 偈OAPV 喼RNSP 嘭RGTH 曱WMLL 甴LWLM 兼TXC 淵ELXL 肅LX 兒HXHU 興HXBC 齋YXF 龜NXU 寫JHXF 瀉EJHF 舅HXWKS 與HXYC 輿HXJC 舉HCQ 舊TOGX 睨BUHXU 霓MBHXU 麑IXHXU 鬩LNHXU 叟HXE 嫂VHXE 瘦KHXE 搜QHXE 艘HYHXE 颼HNHXE 餿OIHXE 陷NLHSX 餡OIHSX 諂YRHSX 閻ANBHX 掐QBHX 焰FNHX 滔EBHX 稻HDBHX 蹈RMBHX 韜DQBHX 插QHJX 歃HXNO 薦TIXF 嘯RLX 繡VFLX 鏽CLX 蕭TLX 簫HLX 瀟ETLX 濟EYX 擠QYX 臍BYX 霽MBYX 劑YXLN";
+
+const BUILTIN_DICT = unpack(BUILTIN_CJ_RAW);
+let ACTIVE_DICT_MAP = new Map();
+let HAS_GENERATED_DICT = false;
+for(const [ch, codes] of Object.entries(BUILTIN_DICT)){
+  ACTIVE_DICT_MAP.set(ch, new Set(Array.isArray(codes) ? codes : [codes]));
+}
+
+/* ===== 通用來源排名清單元件（支援 unselect 與多組手動框） ===== */
+function createSourceList(container, sources, opts){
+  const selects = {};
+  function syncManual(){
+    if(!opts.manualBoxes) return;
+    for(const id in opts.manualBoxes){
+      const box = $(opts.manualBoxes[id]);
+      if(box) box.style.display = (selects[id] && selects[id].value !== "0") ? "block" : "none";
+    }
+  }
+  function getRanked(){
+    const arr = [];
+    for(const id in selects){
+      const v = +selects[id].value;
+      if(v >= 1 && v <= 5) arr.push({ id, rank: v });
+    }
+    arr.sort((a, b) => a.rank - b.rank);
+    const seen = new Set(), out = [];
+    for(const it of arr){
+      if(seen.has(it.rank)) continue;
+      seen.add(it.rank);
+      out.push(it.id);
+    }
+    return out;
+  }
+  function unselect(idList){
+    for(const id of idList){
+      if(selects[id]){
+        selects[id].value = "0";
+        selects[id].classList.remove("r1");
+      }
+    }
+    syncManual();
+    if(opts.btn) opts.btn.disabled = (getRanked().length === 0);
+    if(opts.onChange) opts.onChange(getRanked());
+  }
+
+  sources.forEach(s => {
+    const row = document.createElement("div"); row.className = "srcRow";
+    const lbl = document.createElement("div"); lbl.className = "lbl";
+    lbl.innerHTML = `<strong>${s.name}</strong><small>${s.note}</small>`;
+    const btn = document.createElement("button"); btn.className = "credBtn"; btn.textContent = "ℹ"; btn.type = "button";
+    const sel = document.createElement("select"); sel.className = "rankSel";
+    sel.dataset.id = s.id;
+    sel.innerHTML = '<option value="0">無</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>';
+    selects[s.id] = sel;
+    const cd = document.createElement("div"); cd.className = "credDiv"; cd.textContent = s.cred;
+    btn.onclick = () => { cd.style.display = cd.style.display === "block" ? "none" : "block"; };
+    row.append(lbl, btn, sel);
+    container.append(row, cd);
+  });
+
+  container.addEventListener("change", e => {
+    const sel = e.target;
+    if(!sel.classList || !sel.classList.contains("rankSel")) return;
+    if(sel.value !== "0"){
+      const curV = sel.value;
+      const activeCount = Object.values(selects).filter(s => s.value !== "0").length;
+      if(activeCount > 5){
+        sel.value = "0";
+        opts.log("⚠ 最多同時選擇 5 項來源");
+      } else {
+        for(const id in selects){
+          if(selects[id] === sel) continue;
+          if(selects[id].value === curV){
+            selects[id].value = "0";
+            opts.log("⚠ 第 " + curV + " 位已被佔用，已重設原選項");
+            break;
+          }
+        }
+      }
+    }
+    for(const id in selects){ selects[id].classList.toggle("r1", selects[id].value === "1"); }
+    syncManual();
+    if(opts.btn) opts.btn.disabled = (getRanked().length === 0);
+    if(opts.onChange) opts.onChange(getRanked());
+  });
+
+  return { getRanked, unselect };
+}
+
+/* ===== 網路與本機檔案智慧讀取（UTF-16LE/BE、UTF-8、GBK、Big5） ===== */
+async function fetchText(url, ms=25000){
+  if(TEXT_CACHE.has(url)) return TEXT_CACHE.get(url);
+  const ac = new AbortController(), t = setTimeout(() => ac.abort(), ms);
+  try{
+    const r = await fetch(url, { signal: ac.signal });
+    if(!r.ok) throw new Error("HTTP " + r.status);
+    const text = await r.text();
+    TEXT_CACHE.set(url, text);
+    return text;
+  }catch(e){
+    if(e.name === "AbortError") throw new Error("逾時");
+    throw e;
+  }finally{ clearTimeout(t); }
+}
+
+async function readFileCached(file){
+  const key = "file:" + file.name + ":" + file.size + ":" + file.lastModified;
+  if(TEXT_CACHE.has(key)) return TEXT_CACHE.get(key);
+  let text = "";
+  try{
+    const buf = await file.arrayBuffer();
+    const u8 = new Uint8Array(buf);
+    if(u8.length >= 2 && u8[0] === 0xFF && u8[1] === 0xFE){
+      text = new TextDecoder("utf-16le").decode(buf);
+    } else if(u8.length >= 2 && u8[0] === 0xFE && u8[1] === 0xFF){
+      text = new TextDecoder("utf-16be").decode(buf);
+    } else {
+      for(const enc of ["utf-8", "gbk", "big5"]){
+        try{ text = new TextDecoder(enc, { fatal: true }).decode(buf); break; }catch(_){}
+      }
+      if(!text) text = new TextDecoder("utf-8").decode(buf);
+    }
+  }catch(_){
+    text = await file.text();
+  }
+  text = text.replace(/^\uFEFF/, "");
+  TEXT_CACHE.set(key, text);
+  return text;
+}
+
+function bindFileName(fi, ns, onPick){
+  if(!fi || !ns) return;
+  fi.addEventListener("change", () => {
+    ns.textContent = fi.files[0] ? fi.files[0].name : "未選擇檔案";
+    if(onPick) onPick();
+  });
+}
+function setBlobHref(a, blob){
+  if(!a) return;
+  if(a.href && a.href.startsWith("blob:")) URL.revokeObjectURL(a.href);
+  a.href = URL.createObjectURL(blob);
+  a.style.display = "inline";
+  a.classList.add("ready");
+}
+function hideDl(){
+  for(const a of arguments){
+    if(!a) continue;
+    a.classList.remove("ready");
+    a.style.display = "none";
+    if(a.href && a.href.startsWith("blob:")){
+      URL.revokeObjectURL(a.href);
+      a.removeAttribute("href");
+    }
+  }
+}
+
+/* ===== 通用規範漢字表（完整 8,105 字，源自 mandarin.txt） ===== */
+const NORM_8105_STR =
+  "一丁七万丈三上下不与丏丐丑专且丕世丘丙业丛东丝丞丢两严丧个丫中丰串临丸丹为主丽举乂乃久么义之乌乍乎乏乐乒乓乔乖乘乙乜九乞也习乡书乩买乱乳乸乾了予争事二亍于亏云互亓五井亘亚些亟亡亢交亥亦产亨亩享京亭亮亲亳亵亶亸亹人亿什仁仂仃仄仅仆仇仉今介仍从仑仓仔仕他仗付仙仝仞仟仡代令以仨仪仫们仰仲仳仵件价任份仿企伈伉伊伋伍伎伏伐休众优伙会伛伞伟传伢伣伤伥伦伧伪伫伭伯估伲伴伶伸伺似伽伾佁佃但位低住佐佑体何佖佗佘余佚佛作佝佞佟你佣佤佥佩佬佯佰佳佴佶佸佺佻佼佽佾使侁侂侃侄侈侉例侍侏侑侔侗侘供依侠侣侥侦侧侨侩侪侬侮侯侴侵侹便促俄俅俊俍俎俏俐俑俗俘俙俚俜保俞俟信俣俦俨俩俪俫俭修俯俱俳俵俶俸俺俾倌倍倏倒倓倔倕倘候倚倜倞借倡倥倦倧倨倩倪倬倭倮倴债倻值倾偁偃假偈偌偎偏偓偕做停偡健偬偭偰偲偶偷偻偾偿傀傃傅傈傉傍傒傕傣傥傧储傩催傲傺傻僇僎像僔僖僚僦僧僬僭僮僰僳僵僻儆儇儋儒儡儦儳儴儿兀允元兄充兆先光克免兑兔兕兖党兜兢入全八公六兮兰共关兴兵其具典兹养兼兽冀冁内冈冉册再冏冒冔冕冗写军农冠冢冤冥冬冮冯冰冱冲决况冶冷冻冼冽净凄准凇凉凋凌减凑凓凘凛凝几凡凤凫凭凯凰凳凶凸凹出击凼函凿刀刁刃分切刈刊刍刎刑划刖列刘则刚创初删判刨利别刬刭刮到刳制刷券刹刺刻刽刿剀剁剂剃剅削剋剌前剐剑剔剕剖剜剞剟剡剥剧剩剪副割剽剿劁劂劄劈劐劓力劝办功加务劢劣动助努劫劬劭励劲劳劼劾势勃勇勉勋勍勐勒勔勖勘勚募勠勤勰勺勾勿匀包匆匈匍匏匐匕化北匙匜匝匠匡匣匦匪匮匹区医匼匾匿十千卅升午卉半华协卑卒卓单卖南博卜卞卟占卡卢卣卤卦卧卫卬卮卯印危即却卵卷卸卺卿厂厄厅历厉压厌厍厕厖厘厚厝原厢厣厥厦厨厩厮去厾县叁参叆叇" +
+  "又叉及友双反发叔叕取受变叙叚叛叟叠口古句另叨叩只叫召叭叮可台叱史右叵叶号司叹叻叼叽吁吃各吆合吉吊同名后吏吐向吒吓吕吖吗君吝吞吟吠吡吣否吧吨吩含听吭吮启吱吲吴吵吸吹吻吼吽吾呀呃呆呇呈告呋呐呒呓呔呕呖呗员呙呛呜呢呣呤呦周呱呲味呵呶呷呸呻呼命咀咂咄咆咇咉咋和咍咎咏咐咒咔咕咖咙咚咛咝咡咣咤咥咦咧咨咩咪咫咬咯咱咳咴咸咺咻咽咿哀品哂哃哄哆哇哈哉哌响哎哏哐哑哒哓哔哕哗哙哚哝哞哟哢哥哦哧哨哩哪哭哮哱哲哳哺哼哽哿唁唆唇唉唏唐唑唔唛唝唠唢唣唤唧唪唬售唯唰唱唳唵唷唼唾唿啁啃啄商啉啊啐啕啖啜啡啤啥啦啧啪啫啬啭啮啰啴啵啶啷啸啻啼啾喀喁喂喃善喆喇喈喉喊喋喏喑喔喘喙喜喝喟喤喧喱喳喵喷喹喻喽喾嗄嗅嗉嗌嗍嗐嗑嗒嗓嗔嗖嗜嗝嗞嗟嗡嗣嗤嗥嗦嗨嗪嗫嗬嗯嗲嗳嗵嗷嗽嗾嘀嘁嘈嘉嘌嘎嘏嘘嘚嘛嘞嘟嘡嘣嘤嘧嘬嘭嘱嘲嘴嘶嘹嘻嘿噀噂噇噌噍噎噔噗噘噙噜噢噤器噩噪噫噬噱噶噻噼嚄嚅嚆嚎嚏嚓嚚嚣嚭嚯嚷嚼囊囔囚四回囟因囡团囤囫园困囱围囵囷囹固国图囿圃圄圆圈圉圊圌圐圙圜土圢圣在圩圪圫圬圭圮圯地圲圳圹场圻圾址坂均坉坊坋坌坍坎坏坐坑坒块坚坛坜坝坞坟坠坡坤坥坦坨坩坪坫坬坭坯坰坳坷坻坼坽垂垃垄垆垈型垌垍垎垏垒垓垕垙垚垛垞垟垠垡垢垣垤垦垧垩垫垭垮垯垱垲垴垵垸垺垾垿埂埃埆埇埋埌城埏埒埔埕埗埘埙埚埝域埠埤埪埫埭埯埴埵埸培基埼埽堂堃堆堇堉堋堌堍堎堐堑堕堙堞堠堡堤堧堨堪堰堲堵堼堽堾塄塅塆塌塍塑塔塘塝塞塥填塬塱塾墀墁境墅墈墉墐墒墓墕墘墙墚增墟墡墣墦墨墩墼壁壅壑壕壤士壬壮声壳壶壸壹处备复夏夐夔夕外夙多夜够夤夥大天太夫夬夭央夯失头夷夸夹夺夼奁奂奄奇奈奉奋奎奏契奓奔奕奖套奘奚奠奡奢奥奭" +
+  "女奴奶奸她好妁如妃妄妆妇妈妊妍妒妓妖妗妘妙妞妣妤妥妧妨妩妪妫妭妮妯妲妹妻妾姆姈姊始姐姑姒姓委姗姘姚姜姝姞姣姤姥姨姬姮姱姶姹姻姽姿娀威娃娄娅娆娇娈娉娌娑娓娘娜娟娠娣娥娩娱娲娴娵娶娼婀婆婉婊婌婍婕婘婚婞婠婢婤婧婪婫婳婴婵婶婷婺婻婼婿媂媄媆媒媓媖媚媛媞媪媭媱媲媳媵媸媾嫁嫂嫄嫉嫌嫒嫔嫕嫖嫘嫚嫜嫠嫡嫣嫦嫩嫪嫫嫭嫱嫽嬉嬖嬗嬛嬥嬬嬴嬷嬿孀孅子孑孓孔孕孖字存孙孚孛孜孝孟孢季孤孥学孩孪孬孰孱孳孵孺孽宁它宄宅宇守安宋完宏宓宕宗官宙定宛宜宝实宠审客宣室宥宦宧宪宫宬宰害宴宵家宸容宽宾宿寁寂寄寅密寇富寐寒寓寝寞察寡寤寥寨寮寰寸对寺寻导寿封射将尉尊小少尔尕尖尘尚尜尝尢尤尥尧尨尪尬就尴尸尹尺尻尼尽尾尿局屁层屃居屈屉届屋屎屏屐屑展屙属屠屡屣履屦屯山屹屺屼屾屿岁岂岈岊岌岍岐岑岔岖岗岘岙岚岛岜岞岠岢岣岨岩岫岬岭岱岳岵岷岸岽岿峁峂峃峄峋峒峗峘峙峛峡峣峤峥峦峧峨峪峭峰峱峻峿崀崁崂崃崄崆崇崌崎崒崔崖崚崛崞崟崡崤崦崧崩崭崮崴崶崽崾崿嵁嵅嵇嵊嵋嵌嵎嵖嵘嵚嵛嵝嵩嵫嵬嵯嵲嵴嶂嶅嶍嶒嶓嶙嶝嶟嶦嶲嶷巅巇巉巍川州巡巢工左巧巨巩巫差巯己已巳巴巷巽巾币市布帅帆师希帏帐帑帔帕帖帘帙帚帛帜帝帡带帧帨席帮帱帷常帻帼帽幂幄幅幌幔幕幖幛幞幡幢幪干平年并幸幺幻幼幽广庄庆庇床庋序庐庑库应底庖店庙庚府庞废庠庤庥度座庭庱庳庵庶康庸庹庼庾廆廉廊廋廑廒廓廖廙廛廨廪延廷建廿开弁异弃弄弆弇弈弊弋式弑弓引弗弘弛弟张弢弥弦弧弨弩弭弯弱弶弸弹强弼彀归当录彖彗彘彝彟形彤彦彧彩彪彬彭彰影彳彷役彻彼往征徂径待徇很徉徊律徐徒徕得徘徙徛徜御徨循徭微徵德徼徽" +
+  "心必忆忉忌忍忏忐忑忒忖志忘忙忝忞忠忡忤忧忪快忭忮忱忳念忸忺忻忽忾忿怀态怂怃怄怅怆怊怍怎怏怒怔怕怖怙怛怜思怠怡急怦性怨怩怪怫怯怵总怼怿恁恂恃恋恍恐恒恓恔恕恙恚恝恢恣恤恧恨恩恪恫恬恭息恰恳恶恸恹恺恻恼恽恿悃悄悆悈悉悌悍悒悔悖悚悛悝悟悠悢患悦您悫悬悭悯悰悱悲悴悸悻悼情惆惇惊惋惎惑惔惕惘惙惚惛惜惝惟惠惦惧惨惩惫惬惭惮惯惰想惴惶惹惺愀愁愃愆愈愉愍愎意愐愔愕愚感愠愣愤愦愧愫愭愿慆慈慊慌慎慑慕慝慢慥慧慨慬慭慰慵慷憋憎憔憕憙憧憨憩憬憭憷憺憾懂懈懊懋懑懒懔懦懵懿戆戈戊戋戌戍戎戏成我戒戕或戗战戚戛戟戡戢戣戤戥截戬戭戮戳戴户戽戾房所扁扂扃扅扆扇扈扉扊手才扎扑扒打扔托扛扞扣扦执扩扪扫扬扭扮扯扰扳扶批扺扼扽找承技抃抄抉把抑抒抓抔投抖抗折抚抛抟抠抡抢护报抨披抬抱抵抹抻押抽抿拂拃拄担拆拇拈拉拊拌拍拎拐拒拓拔拖拗拘拙招拜拟拢拣拤拥拦拧拨择括拭拮拯拱拳拴拶拷拼拽拾拿持挂指挈按挎挑挓挖挚挛挝挞挟挠挡挣挤挥挦挨挪挫振挲挹挺挽捂捃捅捆捉捋捌捍捎捏捐捕捞损捡换捣捧捩捭据捯捶捷捺捻捽掀掂掇授掉掊掌掎掏掐排掖掘掞掠探掣接控推掩措掬掭掮掰掳掴掷掸掺掼掾揄揆揉揍描提插揕揖揠握揣揩揪揭揳援揶揸揽揿搀搁搂搅搋搌搏搐搒搓搔搛搜搞搠搡搦搪搬搭搴携搽摁摄摅摆摇摈摊摏摒摔摘摛摞摧摩摭摴摸摹摽撂撄撅撇撑撒撕撖撙撞撤撩撬播撮撰撵撷撸撺撼擀擂擅操擎擐擒擘擞擢擤擦擿攀攉攒攘攥攫攮支收攸改攻攽放政故效敉敌敏救敔敕敖教敛敝敞敢散敦敩敫敬数敲整敷文斋斌斐斑斓斗料斛斜斝斟斠斡斤斥斧斩斫断斯新斶方於施旁旃旄旅旆旋旌旎族旐旒旖旗旞无既" +
+  "日旦旧旨早旬旭旮旯旰旱旴旵时旷旸旺旻旿昀昂昃昄昆昇昈昉昊昌明昏昒易昔昕昙昝星映昡昣昤春昧昨昪昫昭是昱昳昴昵昶昺昼昽显晁晃晅晊晋晌晏晐晒晓晔晕晖晗晙晚晞晟晡晢晤晦晨晪晫普景晰晱晴晶晷智晾暂暄暅暇暌暑暕暖暗暝暧暨暮暲暴暵暶暹暾暿曈曌曙曛曜曝曦曩曰曲曳更曷曹曼曾替最月有朋服朏朐朓朔朕朗望朝期朦木未末本札术朱朳朴朵朸机朽杀杂权杄杆杈杉杌李杏材村杓杕杖杙杜杞束杠条来杧杨杩杪杭杯杰杲杳杵杷杻杼松板极构枅枇枉枋枍析枕林枘枚果枝枞枢枣枥枧枨枪枫枭枯枰枲枳枵架枷枸枹柁柃柄柈柊柏某柑柒染柔柖柘柙柚柜柝柞柠柢查柩柬柯柰柱柳柴柷柽柿栀栅标栈栉栊栋栌栎栏栐树栒栓栖栗栝栟校栩株栲栳栴样核根栻格栽栾桀桁桂桃桄桅框案桉桊桌桎桐桑桓桔桕桠桡桢档桤桥桦桧桨桩桫桯桲桴桶桷桹梁梃梅梆梌梏梓梗梠梢梣梦梧梨梭梯械梳梴梵梼梽梾梿检棁棂棉棋棍棐棒棓棕棘棚棠棣棤棨棪棫棬森棰棱棵棹棺棻棼棽椀椁椅椆椋植椎椐椑椒椓椟椠椤椪椭椰椴椸椹椽椿楂楒楔楗楙楚楝楞楠楣楦楩楪楫楮楯楷楸楹楼概榃榄榅榆榇榈榉榍榑榔榕榖榛榜榧榨榫榭榰榱榴榷榻槁槃槊槌槎槐槔槚槛槜槟槠槭槱槲槽槿樊樗樘樟模樨横樯樱樵樽樾橄橇橐橑橘橙橛橞橡橥橦橱橹橼檀檄檎檐檑檗檞檠檩檫檬櫆欂欠次欢欣欤欧欲欸欹欺欻款歃歅歆歇歉歌歙止正此步武歧歪歹死歼殁殂殃殄殆殇殉殊残殍殒殓殖殚殛殡殣殪殳殴段殷殿毁毂毅毋毌母每毐毒毓比毕毖毗毙毛毡毪毫毯毳毵毹毽氅氆氇氍氏氐民氓气氕氖氘氙氚氛氟氡氢氤氦氧氨氩氪氮氯氰氲" +
+  "水永氾氿汀汁求汆汇汈汉汊汋汐汔汕汗汛汜汝汞江池污汤汧汨汩汪汫汭汰汲汴汶汹汽汾沁沂沃沄沅沆沇沈沉沌沏沐沓沔沘沙沚沛沟没沣沤沥沦沧沨沩沪沫沭沮沱河沸油沺治沼沽沾沿泂泃泄泅泇泉泊泌泐泓泔法泖泗泙泚泛泜泞泠泡波泣泥注泪泫泮泯泰泱泳泵泷泸泺泻泼泽泾洁洄洇洈洋洌洎洑洒洓洗洘洙洚洛洞洢洣津洧洨洪洫洭洮洱洲洳洴洵洸洹洺活洼洽派洿流浃浅浆浇浈浉浊测浍济浏浐浑浒浓浔浕浙浚浛浜浞浟浠浡浣浥浦浩浪浬浭浮浯浰浲浴海浸浼涂涄涅消涉涌涍涎涐涑涓涔涕涘涛涝涞涟涠涡涢涣涤润涧涨涩涪涫涮涯液涴涵涸涿淀淄淅淆淇淋淌淏淑淖淘淙淜淝淞淟淠淡淤淦淫淬淮淯深淳淴混淹添淼清渊渌渍渎渐渑渔渗渚渝渟渠渡渣渤渥温渫渭港渰渲渴游渺渼湃湄湉湍湎湑湓湔湖湘湛湜湝湟湣湫湮湲湴湾湿溁溃溅溆溇溉溍溏源溘溚溜溞溟溠溢溥溦溧溪溯溱溲溴溵溶溷溹溺溻溽滁滂滃滆滇滉滋滍滏滑滓滔滕滗滘滚滞滟滠满滢滤滥滦滧滨滩滪滫滴滹漂漆漈漉漋漏漓演漕漖漠漤漦漩漪漫漭漯漱漳漴漶漷漹漻漼漾潆潇潋潍潏潖潘潜潞潟潢潦潩潭潮潲潴潵潸潺潼潽潾澂澄澈澉澌澍澎澛澜澡澥澧澪澭澳澴澶澹澼澽激濂濉濋濑濒濞濠濡濩濮濯瀌瀍瀑瀔瀚瀛瀣瀱瀵瀹瀼灈灌灏灞火灭灯灰灵灶灸灼灾灿炀炅炆炉炊炌炎炒炔炕炖炘炙炜炝炟炣炫炬炭炮炯炱炳炷炸点炻炼炽烀烁烂烃烈烊烔烘烙烛烜烝烟烠烤烦烧烨烩烫烬热烯烶烷烹烺烻烽焆焉焊焌焐焓焕焖焗焘焙焚焜焞焦焯焰焱然煁煃煅煊煋煌煎煓煜煞煟煤煦照煨煮煲煳煴煸煺煽熄熇熊熏熔熘熙熛熜熟熠熥熨熬熵熹熻燃燊燋燎燏燔燕燚燠燥燧燮燹爆爇爔爚爝爟爨爪爬爰爱爵父爷爸爹爻爽爿牁牂片版牌牍牒牖牙牚" +
+  "牛牝牟牡牢牤牥牦牧物牮牯牲牵特牺牻牾牿犀犁犄犇犊犋犍犏犒犟犨犬犯犰犴状犷犸犹狁狂狃狄狈狉狍狎狐狒狗狙狝狞狠狡狨狩独狭狮狯狰狱狲狳狴狷狸狺狻狼猁猃猄猇猊猎猕猖猗猛猜猝猞猡猢猥猩猪猫猬献猯猰猱猴猷猹猺猾猿獍獐獒獗獠獬獭獯獴獾玃玄率玉王玎玑玒玓玕玖玘玙玚玛玞玟玠玡玢玤玥玦玩玫玭玮环现玱玲玳玶玷玹玺玻玼玿珀珂珅珇珈珉珊珋珌珍珏珐珑珒珕珖珙珛珝珞珠珢珣珥珦珧珩珪珫班珰珲珵珷珸珹珺珽琀球琄琅理琇琈琉琊琎琏琐琔琚琛琟琡琢琤琥琦琨琪琫琬琭琮琯琰琲琳琴琵琶琼瑀瑁瑂瑃瑄瑅瑆瑑瑓瑔瑕瑖瑗瑙瑚瑛瑜瑝瑞瑟瑢瑧瑨瑬瑭瑰瑱瑳瑶瑷瑾璀璁璃璆璇璈璋璎璐璒璘璜璞璟璠璥璧璨璩璪璬璮璱璲璺瓀瓒瓖瓘瓜瓞瓠瓢瓣瓤瓦瓮瓯瓴瓶瓷瓻瓿甄甍甏甑甓甗甘甚甜生甡甥甦用甩甪甫甬甭甯田由甲申电男甸町画甾畀畅畈畋界畎畏畔畖留畚畛畜畤略畦番畬畯畲畴畸畹畿疁疃疆疍疏疐疑疔疖疗疙疚疝疟疠疡疢疣疤疥疫疬疭疮疯疰疱疲疳疴疵疸疹疼疽疾痂痃痄病症痈痉痊痍痒痓痔痕痘痛痞痢痣痤痦痧痨痪痫痰痱痴痹痼痿瘀瘁瘃瘅瘆瘊瘌瘐瘕瘗瘘瘙瘛瘟瘠瘢瘤瘥瘦瘩瘪瘫瘭瘰瘳瘴瘵瘸瘼瘾瘿癀癃癌癍癔癖癗癜癞癣癫癯癸登白百癿皂的皆皇皈皋皎皑皓皕皖皙皛皞皤皦皭皮皱皲皴皿盂盅盆盈盉益盍盎盏盐监盒盔盖盗盘盛盟盥盦目盯盱盲直盷相盹盼盾省眄眇眈眉眊看眍眙眚真眠眢眦眨眩眬眭眯眵眶眷眸眺眼着睁睃睄睇睎睐睑睚睛睡睢督睥睦睨睫睬睹睽睾睿瞀瞄瞅瞋瞌瞍瞎瞑瞒瞟瞠瞢瞥瞧瞩瞪瞫瞬瞭瞰瞳瞵瞻瞽瞿矍矗矛矜矞矢矣知矧矩矫矬短矮矰" +
+  "石矶矸矻矼矾矿砀码砂砄砆砉砌砍砑砒研砖砗砘砚砜砝砟砠砣砥砧砫砬砭砮砰破砵砷砸砹砺砻砼砾础硁硅硇硊硌硍硎硐硒硔硕硖硗硙硚硝硪硫硬硭确硼硿碃碇碈碉碌碍碎碏碑碓碗碘碚碛碜碟碡碣碥碧碨碰碱碲碳碴碶碹碾磁磅磉磊磋磏磐磔磕磙磜磡磨磬磲磴磷磹磻礁礅礌礓礞礴礵示礼社祀祁祃祆祇祈祉祊祋祎祏祐祓祕祖祗祚祛祜祝神祟祠祢祥祧票祭祯祲祷祸祺祼祾禀禁禄禅禊禋福禒禔禘禚禛禤禧禳禹禺离禽禾秀私秃秆秉秋种科秒秕秘租秣秤秦秧秩秫秬秭积称秸移秽秾稀稂稃稆程稌稍税稑稔稗稙稚稞稠稣稳稷稹稻稼稽稿穄穆穑穗穙穜穟穰穴究穷穸穹空穿窀突窃窄窅窈窊窍窎窑窒窕窖窗窘窜窝窟窠窣窥窦窨窬窭窳窸窿立竑竖竘站竞竟章竣童竦竫竭端竹竺竽竿笃笄笆笈笊笋笏笑笔笕笙笛笞笠笤笥符笨笪笫第笮笯笱笳笸笺笼笾筀筅筇等筋筌筏筐筑筒答策筘筚筛筜筝筠筢筤筥筦筮筱筲筵筶筷筹筻筼签简箅箍箐箓箔箕箖算箜管箢箦箧箨箩箪箫箬箭箱箴箸篁篆篇篌篑篓篙篚篝篡篥篦篪篮篯篱篷篼篾簃簇簉簋簌簏簕簖簝簟簠簧簪簰簸簿籀籁籍籥米籴类籼籽粉粑粒粕粗粘粜粝粞粟粢粤粥粪粮粱粲粳粹粼粽精粿糁糅糇糈糊糌糍糒糕糖糗糙糜糟糠糨糯糵系紊素索紧紫累絜絮絷綦綮縠縢縻繁繄繇纂纛纠纡红纣纤纥约级纨纩纪纫纬纭纮纯纰纱纲纳纴纵纶纷纸纹纺纻纼纽纾线绀绁绂练组绅细织终绉绊绋绌绍绎经绐绑绒结绔绕绖绗绘给绚绛络绝绞统绠绡绢绣绤绥绦继绨绩绪绫续绮绯绰绱绲绳维绵绶绷绸绹绺绻综绽绾绿缀缁缂缃缄缅缆缇缈缉缊缌缎缐缑缒缓缔缕编缗缘缙缚缛缜缝缞缟缠缡缢缣缤缥缦缧缨缩缪缫缬缭缮缯缰缱缲缳缴缵" +
+  "缶缸缺罂罄罅罍罐网罔罕罗罘罚罟罡罢罨罩罪置罱署罴罶罹罽罾羁羊羌美羑羓羔羕羖羚羝羞羟羡群羧羯羰羱羲羸羹羼羽羿翀翁翂翃翅翈翊翌翎翔翕翘翙翚翛翟翠翡翥翦翩翮翯翰翱翳翷翻翼翾耀老考耄者耆耇耋而耍耏耐耑耒耔耕耖耗耘耙耜耠耢耤耥耦耧耨耩耪耰耱耳耵耶耷耸耻耽耿聂聃聆聊聋职聍聒联聘聚聩聪聱聿肃肄肆肇肉肋肌肓肖肘肚肛肝肟肠股肢肤肥肩肪肫肭肮肯肱育肴肷肸肺肼肽肾肿胀胁胂胃胄胆胈背胍胎胖胗胙胚胛胜胝胞胠胡胣胤胥胧胨胩胪胫胬胭胯胰胱胲胳胴胶胸胺胼能脂脆脉脊脍脎脏脐脑脒脓脔脖脘脚脞脟脩脬脯脱脲脶脸脾脿腆腈腊腋腌腐腑腒腓腔腕腘腙腚腠腥腧腨腩腭腮腯腰腱腴腹腺腻腼腽腾腿膀膂膈膊膏膑膘膙膛膜膝膦膨膳膺膻臀臂臃臆臊臌臑臜臣臧自臬臭至致臻臼臾舀舁舂舄舅舆舌舍舐舒舔舛舜舞舟舠舢舣舥航舫般舭舯舰舱舲舳舴舵舶舷舸船舻舾艄艅艇艉艋艎艏艘艚艟艨艮良艰色艳艴艺艽艾艿节芃芄芈芊芋芍芎芏芑芒芗芘芙芜芝芟芠芡芣芤芥芦芨芩芪芫芬芭芮芯芰花芳芴芷芸芹芼芽芾苁苄苇苈苉苊苋苌苍苎苏苑苒苓苔苕苗苘苛苜苞苟苠苡苣苤若苦苧苫苯英苴苷苹苻苾茀茁茂范茄茅茆茈茉茋茌茎茏茑茓茔茕茗茚茛茜茝茧茨茫茬茭茯茱茳茴茵茶茸茹茺茼茽荀荁荃荄荆荇草荏荐荑荒荓荔荖荙荚荛荜荞荟荠荡荣荤荥荦荧荨荩荪荫荬荭荮药荷荸荻荼荽莅莆莉莎莒莓莘莙莛莜莝莞莠莨莩莪莫莰莱莲莳莴莶获莸莹莺莼莽莿菀菁菂菅菇菉菊菌菍菏菔菖菘菜菝菟菠菡菥菩菪菰菱菲菹菼菽萁萃萄萆萋萌萍萎萏萑萘萚萜萝萣萤营萦萧萨萩萱萳萸萹萼落葆葎葑葖著葙葚葛葜葡董葩葫葬葭葰葱葳葴葵葶葸葺蒂蒄蒇蒈蒉蒋蒌蒎蒐蒗蒙蒜蒟蒡蒨蒯蒱蒲蒴蒸蒹蒺蒻蒽蒿蓁蓂蓄蓇蓉蓊蓍蓏蓐蓑蓓蓖蓝蓟蓠蓢蓣蓥蓦蓬蓰蓼蓿蔀蔃蔈蔊蔌蔑蔓蔗蔚蔟蔡蔫蔬蔷蔸蔹蔺蔻蔼蔽蕃蕈蕉蕊蕖蕗蕙蕞蕤蕨蕰蕲蕴蕹蕺蕻蕾薁薄薅薇薏薛薜薢薤薨薪薮薯薰薳薷薸薹薿藁藉藏藐藓藕藜藟藠藤藦藨藩藻藿蘅蘑蘖蘘蘧蘩蘸蘼" +
+  "虎虏虐虑虒虓虔虚虞虢虤虫虬虮虱虷虸虹虺虻虼虽虾虿蚀蚁蚂蚄蚆蚊蚋蚌蚍蚓蚕蚜蚝蚣蚤蚧蚨蚩蚪蚬蚯蚰蚱蚲蚴蚶蚺蛀蛃蛄蛆蛇蛉蛊蛋蛎蛏蛐蛑蛔蛘蛙蛛蛞蛟蛤蛩蛭蛮蛰蛱蛲蛳蛴蛸蛹蛾蜀蜂蜃蜇蜈蜉蜊蜍蜎蜐蜒蜓蜕蜗蜘蜚蜜蜞蜡蜢蜣蜥蜩蜮蜱蜴蜷蜻蜾蜿蝇蝈蝉蝌蝎蝓蝗蝘蝙蝠蝣蝤蝥蝮蝰蝲蝴蝶蝻蝼蝽蝾螂螃螅螈螋融螗螟螠螣螨螫螬螭螯螱螳螵螺螽蟀蟆蟊蟋蟏蟑蟒蟛蟠蟥蟪蟫蟮蟹蟾蠃蠊蠋蠓蠕蠖蠡蠢蠲蠹蠼血衃衄衅行衍衎衒衔街衙衠衡衢衣补表衩衫衬衮衰衲衷衽衾衿袁袂袄袅袆袈袋袍袒袖袗袜袢袤袪被袭袯袱袷袼裁裂装裆裈裉裎裒裔裕裘裙裛裟裢裣裤裥裨裰裱裳裴裸裹裼裾褂褊褐褒褓褕褙褚褛褟褡褥褪褫褯褰褴褶襁襄襕襚襜襞襟襦襫襻西要覃覆见观觃规觅视觇览觉觊觋觌觎觏觐觑角觖觚觜觞觟解觥触觫觭觯觱觳觿言訄訇訚訾詈詟詹誉誊誓謇警譬计订讣认讥讦讧讨让讪讫训议讯记讱讲讳讴讵讶讷许讹论讻讼讽设访诀证诂诃评诅识诇诈诉诊诋诌词诎诏诐译诒诓诔试诖诗诘诙诚诛诜话诞诟诠诡询诣诤该详诧诨诩诫诬语诮误诰诱诲诳说诵请诸诹诺读诼诽课诿谀谁谂调谄谅谆谇谈谊谋谌谍谎谏谐谑谒谓谔谕谖谗谙谚谛谜谝谞谟谠谡谢谣谤谥谦谧谨谩谪谫谬谭谮谯谰谱谲谳谴谵谶谷谼谿豁豆豇豉豌豕豚象豢豨豪豫豮豳豸豹豺貂貅貆貉貊貌貔貘贝贞负贡财责贤败账货质贩贪贫贬购贮贯贰贱贲贳贴贵贶贷贸费贺贻贼贽贾贿赀赁赂赃资赅赆赇赈赉赊赋赌赍赎赏赐赑赒赓赔赕赖赗赘赙赚赛赜赝赞赟赠赡赢赣赤赦赧赪赫赭走赳赴赵赶起趁趄超越趋趑趔趟趣趯趱足趴趵趸趺趼趾趿跂跃跄跆跋跌跎跏跐跑跖跗跚跛距跞跟跣跤跨跪跬路跱跳践跶跷跸跹跺跻跽踅踉踊踌踏踒踔踝踞踟踢踣踦踩踪踬踮踯踱踵踶踹踺踽蹀蹁蹂蹄蹅蹇蹈蹉蹊蹋蹐蹑蹒蹙蹚蹜蹢蹦蹩蹬蹭蹯蹰蹲蹴蹶蹼蹽蹾蹿躁躅躇躏躐躔躜躞身躬躯躲躺" +
+  "车轧轨轩轪轫转轭轮软轰轱轲轳轴轵轶轷轸轹轺轻轼载轾轿辀辁辂较辄辅辆辇辈辉辊辋辌辍辎辏辐辑辒输辔辕辖辗辘辙辚辛辜辞辟辣辨辩辫辰辱边辽达辿迁迂迄迅过迈迎运近迓返迕还这进远违连迟迢迤迥迦迨迩迪迫迭迮述迳迷迸迹迺追退送适逃逄逅逆选逊逋逍透逐逑递途逖逗通逛逝逞速造逡逢逦逭逮逯逴逵逶逸逻逼逾遁遂遄遆遇遍遏遐遑遒道遗遘遛遢遣遥遨遭遮遴遵遹遽避邀邂邃邈邋邑邓邕邗邘邙邛邝邠邡邢那邦邨邪邬邮邯邰邱邲邳邴邵邶邸邹邺邻邽邾邿郁郃郄郅郇郈郊郎郏郐郑郓郗郚郛郜郝郡郢郤郦郧部郪郫郭郯郴郸都郾郿鄀鄂鄃鄄鄅鄌鄑鄗鄘鄙鄚鄜鄞鄠鄢鄣鄫鄯鄱鄹酂酃酅酆酉酊酋酌配酎酏酐酒酗酚酝酞酡酢酣酤酥酦酩酪酬酮酯酰酱酲酴酵酶酷酸酹酺酽酾酿醅醇醉醋醌醍醐醑醒醚醛醢醨醪醭醮醯醴醵醺醾采釉释里重野量釐金釜鉴銎銮鋆鋈錾鍪鎏鏊鏖鐾鑫钆钇针钉钊钋钌钍钎钏钐钒钓钔钕钖钗钘钙钚钛钜钝钞钟钠钡钢钣钤钥钦钧钨钩钪钫钬钭钮钯钰钱钲钳钴钵钷钹钺钻钼钽钾钿铀铁铂铃铄铅铆铈铉铊铋铌铍铎铏铐铑铒铕铖铗铘铙铚铛铜铝铞铟铠铡铢铣铤铥铧铨铩铪铫铬铭铮铯铰铱铲铳铴铵银铷铸铹铺铻铼铽链铿销锁锂锃锄锅锆锇锈锉锊锋锌锍锎锏锐锑锒锓锔锕锖锗锘错锚锛锜锝锞锟锡锢锣锤锥锦锧锨锩锪锫锬锭键锯锰锱锲锳锴锵锶锷锸锹锺锻锼锽锾锿镀镁镂镃镄镅镆镇镈镉镊镋镌镍镎镏镐镑镒镓镔镕镖镗镘镚镛镜镝镞镠镡镢镣镤镥镦镧镨镩镪镫镬镭镮镯镰镱镲镳镴镵镶长门闩闪闫闭问闯闰闱闲闳间闵闶闷闸闹闺闻闼闽闾闿阀阁阂阃阄阅阆阇阈阉阊阋阌阍阎阏阐阑阒阔阕阖阗阘阙阚阜队阡阪阮阱防阳阴阵阶阻阼阽阿陀陂附际陆陇陈陉陋陌降陎限陑陔陕陛陞陟陡院除陧陨险陪陬陲陴陵陶陷隃隅隆隈隋隍随隐隔隗隘隙障隧隩隰隳隶隹隺隼隽难雀雁雄雅集雇雉雊雌雍雎雏雒雕雠" +
+  "雨雩雪雯雱雳零雷雹雾需霁霄霅霆震霈霉霍霎霏霓霖霜霞霨霪霭霰露霸霹霾青靓靖静靛非靠靡面靥革靬靰靳靴靶靸靺靼靽靿鞁鞅鞋鞍鞑鞒鞔鞘鞠鞡鞣鞧鞨鞫鞬鞭鞮鞯鞲鞳鞴韂韦韧韨韩韪韫韬韭音韵韶页顶顷顸项顺须顼顽顾顿颀颁颂颃预颅领颇颈颉颊颋颌颍颎颏颐频颓颔颖颗题颙颚颛颜额颞颟颠颡颢颤颥颦颧风飏飐飑飒飓飔飕飗飘飙飞食飧飨餍餐餮饔饕饥饧饨饩饪饫饬饭饮饯饰饱饲饳饴饵饶饷饸饹饺饻饼饽饿馁馃馄馅馆馇馈馉馊馋馌馍馏馐馑馒馓馔馕首馗馘香馝馞馥馧馨马驭驮驯驰驱驲驳驴驵驶驷驸驹驺驻驼驽驾驿骀骁骂骃骄骅骆骇骈骉骊骋验骍骎骏骐骑骒骓骕骖骗骘骙骚骛骜骝骞骟骠骡骢骣骤骥骦骧骨骰骱骶骷骸骺骼髀髁髂髃髅髋髌髎髑髓高髡髢髦髫髭髯髹髻髽鬃鬈鬏鬒鬓鬘鬟鬣鬯鬲鬶鬷鬻鬼魁魂魃魄魅魆魇魈魉魋魍魏魑魔鱼鱽鱾鱿鲀鲁鲂鲃鲅鲆鲇鲈鲉鲊鲋鲌鲍鲎鲏鲐鲑鲒鲔鲕鲖鲗鲘鲙鲚鲛鲜鲝鲞鲟鲠鲡鲢鲣鲤鲥鲦鲧鲨鲩鲪鲫鲬鲭鲮鲯鲰鲱鲲鲳鲴鲵鲷鲸鲹鲺鲻鲼鲽鲾鲿鳀鳁鳂鳃鳄鳅鳇鳈鳉鳊鳌鳍鳎鳏鳐鳑鳒鳓鳔鳕鳖鳗鳘鳙鳚鳛鳜鳝鳞鳟鳠鳡鳢鳣鳤鸟鸠鸡鸢鸣鸤鸥鸦鸧鸨鸩鸪鸫鸬鸭鸮鸯鸰鸱鸲鸳鸵鸶鸷鸸鸹鸺鸻鸼鸽鸾鸿鹀鹁鹂鹃鹄鹅鹆鹇鹈鹉鹊鹋鹌鹍鹎鹏鹐鹑鹒鹔鹕鹖鹗鹘鹙鹚鹛鹜鹝鹞鹟鹠鹡鹢鹣鹤鹦鹧鹨鹩鹪鹫鹬鹭鹮鹯鹰鹱鹲鹳鹴鹾鹿麀麂麇麈麋麑麒麓麖麝麟麦麸麹麻麽麾黄黇黉黍黎黏黑黔默黛黜黝黟黠黡黢黥黧黩黪黯黹黻黼黾鼋鼍鼎鼐鼒鼓鼗鼙鼠鼢鼩鼫鼬鼯鼱鼷鼹鼻鼽鼾齁齇齉齐齑齿龀龁龂龃龄龅龆龇龈龉龊龋龌龙龚龛龟龠龢鿍鿎鿏㑇㑊㕮㘎㙍㙘㙦㛃㛚㛹㟃㠇㠓㤘㥄㧐㧑㧟㫰㬊㬎㬚㭎㭕㮾㰀㳇㳘㳚㴔㵐㶲㸆㸌㺄㻬㽏㿠䁖䂮䃅䃎䅟䌹䎃䎖䏝䏡䏲䐃䓖䓛䓨䓫䓬䗖䗛䗪䗴䜣䝙䢺䢼䣘䥽䦃䲟䲠䲢䴓䴔䴕䴖䴗䴘䴙䶮𠅤𠙶𠳐𡎚𡐓𣗋𣲗𣲘𣸣𤧛𤩽𤫉𥔲𥕢𥖨𥻗𦈡𦒍𦙶𦝼𦭜𦰡𧿹𨐈𨙸𨚕𨟠𨭉𨱇𨱏𨱑𨱔𨺙𩽾𩾃𩾌𪟝𪣻𪤗𪨰𪨶𪩘𪾢𫄧𫄨𫄷𫄸𫇭𫌀𫍣𫍯𫍲𫍽𫐄𫐐𫐓𫑡𫓧𫓯𫓶𫓹𫔍𫔎𫔶𫖮𫖯𫖳𫗧𫗴𫘜𫘝𫘦𫘧𫘨𫘪𫘬𫚕𫚖𫚭𫛭𫞩𫟅𫟦𫟹𫟼𫠆𫠊𫠜𫢸𫫇𫭟𫭢𫭼𫮃𫰛𫵷𫶇𫷷𫸩𬀩𬀪𬂩𬃊𬇕𬇙𬇹𬉼𬊈𬊤𬌗𬍛𬍡𬍤𬒈𬒔𬒗𬕂𬘓𬘘𬘡𬘩𬘫𬘬𬘭𬘯𬙂𬙊𬙋𬜬𬜯𬞟𬟁𬟽𬣙𬣞𬣡𬣳𬤇𬤊𬤝𬨂𬨎𬩽𬪩𬬩𬬭𬬮𬬱𬬸𬬹𬬻𬬿𬭁𬭊𬭎𬭚𬭛𬭤𬭩𬭬𬭯𬭳𬭶𬭸𬭼𬮱𬮿𬯀𬯎𬱖𬱟𬳵𬳶𬳽𬳿𬴂𬴃𬴊𬶋𬶍𬶏𬶐𬶟𬶠𬶨𬶭𬶮𬷕𬸘𬸚𬸣𬸦𬸪𬹼𬺈𬺓";
+
+function buildNormCharSet(){
+  const set = new Set();
+  for(const ch of NORM_8105_STR) if(isHan(ch)) set.add(ch);
+  return set;
+}
+
+/* ================= 左側面板：字庫 ＆ limit.js 引擎 ================= */
+(function(){
+  let srcListApi = { getRanked: () => [], unselect: () => {} };
+  const schoolSet = new Set(SCHOOL_CHARLIST);
+  const HK_PURE_CHARLIST = [
+    "嘅","喺","睇","嘢","咗","哋","咁","點","邊","搵",
+    "諗","冇","拗","氹","邨","埗","㗎","喎","嘞","咪",
+    "糉","鰂","嗰","啲","靚","畀","嬲","嫲","爺","仔",
+    "囡","囝","叻","呃","唔","佢","俾","攰","瞓","唞",
+    "晏","忟","憎","煲","涌","劏","埞","掟","揼","撳",
+    "塱","嚡","啫","嘥","啱","唓","噏","戇","嘩","吖",
+    "呀","吓","嚟","掂","偈","喼","嘭","曱","甴","係",
+    "乜","咩","囉","啦","呢","噉","晒","翻","返","執",
+    "拎","攞","撩","搞","嗌","嘈","喊","傾","𨋢","𠮶"
+  ].filter(ch => !schoolSet.has(ch));
+
+  let TARGET_SET = new Set();
+  let TARGET_LABEL = "";
+  const POOL_SETS = {
+    file: new Set(),
+    folder: new Set(),
+    hkpure: new Set(HK_PURE_CHARLIST),
+    norm: buildNormCharSet(),
+    school: new Set(SCHOOL_CHARLIST),
+    ck: new Set(CK_FROM_HK_CHARLIST),
+    paste: new Set()
+  };
+  const POOL_NAMES = {
+    file: "本機 limit.js / .txt",
+    folder: "全目錄 .txt / .atc",
+    hkpure: "香港粵語特色字",
+    norm: "通用規範漢字表",
+    school: "小學學習字詞表",
+    ck: "內嵌基礎預設範圍",
+    paste: "文本框貼上／字根篩選"
+  };
+
+  const CANGJIE_IDS = new Set(["cj3plus","cj5hk","cj6","openvanilla","cj_jerry"]);
+  const CANTON_IDS = new Set(["fcitx_cantonhk","fcitx_cantonese","fcitx_jyutping","lshk_jyutping"]);
+  const LOCAL_FILE_IDS = ["mfile1","mfile2","mfile3"];
+  const LOCAL_FILE_SET = new Set(LOCAL_FILE_IDS);
+  const getLocalFile = id => {
+    const idx = LOCAL_FILE_IDS.indexOf(id);
+    return idx >= 0 ? $("manualFile" + (idx + 1))?.files[0] : null;
+  };
+  const SCHEME_LABELS = { cangjie:"倉頡", cantonhk:"港式廣東話", ile:"教院式(ILE)", jyutping:"粵拼(Jyutping)" };
+
+  const d = {};
+  const dPhrase = {};
+  const CJ = /^[A-Z]{1,7}$/;
+  const PHRASE_CODE = /^[A-Z]{1,16}$/;
+  const log = s => { $("log").textContent += s + "\n"; };
+
+  let dupMode = "merge", outMode = "replace", curRank = 1;
+  let skipCnt = 0, xSkip = 0, zSkip = 0, notInLimitSkip = 0, phraseTooLongSkip = 0;
+  let filterActive = false, skipX = true, skipZ = true;
+  let currentHkscsPlan = { schemes:["cangjie"], includesCangjie:true, includesCanton:false };
+  let currentJpConvertTargets = [];
+
+  const getDupMode = () => document.querySelector("input[name=dupMode]:checked").value;
+  const getOutMode = () => document.querySelector("input[name=outMode]:checked").value;
+  const getRangeMode = () => document.querySelector("input[name=limRange]:checked").value;
+  const getFilterX = () => $("filterXHead").checked;
+  const getFilterZ = () => $("filterZHead").checked;
+  const getJpConvert = () => $("jpConvertToCantonTol").checked;
+  const getKeepJpTol = () => $("keepJyutpingTol").checked;
+
+  let lastD = null, lastDPhrase = null, lastSrcs = [], lastCreds = [];
+  let lastBuiltIn = new Set(), lastFiles = new Set(), lastUrls = new Set();
+  let prevWasCanton = false, prevHadHkOrIle = false;
+  let lastBaseSchemes = ["cangjie"], lastBaseIsCantonOnly = false, lastBaseIsJyutpingOnly = false;
+  const fileKey = f => `${f.name}:${f.size}:${f.lastModified}`;
+  const HKSCS_URL = "https://www.digitalpolicy.gov.hk/open_data/ccli/HKSCS2016.json";
+
+  function getJyutpingConvertTargets(rankedIds){
+    if(!getJpConvert()) return [];
+    const manualSel = $("hkscsModeSel")?.value || "auto";
+    const targets = [];
+    const pushT = t => { if(t && !targets.includes(t)) targets.push(t); };
+    for(const id of (rankedIds || [])){
+      if(id === "fcitx_cantonhk") pushT("cantonhk");
+      else if(id === "fcitx_cantonese") pushT("ile");
+    }
+    if(manualSel === "cantonhk" || manualSel === "ile") pushT(manualSel);
+    if(!targets.length){ pushT("cantonhk"); pushT("ile"); }
+    return targets;
+  }
+
+  function detectHkscsSchemePlan(rankedIds){
+    const manualSel = $("hkscsModeSel")?.value || "auto";
+    const keepTol = getKeepJpTol(), allowJpConvert = getJpConvert();
+    if(manualSel !== "auto"){
+      const schemes = [manualSel];
+      if(keepTol && (manualSel === "cantonhk" || manualSel === "ile")) schemes.push("jyutping");
+      return { schemes, includesCangjie: schemes.includes("cangjie"), includesCanton: schemes.some(s => s !== "cangjie") };
+    }
+    const ordered = [], pushSch = s => { if(s && !ordered.includes(s)) ordered.push(s); };
+    const hintFromText = txt => {
+      if(!txt || /hkscs/i.test(txt)) return null;
+      if(/jyutping|jyut|粵拼/i.test(txt)) return "jyutping";
+      if(/cantonhk|hkcanton|港式/i.test(txt)) return "cantonhk";
+      if(/cantonese|ile|教院/i.test(txt)) return "ile";
+      if(/canton|yue|粵|廣東/i.test(txt)) return "jyutping";
+      if(/cj|cangjie|倉頡|chinese/i.test(txt)) return "cangjie";
+      return null;
+    };
+    // 僅以非本機來源的相對排名決定 HKSCS / JSON 匯入碼表，不考慮未知碼表類型的本機來源
+    for(const id of (rankedIds || [])){
+      if(id === "hkscs" || LOCAL_FILE_SET.has(id)) continue;
+      if(CANGJIE_IDS.has(id)) pushSch("cangjie");
+      else if(id === "fcitx_cantonhk") pushSch(allowJpConvert ? "cantonhk" : "jyutping");
+      else if(id === "fcitx_cantonese") pushSch(allowJpConvert ? "ile" : "jyutping");
+      else if(id === "fcitx_jyutping" || id === "lshk_jyutping") pushSch("jyutping");
+      else if(id === "murl"){
+        const h = hintFromText($("manualUrl").value || "");
+        pushSch((!allowJpConvert && (h === "cantonhk" || h === "ile")) ? "jyutping" : h);
+      }
+    }
+    if(!ordered.length){
+      if(getOutMode() === "append" && (lastD || lastDPhrase) && lastBaseSchemes.length) lastBaseSchemes.forEach(pushSch);
+      else pushSch("cangjie");
+    }
+    if(allowJpConvert && ordered.includes("jyutping") && !ordered.includes("cantonhk") && !ordered.includes("ile")){
+      pushSch("cantonhk"); pushSch("ile");
+    }
+    if(keepTol && (ordered.includes("cantonhk") || ordered.includes("ile")) && !ordered.includes("jyutping")){
+      ordered.push("jyutping");
+    }
+    return { schemes: ordered, includesCangjie: ordered.includes("cangjie"), includesCanton: ordered.some(s => s !== "cangjie") };
+  }
+
+  function formatHkscsPlan(plan){
+    if(!plan || !plan.schemes.length) return "主碼 倉頡（不含粵語）";
+    const [primary, ...tols] = plan.schemes;
+    const parts = [`主碼 ${SCHEME_LABELS[primary] || primary}`];
+    if(tols.length) parts.push(`容錯 ${tols.map(s => SCHEME_LABELS[s] || s).join(" → ")}`);
+    const tail = !plan.includesCangjie ? "（不含倉頡）" : (!plan.includesCanton ? "（不含粵語）" : "（倉頡＋粵語並存）");
+    return parts.join(" ➔ ") + tail;
+  }
+
+  function updateHkscsModeUI(rankedIds){
+    const ids = rankedIds || srcListApi.getRanked();
+    const manualSel = $("hkscsModeSel")?.value || "auto";
+    const jpConvEl = $("jpConvertToCantonTol");
+    const hasHkOrIle = ids.includes("fcitx_cantonhk") || ids.includes("fcitx_cantonese") || manualSel === "cantonhk" || manualSel === "ile";
+    if(hasHkOrIle && !prevHadHkOrIle && jpConvEl && !jpConvEl.checked){
+      jpConvEl.checked = true;
+      log("ℹ 已選取港式／廣東拼音來源，自動勾選「粵拼轉港式／廣式拼音容錯」（仍可手動取消）。");
+    }
+    prevHadHkOrIle = hasHkOrIle;
+
+    const plan = detectHkscsSchemePlan(ids);
+    const jpTargets = getJyutpingConvertTargets(ids);
+    const badge = $("hkscsAutoBadge");
+    const keepTolEl = $("keepJyutpingTol");
+    if(badge){
+      const jpTolNote = jpTargets.length ? ` ｜ 全粵拼追加容錯：${jpTargets.map(s => SCHEME_LABELS[s] || s).join("＋")}` : "";
+      badge.textContent = `HKSCS 抽取次序：${formatHkscsPlan(plan)}${jpTolNote}`;
+      badge.style.color = (plan.includesCanton || jpTargets.length) ? "#1b5e20" : "#0d47a1";
+    }
+    if(keepTolEl){
+      keepTolEl.disabled = !(plan.schemes.includes("cantonhk") || plan.schemes.includes("ile"));
+    }
+    const isCanton = plan.includesCanton || ids.some(id => CANTON_IDS.has(id));
+    if(isCanton && !prevWasCanton){
+      const zCb = $("filterZHead");
+      if(zCb && zCb.checked){
+        zCb.checked = false;
+        log("ℹ 偵測到粵語／粵拼來源，已自動取消「篩除 Z 字頭」以保留 Z 聲母字詞（可手動重勾）。");
+      }
+    }
+    prevWasCanton = isCanton;
+  }
+
+  function stripATCHeader(text){
+    return String(text || "").replace(/^\uFEFF/, "").split(/\r?\n/).filter(l => !/^\s*(#|;|@|---)/.test(l)).join("\n");
+  }
+  function extractLimitChars(rawText){
+    const set = new Set();
+    if(!rawText) return set;
+    const m = rawText.match(/\[[\s\S]*\]/);
+    if(m){
+      try{
+        const arr = JSON.parse(m[0]);
+        if(Array.isArray(arr)){
+          for(const item of arr){ for(const ch of String(item || "")) if(isHan(ch)) set.add(ch); }
+          if(set.size > 0) return set;
+        }
+      }catch(_){}
+    }
+    for(const ch of stripATCHeader(rawText)){ if(isHan(ch)) set.add(ch); }
+    return set;
+  }
+
+  function syncActionState(){
+    const ttIds = srcListApi.getRanked();
+    const ttCount = ttIds.length;
+    const checkedBoxes = [...document.querySelectorAll("input[name=limSrc]:checked")];
+    const hasTT = ttCount > 0;
+    const hasLim = checkedBoxes.length > 0 && TARGET_SET.size > 0;
+    const goBtn = $("go"), ttBadge = $("ttSrcBadge"), summary = $("limModeSummary");
+
+    if(ttBadge){
+      ttBadge.textContent = `已選碼表：${ttCount} / 5`;
+      ttBadge.style.color = hasTT ? "#5f5" : "#ff5";
+    }
+    if(goBtn){
+      goBtn.disabled = !(hasTT || hasLim);
+      if(hasTT && hasLim) goBtn.textContent = `⚡ 生成精簡字庫 ＋ limit.js (${TARGET_SET.size}字)`;
+      else if(hasTT) goBtn.textContent = "⚡ 生成完整字庫 (tt / js / cin / yaml)";
+      else if(hasLim) goBtn.textContent = `⚡ 僅生成 limit.js (${TARGET_SET.size}字)`;
+      else goBtn.textContent = `⚡ 開始生成 ${VER}`;
+    }
+    if(summary){
+      if(hasTT && hasLim) summary.textContent = `模式：依 [${TARGET_LABEL}] (${TARGET_SET.size}字) 過濾碼表並輸出 limit.js`;
+      else if(hasTT) summary.textContent = "模式：無範圍限制，輸出完整全字庫";
+      else if(hasLim) summary.textContent = `模式：碼表全選「無」，僅輸出 limit.js (${TARGET_SET.size}字)`;
+      else if(checkedBoxes.length > 0 && TARGET_SET.size === 0) summary.textContent = "⚠ 已勾選範圍但尚未選取檔案或輸入文字";
+      else summary.textContent = "請選擇 ① 碼表來源 或 ② 限制文字範圍";
+    }
+    updateHkscsModeUI(ttIds);
+  }
+
+  function rebuildCombinedTargetSet(){
+    const checkedBoxes = [...document.querySelectorAll("input[name=limSrc]:checked")];
+    const allBoxes = [...document.querySelectorAll("input[name=limSrc]")];
+    const atMax = checkedBoxes.length >= 5;
+    const bmpOnly = getRangeMode() === "bmp";
+
+    allBoxes.forEach(cb => {
+      const card = $("card_" + cb.value);
+      if(card) card.classList.toggle("active", cb.checked);
+      if(!cb.checked){
+        cb.disabled = atMax;
+        if(card) card.classList.toggle("disabled-opt", atMax);
+      } else {
+        cb.disabled = false;
+        if(card) card.classList.remove("disabled-opt");
+      }
+    });
+
+    TARGET_SET = new Set();
+    const labels = [];
+    for(const cb of checkedBoxes){
+      const k = cb.value, subSet = POOL_SETS[k] || new Set();
+      for(const ch of subSet){ if(!bmpOnly || isBMPHan(ch)) TARGET_SET.add(ch); }
+      labels.push(POOL_NAMES[k]);
+    }
+    TARGET_LABEL = labels.join(" ＋ ") || "無限制";
+
+    const srcBadge = $("selSrcBadge");
+    if(srcBadge){
+      srcBadge.textContent = `已選範圍：${checkedBoxes.length} / 5`;
+      srcBadge.style.color = checkedBoxes.length > 0 ? "#5ff" : "#ff5";
+    }
+    syncActionState();
+  }
+
+  document.querySelectorAll("input[name=limSrc]").forEach(cb => {
+    cb.addEventListener("change", e => {
+      if([...document.querySelectorAll("input[name=limSrc]:checked")].length > 5){ e.target.checked = false; return; }
+      rebuildCombinedTargetSet();
+    });
+  });
+  document.querySelectorAll("input[name=limRange]").forEach(r => r.addEventListener("change", rebuildCombinedTargetSet));
+  document.querySelectorAll("input[name=outMode]").forEach(r => r.addEventListener("change", () => updateHkscsModeUI()));
+  $("hkscsModeSel").addEventListener("change", () => updateHkscsModeUI());
+  $("jpConvertToCantonTol").addEventListener("change", () => updateHkscsModeUI());
+  $("keepJyutpingTol").addEventListener("change", () => updateHkscsModeUI());
+  $("manualUrl").addEventListener("input", () => updateHkscsModeUI());
+
+  $("limFileInput").addEventListener("change", async () => {
+    const f = $("limFileInput").files[0];
+    if(!f){ POOL_SETS.file = new Set(); $("limFileName").textContent = "未選擇檔案"; return rebuildCombinedTargetSet(); }
+    try{
+      POOL_SETS.file = extractLimitChars(await readFileCached(f));
+      $("limFileName").textContent = `${f.name} (${POOL_SETS.file.size}字)`;
+    }catch(_){ POOL_SETS.file = new Set(); $("limFileName").textContent = "讀取失敗"; }
+    rebuildCombinedTargetSet();
+  });
+
+  $("limFolderInput").addEventListener("change", async () => {
+    const files = [...$("limFolderInput").files].filter(f => /\.(atc|txt)$/i.test(f.name));
+    if(!files.length){ POOL_SETS.folder = new Set(); $("limFolderName").textContent = "目錄內無 .txt/.atc"; return rebuildCombinedTargetSet(); }
+    $("limFolderName").textContent = "讀取中…";
+    try{
+      const set = new Set(), texts = await Promise.all(files.map(f => readFileCached(f)));
+      for(const t of texts){ for(const ch of extractLimitChars(t)) set.add(ch); }
+      POOL_SETS.folder = set;
+      $("limFolderName").textContent = `已選 ${files.length} 檔 (${set.size}字)`;
+    }catch(_){ POOL_SETS.folder = new Set(); $("limFolderName").textContent = "目錄讀取失敗"; }
+    rebuildCombinedTargetSet();
+  });
+
+  $("limPasteText").addEventListener("input", () => {
+    POOL_SETS.paste = extractLimitChars($("limPasteText").value);
+    rebuildCombinedTargetSet();
+  });
+
+  /* 專項字根篩選按鈕列 */
+  const radBtnBox = $("radFilterButtonsBox");
+  if(radBtnBox){
+    const RAD_LABELS = {
+      A:"A日",B:"B月",C:"C金",D:"D木",E:"E水",F:"F火",G:"G土",
+      H:"H竹",I:"I戈",J:"J十",K:"K大",L:"L中",M:"M一",N:"N弓",
+      O:"O人",P:"P心",Q:"Q手",R:"R口",S:"S尸",T:"T廿",U:"U山",
+      V:"V女",W:"W田",Y:"Y卜",X:"X難字",Z:"Z鍵"
+    };
+    Object.keys(RAD_LABELS).forEach(l => {
+      const b = document.createElement("button");
+      b.className = "credBtn"; b.type = "button"; b.dataset.rad = l; b.textContent = RAD_LABELS[l];
+      radBtnBox.appendChild(b);
+    });
+    const ensurePasteChecked = () => {
+      const pasteCb = document.querySelector('input[name=limSrc][value="paste"]');
+      if(!pasteCb || pasteCb.checked) return;
+      const checked = [...document.querySelectorAll("input[name=limSrc]:checked")];
+      if(checked.length >= 5) checked[checked.length - 1].checked = false;
+      pasteCb.checked = true;
+    };
+    radBtnBox.addEventListener("click", e => {
+      const btn = e.target.closest("button[data-rad]");
+      if(!btn) return;
+      const r = btn.dataset.rad;
+      radBtnBox.querySelectorAll("button[data-rad]").forEach(b => b.classList.remove("active-rad"));
+      if(r === "ALL"){
+        btn.classList.add("active-rad");
+        const allChars = [...ACTIVE_DICT_MAP.keys()].sort(hanCmp);
+        POOL_SETS.paste = new Set(allChars);
+        $("limPasteText").value = allChars.join("");
+        ensurePasteChecked();
+        rebuildCombinedTargetSet();
+        log(`🎯 已將目前字庫全部 ${allChars.length} 個漢字填入「7. 文本框貼上內容」。`);
+      } else if(r === "CLEAR"){
+        POOL_SETS.paste = new Set();
+        $("limPasteText").value = "";
+        const pasteCb = document.querySelector('input[name=limSrc][value="paste"]');
+        if(pasteCb) pasteCb.checked = false;
+        rebuildCombinedTargetSet();
+        log("🧹 已清空專項字根篩選內容。");
+      } else {
+        btn.classList.add("active-rad");
+        const matched = [];
+        for(const [ch, codeSet] of ACTIVE_DICT_MAP.entries()){
+          const codes = [...codeSet];
+          if((r === "X" || r === "Z") ? codes.some(c => c.includes(r)) : codes.some(c => c.startsWith(r))){
+            matched.push(ch);
+          }
+        }
+        matched.sort(hanCmp);
+        POOL_SETS.paste = new Set(matched);
+        $("limPasteText").value = matched.join("");
+        ensurePasteChecked();
+        rebuildCombinedTargetSet();
+        log(`🎯 已篩選${r === "X" ? "含「X難字鍵」" : r === "Z" ? "含「Z鍵」" : "首碼為「" + RAD_LABELS[r] + "」"}的漢字共 ${matched.length} 字！`);
+      }
+    });
+  }
+
+  $("btnClearIdb").onclick = () => {
+    try{
+      const req = indexedDB.deleteDatabase("cangjie_kv");
+      req.onsuccess = () => log("🗑️ 已成功清除瀏覽器 IndexedDB 中記憶的舊字庫與題庫快取！");
+      req.onerror = () => log("⚠ 清除 IndexedDB 失敗或無快取。");
+      req.onblocked = () => log("⚠ 清除受阻：請先關閉已開啟的主程式分頁，再點一次清除快取！");
+    }catch(e){ log("⚠ 清除失敗：" + e.message); }
+  };
+
+  function addChar(ch, code){
+    code = (code || "").toUpperCase().trim();
+    if(!isHan(ch) || !CJ.test(code)) return false;
+    if(filterActive && !TARGET_SET.has(ch)){ notInLimitSkip++; return false; }
+    if(skipX && code.startsWith("X")){ xSkip++; return false; }
+    if(skipZ && code.startsWith("Z")){ zSkip++; return false; }
+    const rank = curRank;
+    if(dupMode === "ignore" && d[ch]){
+      if(rank > d[ch].rank){ skipCnt++; return false; }
+      if(rank < d[ch].rank){ d[ch] = { codes: new Set([code]), rank }; return true; }
+    }
+    if(!d[ch]) d[ch] = { codes: new Set(), rank };
+    const isNew = !d[ch].codes.has(code);
+    d[ch].codes.add(code);
+    d[ch].rank = Math.min(d[ch].rank, rank);
+    return isNew;
+  }
+
+  function addPhrase(phrase, code){
+    code = (code || "").toUpperCase().trim();
+    if(!isHanPhrase(phrase)) return false;
+    if(!PHRASE_CODE.test(code)){
+      if(/^[A-Z]{17,}$/.test(code)) phraseTooLongSkip++;
+      return false;
+    }
+    if(filterActive && ![...phrase].every(ch => TARGET_SET.has(ch))){ notInLimitSkip++; return false; }
+    if(skipX && code.startsWith("X")){ xSkip++; return false; }
+    if(skipZ && code.startsWith("Z")){ zSkip++; return false; }
+    const rank = curRank;
+    if(dupMode === "ignore" && dPhrase[phrase]){
+      if(rank > dPhrase[phrase].rank){ skipCnt++; return false; }
+      if(rank < dPhrase[phrase].rank){ dPhrase[phrase] = { codes: new Set([code]), rank }; return true; }
+    }
+    if(!dPhrase[phrase]) dPhrase[phrase] = { codes: new Set(), rank };
+    const isNew = !dPhrase[phrase].codes.has(code);
+    dPhrase[phrase].codes.add(code);
+    dPhrase[phrase].rank = Math.min(dPhrase[phrase].rank, rank);
+    return isNew;
+  }
+
+  function addJyutpingEntry(targetText, rawSyllableStr, isPhraseTarget, targets){
+    const rawParts = String(rawSyllableStr || "").trim().split(/\s+/).filter(Boolean);
+    if(!rawParts.length) return { main:0, tol:0, invalid:0 };
+    const syllables = [];
+    for(const part of rawParts){
+      const clean = part.replace(/[^a-zA-Z1-6]/g, "");
+      if(!isValidJyutpingSyllable(clean)) return { main:0, tol:0, invalid:1 };
+      syllables.push(clean.replace(/[1-6]+$/g, ""));
+    }
+    const jpCode = syllables.join("").toUpperCase();
+    const adder = isPhraseTarget ? addPhrase : addChar;
+    let main = 0, tol = 0;
+    if(adder(targetText, jpCode)) main++;
+    if(targets && targets.length && (!isPhraseTarget || syllables.length > 1)){
+      for(const sch of targets){
+        const conv = sch === "ile"
+          ? syllables.map(jyutpingToILE).join("")
+          : syllables.map(jyutpingToCantonHK).join("");
+        if(conv && conv !== jpCode && adder(targetText, conv)) tol++;
+      }
+    }
+    return { main, tol, invalid:0 };
+  }
+
+  /* 自動辨識 TSV 欄位結構（支援完整粵拼欄、聲母+韻母分欄、聲母+韻腹+韻尾分欄） */
+  function analyzeJyutpingTsvSchema(lines){
+    let headerIdx = -1;
+    let charCol = -1, codeCol = -1, jpCol = -1, iniCol = -1, finCol = -1, nucCol = -1, codaCol = -1;
+    const sampleRows = [];
+    let maxCols = 0;
+
+    for(let idx = 0; idx < lines.length && sampleRows.length < 80; idx++){
+      const rawLine = lines[idx].replace(/\r$/, "");
+      if(!rawLine.trim() || rawLine.trim().startsWith("#")) continue;
+      if(!rawLine.includes("\t")) continue;
+      const cols = rawLine.split("\t").map(x => x.trim());
+      if(cols.length < 2) continue;
+      if(headerIdx === -1 && sampleRows.length === 0 && !cols.some(isHan) &&
+         cols.some(c => /^(char|character|hanzi|字|漢字|汉字|unicode|codepoint|ucs|u\+|jyutping|pronunciation|cantonese|粵拼|粤拼|initial|onset|聲母|声母|final|rime|rhyme|韻母|韵母|nucleus|韻腹|coda|韻尾|tone|聲調)$/i.test(c))){
+        headerIdx = idx;
+        cols.forEach((c, ci) => {
+          if(/^(char|character|hanzi|字|漢字|汉字)$/i.test(c)) charCol = ci;
+          else if(/^(unicode|codepoint|ucs|u\+)$/i.test(c)) codeCol = ci;
+          else if(/^(jyutping|pronunciation|cantonese|jp|粵拼|粤拼|讀音|读音)$/i.test(c)) jpCol = ci;
+          else if(/^(initial|onset|init|shengmu|聲母|声母)$/i.test(c)) iniCol = ci;
+          else if(/^(final|rime|rhyme|yunmu|韻母|韵母)$/i.test(c)) finCol = ci;
+          else if(/^(nucleus|medial|vowel|韻腹|韵腹)$/i.test(c)) nucCol = ci;
+          else if(/^(coda|ending|韻尾|韵尾)$/i.test(c)) codaCol = ci;
+        });
+        continue;
+      }
+      sampleRows.push(cols);
+      if(cols.length > maxCols) maxCols = cols.length;
+    }
+
+    const total = sampleRows.length;
+    if(!total) return { detected:false, headerIdx, charCol, codeCol, jpCol, iniCol, finCol, nucCol, codaCol };
+
+    const stats = Array.from({ length: maxCols }, () => ({
+      han:0, uplus:0, tone:0, nonEmpty:0, fullJpTone:0, validJp:0, pureIni:0, anyIniOrEmpty:0, finOnly:0
+    }));
+    for(const cols of sampleRows){
+      for(let ci = 0; ci < maxCols; ci++){
+        const v = (cols[ci] || "").trim();
+        const st = stats[ci];
+        if(v) st.nonEmpty++;
+        if(isHan(v)) st.han++;
+        if(/^U\+[0-9A-Fa-f]{4,6}$/i.test(v)) st.uplus++;
+        if(/^[1-6]$/.test(v)) st.tone++;
+        const low = v.toLowerCase();
+        if(low === "" || JP_INITIALS.has(low)) st.anyIniOrEmpty++;
+        if(JP_PURE_INITIALS.has(low)) st.pureIni++;
+        const parts = v ? v.split(/[,，、/;；]+/).map(p => p.trim()).filter(Boolean) : [];
+        if(parts.length){
+          const allTonedJp = parts.every(p => p.split(/\s+/).every(s => /^[a-z]{1,6}[1-6]$/i.test(s) && isValidJyutpingSyllable(s)));
+          const allValidJp = parts.every(p => p.split(/\s+/).every(s => isValidJyutpingSyllable(s)));
+          if(allTonedJp) st.fullJpTone++;
+          if(allValidJp) st.validJp++;
+        }
+        const noTone = low.replace(/[1-6]$/, "");
+        if(noTone && (JP_FINALS.has(noTone) || JP_STANDALONE_NASALS.has(noTone))) st.finOnly++;
+      }
+    }
+
+    const bestCol = (pred, scoreFn) => {
+      let best = -1, bestScore = 0;
+      for(let ci = 0; ci < maxCols; ci++){
+        if(!pred(stats[ci], ci)) continue;
+        const sc = scoreFn(stats[ci], ci);
+        if(sc > bestScore){ bestScore = sc; best = ci; }
+      }
+      return best;
+    };
+
+    if(charCol < 0) charCol = bestCol(st => st.han >= total * 0.5, st => st.han);
+    if(codeCol < 0) codeCol = bestCol(st => st.uplus >= total * 0.5, st => st.uplus);
+
+    // 1. 優先尋找完整帶聲調的粵拼欄（例如 ding1 / aa3）
+    if(jpCol < 0){
+      jpCol = bestCol((st, ci) => ci !== charCol && ci !== codeCol && st.fullJpTone >= total * 0.5, st => st.fullJpTone);
+    }
+    // 2. 偵測分欄的「聲母欄」與「韻母欄」（如 LSHK list.tsv：d \t ing）
+    if(iniCol < 0){
+      iniCol = bestCol((st, ci) => ci !== charCol && ci !== codeCol && ci !== jpCol &&
+        st.pureIni >= Math.max(1, total * 0.25) && st.anyIniOrEmpty >= total * 0.85,
+        st => st.pureIni);
+    }
+    if(finCol < 0 && iniCol >= 0){
+      finCol = bestCol((st, ci) => ci !== charCol && ci !== codeCol && ci !== jpCol && ci !== iniCol &&
+        st.finOnly >= Math.max(1, total * 0.6),
+        (st, ci) => st.finOnly + (ci === iniCol + 1 ? 5 : 0));
+    }
+    // 3. 若無分欄且無帶聲調欄，檢查是否有純無聲調完整粵拼欄（排除單獨聲母欄）
+    let inferredBareJpCol = -1;
+    if(jpCol < 0 && !(iniCol >= 0 && finCol >= 0)){
+      inferredBareJpCol = bestCol((st, ci) => ci !== charCol && ci !== codeCol &&
+        st.pureIni === 0 && st.validJp >= total * 0.7 && st.tone < total * 0.5,
+        st => st.validJp);
+    }
+
+    const hasSplit = (iniCol >= 0 && (finCol >= 0 || (nucCol >= 0 && codaCol >= 0)));
+    const detected = (charCol >= 0 || codeCol >= 0) && (jpCol >= 0 || hasSplit || (headerIdx >= 0 && inferredBareJpCol >= 0));
+    return {
+      detected, headerIdx, charCol, codeCol,
+      jpCol: jpCol >= 0 ? jpCol : (headerIdx >= 0 ? inferredBareJpCol : -1),
+      inferredBareJpCol, iniCol, finCol, nucCol, codaCol
+    };
+  }
+
+  function isJyutpingTsvContent(txt){
+    const lines = String(txt || "").replace(/^\uFEFF/, "").split(/\r?\n/);
+    const schema = analyzeJyutpingTsvSchema(lines);
+    return schema.detected;
+  }
+
+  function parseJyutpingTsv(txt, tag="[LSHK 另一粵拼]"){
+    const lines = String(txt || "").replace(/^\uFEFF/, "").split(/\r?\n/);
+    const schema = analyzeJyutpingTsvSchema(lines);
+    const { headerIdx, charCol, codeCol, jpCol, inferredBareJpCol, iniCol, finCol, nucCol, codaCol } = schema;
+    const effectiveJpCol = jpCol >= 0 ? jpCol : inferredBareJpCol;
+    const useFullCol = effectiveJpCol >= 0;
+    const useSplitIniFin = !useFullCol && iniCol >= 0 && finCol >= 0;
+    const useSplit3 = !useFullCol && !useSplitIniFin && iniCol >= 0 && nucCol >= 0 && codaCol >= 0;
+    const targets = currentJpConvertTargets;
+
+    let n = 0, tolCnt = 0, invalidSkip = 0;
+
+    for(let idx = 0; idx < lines.length; idx++){
+      if(idx === headerIdx) continue;
+      const rawLine = lines[idx].replace(/\r$/, "");
+      if(!rawLine.trim() || rawLine.trim().startsWith("#")) continue;
+      const cols = rawLine.split("\t").map(x => x.trim());
+      if(cols.length < 2) continue;
+
+      let ch = "";
+      if(charCol >= 0 && isHan(cols[charCol])) ch = cols[charCol];
+      else{
+        const foundChar = cols.find(isHan);
+        if(foundChar) ch = foundChar;
+        else{
+          const cpStr = (codeCol >= 0 ? cols[codeCol] : cols.find(c => /^U\+[0-9A-Fa-f]{4,6}$/i.test(c))) || "";
+          const mCp = cpStr.match(/^U\+([0-9A-Fa-f]{4,6})$/i);
+          if(mCp){
+            const cp = parseInt(mCp[1], 16);
+            if(!Number.isNaN(cp) && cp > 0) ch = String.fromCodePoint(cp);
+          }
+        }
+      }
+      if(!isHan(ch)) continue;
+
+      const jpCandidates = [];
+      if(useFullCol){
+        if(cols[effectiveJpCol]) jpCandidates.push(cols[effectiveJpCol]);
+      } else if(useSplitIniFin){
+        const ini = (cols[iniCol] || "").replace(/[^a-zA-Z]/g, "");
+        const fin = (cols[finCol] || "").replace(/[^a-zA-Z1-6]/g, "");
+        const combined = (ini + fin).trim();
+        if(combined) jpCandidates.push(combined);
+      } else if(useSplit3){
+        const ini = (cols[iniCol] || "").replace(/[^a-zA-Z]/g, "");
+        const nuc = (cols[nucCol] || "").replace(/[^a-zA-Z]/g, "");
+        const coda = (cols[codaCol] || "").replace(/[^a-zA-Z1-6]/g, "");
+        const combined = (ini + nuc + coda).trim();
+        if(combined) jpCandidates.push(combined);
+      } else {
+        // 最終後備：只接受完整有效的粵拼音節，絕不接受單獨聲母
+        for(let ci = 0; ci < cols.length; ci++){
+          const c = cols[ci];
+          if(!c || c === ch || /^U\+[0-9A-Fa-f]{4,6}$/i.test(c) || /^\d+$/.test(c)) continue;
+          const parts = c.split(/[,，、/;；]+/).map(p => p.trim()).filter(Boolean);
+          if(parts.length && parts.every(p => p.split(/\s+/).every(isValidJyutpingSyllable))){
+            jpCandidates.push(c);
+            break;
+          }
+        }
+      }
+
+      for(const cand of jpCandidates){
+        for(const part of cand.split(/[,，、/;；]+/)){
+          const res = addJyutpingEntry(ch, part, false, targets);
+          n += res.main; tolCnt += res.tol; invalidSkip += res.invalid;
+        }
+      }
+    }
+
+    const modeInfo = useFullCol
+      ? `完整粵拼欄(第${effectiveJpCol + 1}欄)`
+      : useSplitIniFin
+        ? `分欄拼合：聲母(第${iniCol + 1}欄)＋韻母(第${finCol + 1}欄)`
+        : useSplit3
+          ? `分欄拼合：聲母(第${iniCol + 1}欄)＋韻腹(第${nucCol + 1}欄)＋韻尾(第${codaCol + 1}欄)`
+          : "嚴格音節檢核模式";
+    log(`${tag} [${modeInfo}] 收錄單字粵拼 ${n} 條${tolCnt ? ` ＋ 轉港式／廣式容錯 ${tolCnt} 條` : ""}${invalidSkip ? `（已攔截非完整音節 ${invalidSkip} 條）` : ""}`);
+  }
+
+  function parseHKSCSJson(arr, tag="[HKSCS]", plan=currentHkscsPlan){
+    if(!Array.isArray(arr)) throw new Error("JSON 並非陣列");
+    const schemeList = (plan && Array.isArray(plan.schemes) && plan.schemes.length) ? plan.schemes : ["cangjie"];
+    const counts = {};
+    for(const sch of schemeList) counts[sch] = 0;
+    let totalAdded = 0, noCode = 0;
+
+    for(const it of arr){
+      if(!it || typeof it !== "object") continue;
+      let ch = (typeof it.char === "string" ? it.char : "").trim();
+      if(!ch && it.codepoint){
+        const cp = parseInt(String(it.codepoint).replace(/^U\+/i, ""), 16);
+        if(!Number.isNaN(cp) && cp > 0) ch = String.fromCodePoint(cp);
+      }
+      if(!isHan(ch)) continue;
+
+      let charHasAny = false;
+      for(const sch of schemeList){
+        if(sch === "cangjie"){
+          const rawCj = String(it.cangjie || "").trim();
+          if(!rawCj) continue;
+          charHasAny = true;
+          for(const rawTok of rawCj.split(/[,，、/\s]+/)){
+            const code = normalizeCangjieToken(rawTok);
+            if(code && addChar(ch, code)){ counts[sch]++; totalAdded++; }
+          }
+        } else {
+          const rawYue = String(it.cantonese || "").trim();
+          if(!rawYue) continue;
+          charHasAny = true;
+          for(const rawPart of rawYue.split(/[,，、/.;；]+/)){
+            const syllables = rawPart.trim().split(/\s+/).map(s => s.replace(/[^a-zA-Z]/g, "")).filter(Boolean);
+            if(!syllables.length) continue;
+            let code = "";
+            if(sch === "ile") code = syllables.map(jyutpingToILE).join("");
+            else if(sch === "cantonhk") code = syllables.map(jyutpingToCantonHK).join("");
+            else code = syllables.join("").toUpperCase();
+            if(code && addChar(ch, code)){ counts[sch]++; totalAdded++; }
+          }
+        }
+      }
+      if(!charHasAny) noCode++;
+    }
+    const detail = schemeList.map((sch, idx) => `${idx === 0 ? "主碼" : "容錯"} ${SCHEME_LABELS[sch] || sch}:${counts[sch]}`).join(" → ");
+    log(`${tag} ${detail}${noCode ? `（無碼略過 ${noCode} 字）` : ""}`);
+    return totalAdded;
+  }
+
+  async function fetchHKSCS(url){
+    const proxies = [
+      u => u,
+      u => "https://api.allorigins.win/raw?url=" + encodeURIComponent(u),
+      u => "https://corsproxy.io/?url=" + encodeURIComponent(u)
+    ];
+    let lastErr = null;
+    for(let i = 0; i < proxies.length; i++){
+      try{
+        if(i > 0) log(`ℹ 嘗試備用通道 #${i} …`);
+        const txt = await fetchText(proxies[i](url), 25000);
+        const arr = JSON.parse(txt.replace(/^\uFEFF/, ""));
+        if(Array.isArray(arr)) return arr;
+      }catch(e){ lastErr = e; }
+    }
+    throw new Error((lastErr ? lastErr.message : "下載失敗") + "（可另存後以本機檔案載入）");
+  }
+
+  function processText(txt, tag, opts={}){
+    const stripTone = !!opts.stripTone;
+    const isJyutping = !!opts.isJyutping;
+    const jpTargets = isJyutping ? currentJpConvertTargets : [];
+    const normCode = tok => stripTone ? String(tok || "").replace(/[0-9]+/g, "") : String(tok || "");
+    let trimmed = String(txt || "").replace(/^\uFEFF/, "").trim();
+    const jsMatch = trimmed.match(/EXTERNAL_CHINESE_TT\s*=\s*("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')/);
+    if(jsMatch){
+      try{
+        trimmed = jsMatch[1].startsWith('"')
+          ? JSON.parse(jsMatch[1])
+          : jsMatch[1].slice(1, -1).replace(/\\n/g, "\n").replace(/\\r/g, "\r").replace(/\\'/g, "'").replace(/\\\\/g, "\\");
+      }catch(_){}
+    }
+    if(trimmed.startsWith("[")){
+      try{
+        const arr = JSON.parse(trimmed);
+        if(Array.isArray(arr)){ parseHKSCSJson(arr, tag, currentHkscsPlan); return; }
+      }catch(_){}
+    }
+    if(trimmed.includes("\t") && isJyutpingTsvContent(trimmed)){
+      parseJyutpingTsv(trimmed, tag);
+      return;
+    }
+    const hasFcitxData = /^\s*\[Data\]\s*$/im.test(trimmed);
+    let inFcitxBody = !hasFcitxData;
+    let n = 0, pn = 0, tolCnt = 0, inYamlHeader = false, inCinSkip = false;
+
+    for(let rawLine of trimmed.split(/\r?\n/)){
+      const tLine = rawLine.trim();
+      if(hasFcitxData && !inFcitxBody){
+        if(/^\[Data\]$/i.test(tLine)) inFcitxBody = true;
+        continue;
+      }
+      if(tLine === "---"){ inYamlHeader = true; continue; }
+      if(inYamlHeader){ if(tLine === "..." || tLine === "---") inYamlHeader = false; continue; }
+      if(/^%(keyname|quick|quickkey|quickphrase|selkey|charcode)\s+begin/i.test(tLine)){ inCinSkip = true; continue; }
+      if(/^%(keyname|quick|quickkey|quickphrase|selkey|charcode)\s+end/i.test(tLine)){ inCinSkip = false; continue; }
+      if(inCinSkip || tLine.startsWith("%")) continue;
+      const line = rawLine.replace(/[#;].*$/, "").trim();
+      if(!line) continue;
+
+      if(line.includes("\t")){
+        const cols = line.split("\t").map(x => x.replace(/^["']+|["']+$/g, "").trim()).filter(Boolean);
+        if(cols.length >= 2){
+          const col1Clean = normCode(cols[1]);
+          if((isHan(cols[0]) || isHanPhrase(cols[0])) && /^[A-Za-z]+(?:\s+[A-Za-z]+)+$/.test(col1Clean)){
+            if(isJyutping){
+              const res = addJyutpingEntry(cols[0], col1Clean, isHanPhrase(cols[0]), jpTargets);
+              if(isHan(cols[0])) n += res.main; else pn += res.main;
+              tolCnt += res.tol;
+            } else {
+              const joined = col1Clean.replace(/\s+/g, "");
+              if(isHan(cols[0])){ if(addChar(cols[0], joined)) n++; }
+              else{ if(addPhrase(cols[0], joined)) pn++; }
+            }
+            continue;
+          }
+        }
+      }
+
+      const p = line.split(/[\s,，\t]+/).map(x => x.replace(/^["']+|["']+$/g, "")).filter(Boolean);
+      if(p.length < 2) continue;
+      const p0Code = normCode(p[0]);
+      if(/^[A-Za-z]{1,16}$/.test(p0Code) && (isHan(p[1]) || isHanPhrase(p[1]))){
+        for(let i = 1; i < p.length; i++){
+          if(isHan(p[i])){
+            if(isJyutping){
+              const res = addJyutpingEntry(p[i], p0Code, false, jpTargets);
+              n += res.main; tolCnt += res.tol;
+            } else if(addChar(p[i], p0Code)) n++;
+          } else if(isHanPhrase(p[i])){
+            if(addPhrase(p[i], p0Code)) pn++;
+          }
+        }
+      } else if(isHan(p[0])){
+        for(let i = 1; i < p.length; i++){
+          if(/^\d+$/.test(p[i])) continue;
+          const toks = p[i].split("/").map(normCode).filter(Boolean);
+          if(toks.length && toks.every(tk => /^[A-Za-z]{1,7}$/.test(tk))){
+            for(const tk of toks){
+              if(isJyutping){
+                const res = addJyutpingEntry(p[0], tk, false, jpTargets);
+                n += res.main; tolCnt += res.tol;
+              } else if(addChar(p[0], tk)) n++;
+            }
+          } else break;
+        }
+      } else if(isHanPhrase(p[0])){
+        for(let i = 1; i < p.length; i++){
+          if(/^\d+$/.test(p[i])) continue;
+          const toks = p[i].split("/").map(normCode).filter(Boolean);
+          if(toks.length && toks.every(tk => /^[A-Za-z]{1,16}$/.test(tk))){
+            for(const tk of toks){ if(addPhrase(p[0], tk)) pn++; }
+          } else break;
+        }
+      }
+    }
+    log(`${tag} 收錄單字 ${n} 條${tolCnt ? ` ＋ 轉港式／廣式容錯 ${tolCnt} 條` : ""}${pn ? `、多字詞 ${pn} 條（於 .cin / .yaml 有效）` : ""}`);
+  }
+
+  async function loadUrls(urls, tag, opts={}){
+    let lastErr = null;
+    for(let i = 0; i < urls.length; i++){
+      try{
+        log((i > 0 ? `嘗試備援鏡像 #${i} ` : "下載 ") + urls[i].slice(-52) + " …");
+        const txt = await fetchText(urls[i]);
+        if(opts.parser === "jyutping_tsv") parseJyutpingTsv(txt, tag);
+        else processText(txt, tag, opts);
+        return;
+      }catch(e){ lastErr = e; }
+    }
+    throw lastErr || new Error("下載失敗");
+  }
+
+  async function appendCj3Extension(){
+    const prevMode = dupMode;
+    dupMode = "merge";
+    try{
+      log("── 追加三代擴展（rime-cangjie3-extension）──");
+      const txt = await fetchText("https://raw.githubusercontent.com/kennethso168/rime-cangjie3-extension/master/cangjie3-extension.txt");
+      processText(txt, "[三代擴展]");
+    }catch(e){ log("⚠ 三代擴展載入失敗：" + e.message + "（跳過）"); }
+    finally{ dupMode = prevMode; }
+  }
+
+  const SOURCES = [
+    {id:"cj3plus",name:"Cangjie3-Plus（三代補完）",note:"cj3.txt；同時提供 RIME 方案與微軟替換文件",cred:"Arthurmcarthur — Cangjie3-Plus（倉頡三代補完計劃）\nhttps://github.com/Arthurmcarthur/Cangjie3-Plus\ncj3.txt — 三代碼表",load:()=>loadUrls(["https://raw.githubusercontent.com/Arthurmcarthur/Cangjie3-Plus/master/cj3.txt"],"[Cangjie3-Plus]")},
+    {id:"cj5hk",name:"Cangjie5_HK（五代香港字形）",note:"Cangjie5_HK.txt；傳統漢字優先，偏好香港用字",cred:"Jackchows — Cangjie5（倉頡五代補完計劃）\nhttps://github.com/Jackchows/Cangjie5\nCangjie5_HK.txt — 香港字形優先",load:()=>loadUrls(["https://raw.githubusercontent.com/Jackchows/Cangjie5/master/Cangjie5_HK.txt"],"[Cangjie5_HK]")},
+    {id:"cj6",name:"Cangjie6（六代倉頡）",note:"cangjie6.txt；六代倉頡碼表",cred:"chongkit-cangjie — 倉頡六代字典\nhttps://raw.githubusercontent.com/chongkit-cangjie/cangjie6/master/cangjie6.txt",load:()=>loadUrls(["https://raw.githubusercontent.com/chongkit-cangjie/cangjie6/master/cangjie6.txt"],"[Cangjie6]")},
+    {id:"openvanilla",name:"OpenVanilla 倉頡三代標準",note:"開放香草輸入法官方標準三代碼表",cred:"OpenVanilla — 官方標準三代碼表\nhttps://raw.githubusercontent.com/openvanilla/openvanilla/master/DataTables/cj.txt",load:()=>loadUrls(["https://raw.githubusercontent.com/openvanilla/openvanilla/master/DataTables/cj.txt"],"[OpenVanilla]")},
+    {id:"cj_jerry",name:"Jerry 倉頡大碼表",note:"Gist 經典擴展大字庫",cred:"emisjerry — 倉頡大碼表\nhttps://gist.githubusercontent.com/emisjerry/7a1e72688bfc4d4b5c0f9f16f1b84424/raw/cj_jerry.txt",load:()=>loadUrls(["https://gist.githubusercontent.com/emisjerry/7a1e72688bfc4d4b5c0f9f16f1b84424/raw/cj_jerry.txt"],"[Jerry碼表]")},
+    {id:"hkscs",name:"HKSCS-2016 官方",note:"數字政策辦公室開放數據；按非本機來源相對排名決定主碼與容錯",cred:`香港特區政府數字政策辦公室 — HKSCS-2016\n${HKSCS_URL}`,load:async()=>{log("下載 HKSCS-2016 …");parseHKSCSJson(await fetchHKSCS(HKSCS_URL),"[HKSCS]",currentHkscsPlan);}},
+    {id:"fcitx_jyutping",name:"Fcitx5 粵拼（jyutping）",note:"jyutping-table.txt / jyutping.txt；香港語言學學會粵拼碼表（多字詞於 .cin / .yaml 有效）",cred:"Fcitx — fcitx5-table-extra (GPL-3.0-or-later)\nhttps://github.com/fcitx/fcitx5-table-extra",load:()=>loadUrls([
+      "https://raw.githubusercontent.com/fcitx/fcitx5-table-extra/master/tables/jyutping-table.txt",
+      "https://raw.githubusercontent.com/fcitx/fcitx5-table-extra/master/tables/jyutping.txt",
+      "https://cdn.jsdelivr.net/gh/fcitx/fcitx5-table-extra@master/tables/jyutping-table.txt",
+      "https://cdn.jsdelivr.net/gh/fcitx/fcitx5-table-extra@master/tables/jyutping.txt"
+    ],"[Fcitx5 jyutping]",{stripTone:true,isJyutping:true})},
+    {id:"lshk_jyutping",name:"另一粵拼（LSHK jyutping-table）",note:"list.tsv；香港語言學學會《電腦用漢字粵語拼音表》（29,000+ 字，CC BY 4.0）",cred:"LSHK — 電腦用漢字粵語拼音表 (CC BY 4.0)\nhttps://github.com/lshk-org/jyutping-table",load:()=>loadUrls([
+      "https://raw.githubusercontent.com/lshk-org/jyutping-table/master/list.tsv",
+      "https://cdn.jsdelivr.net/gh/lshk-org/jyutping-table@master/list.tsv"
+    ],"[LSHK 另一粵拼]",{parser:"jyutping_tsv"})},
+    {id:"fcitx_cantonhk",name:"Fcitx5 港式廣東話（cantonhk）",note:"cantonhk.txt；港式日常粵語碼表（多字詞於 .cin / .yaml 有效）",cred:"Fcitx — fcitx5-table-extra (GPL-3.0-or-later)\nhttps://github.com/fcitx/fcitx5-table-extra",load:()=>loadUrls([
+      "https://raw.githubusercontent.com/fcitx/fcitx5-table-extra/master/tables/cantonhk.txt",
+      "https://cdn.jsdelivr.net/gh/fcitx/fcitx5-table-extra@master/tables/cantonhk.txt"
+    ],"[Fcitx5 cantonhk]")},
+    {id:"fcitx_cantonese",name:"Fcitx5 廣東拼音（cantonese）",note:"cantonese.txt；教院式 ILE 粵語碼表（多字詞於 .cin / .yaml 有效）",cred:"Fcitx — fcitx5-table-extra (GPL-3.0-or-later)\nhttps://github.com/fcitx/fcitx5-table-extra",load:()=>loadUrls([
+      "https://raw.githubusercontent.com/fcitx/fcitx5-table-extra/master/tables/cantonese.txt",
+      "https://cdn.jsdelivr.net/gh/fcitx/fcitx5-table-extra@master/tables/cantonese.txt"
+    ],"[Fcitx5 cantonese]")},
+    ...LOCAL_FILE_IDS.map((fid, idx) => ({
+      id: fid,
+      name: `本機檔案 ${idx + 1}`,
+      note: "「字 碼」、「碼 字」、Fcitx、.cin、.yaml、.tsv、chinese_dict.js 或 HKSCS JSON",
+      cred: `使用者自選（本機檔案 ${idx + 1}）——請自行確認授權。`,
+      load: async () => {
+        const f = $("manualFile" + (idx + 1)).files[0];
+        if(!f) throw new Error(`請選擇本機檔案 ${idx + 1}`);
+        log(`完整讀入 [本機${idx + 1}] ${f.name} …`);
+        const isJp = /jyutping|粵拼/i.test(f.name);
+        const txt = await readFileCached(f);
+        if((/\.tsv$/i.test(f.name) && (isJp || isJyutpingTsvContent(txt))) || isJyutpingTsvContent(txt)){
+          parseJyutpingTsv(txt, `[本機${idx + 1}：${f.name}]`);
+        } else {
+          processText(txt, `[本機${idx + 1}：${f.name}]`, { stripTone: isJp, isJyutping: isJp });
+        }
+      }
+    })),
+    {id:"murl",name:"網址（URL）",note:"輸入 URL 下載碼表",cred:"使用者自選 URL——請自行確認授權。",load:async()=>{const url=$("manualUrl").value.trim();if(!url)throw new Error("請輸入 URL");log("完整下載 → 寫入緩存 …");const isJp=/jyutping|粵拼/i.test(url);const txt=await fetchText(url);if((/\.tsv(\?|$)/i.test(url)&&(isJp||isJyutpingTsvContent(txt)))||isJyutpingTsvContent(txt))parseJyutpingTsv(txt,"[URL]");else processText(txt,"[URL]",{stripTone:isJp,isJyutping:isJp});}}
+  ];
+
+  srcListApi = createSourceList($("srcList"), SOURCES, {
+    log,
+    manualBoxes: { mfile1:"mFileBox1", mfile2:"mFileBox2", mfile3:"mFileBox3", murl:"mUrlBox" },
+    onChange: syncActionState
+  });
+  LOCAL_FILE_IDS.forEach((_, idx) => bindFileName($("manualFile" + (idx + 1)), $("mFileName" + (idx + 1))));
+  rebuildCombinedTargetSet();
+
+  $("clearAcc").onclick = () => {
+    lastD = null; lastDPhrase = null; lastSrcs = []; lastCreds = [];
+    lastBuiltIn.clear(); lastFiles.clear(); lastUrls.clear();
+    lastBaseSchemes = ["cangjie"]; lastBaseIsCantonOnly = false; lastBaseIsJyutpingOnly = false;
+    log(`🧹 疊加基底已重設 (${VER})。`);
+    syncActionState();
+  };
+
+  function resolveOutputProfile(loadedIds, plan, isAppendWithBase){
+    const hasHk = loadedIds.some(id => id === "hkscs" || LOCAL_FILE_SET.has(id) || id === "murl");
+    const hasCj = loadedIds.some(id => CANGJIE_IDS.has(id)) || (hasHk && plan.includesCangjie);
+    const hasCt = loadedIds.some(id => CANTON_IDS.has(id)) || (hasHk && plan.includesCanton);
+    const curCantonOnly = hasCt && !hasCj;
+    const curJpOnly = curCantonOnly
+      && loadedIds.every(id => id === "fcitx_jyutping" || id === "lshk_jyutping" || id === "hkscs" || LOCAL_FILE_SET.has(id) || id === "murl")
+      && plan.schemes.every(s => s === "jyutping") && !currentJpConvertTargets.length;
+    return {
+      isCantonOnly: isAppendWithBase ? (curCantonOnly && lastBaseIsCantonOnly) : curCantonOnly,
+      isJyutpingOnly: isAppendWithBase ? (curJpOnly && lastBaseIsJyutpingOnly) : curJpOnly
+    };
+  }
+
+  function emitRimeDict(keys, phraseKeys, profile){
+    const dictName = profile.isJyutpingOnly ? "jyutping_generated" : (profile.isCantonOnly ? "cantonese_generated" : "cangjie_generated");
+    const lines = [
+      "---",
+      `name: ${dictName}`,
+      'version: "0.89-v2.1"',
+      "sort: by_weight",
+      "columns:",
+      "  - text",
+      "  - code",
+      "  - weight",
+      "..."
+    ];
+    for(const ch of keys){ for(const code of [...d[ch].codes]) lines.push(`${ch}\t${code.toLowerCase()}\t1`); }
+    for(const ph of (phraseKeys || [])){ for(const code of [...dPhrase[ph].codes]) lines.push(`${ph}\t${code.toLowerCase()}\t1`); }
+    return lines.join("\n") + "\n";
+  }
+
+  function emitCinDict(keys, phraseKeys, srcs, profile){
+    const keyNames = profile.isCantonOnly
+      ? [..."abcdefghijklmnopqrstuvwxyz"].map(k => [k, k.toUpperCase()])
+      : [
+          ["a","日"],["b","月"],["c","金"],["d","木"],["e","水"],
+          ["f","火"],["g","土"],["h","竹"],["i","戈"],["j","十"],
+          ["k","大"],["l","中"],["m","一"],["n","弓"],["o","人"],
+          ["p","心"],["q","手"],["r","口"],["s","尸"],["t","廿"],
+          ["u","山"],["v","女"],["w","田"],["x","難"],["y","卜"],
+          ["z","重"]
+        ];
+    const ename = profile.isJyutpingOnly ? "jyutping_custom" : (profile.isCantonOnly ? "cantonese_custom" : "cangjie_custom");
+    const cname = profile.isJyutpingOnly ? "自訂粵拼輸入法" : (profile.isCantonOnly ? "自訂粵語輸入法" : "自訂輸入法");
+    const lines = [
+      `# DIME (SampleIME) .cin Table (快快快樂學輸入法 三合一生成器 ${VER})`,
+      `# Sources: ${srcs.join(" -> ")}`,
+      `# Single Chars: ${keys.length} | Multi-char Phrases: ${phraseKeys.length}`,
+      `# Generated: ${new Date().toISOString()}`,
+      "%gen_inp",
+      `%ename ${ename}`,
+      `%cname ${cname}`,
+      "%encoding UTF-8",
+      "%selkey 123456789",
+      "%keyname begin",
+      ...keyNames.map(([k, v]) => `${k}\t${v}`),
+      "%keyname end",
+      "%chardef begin"
+    ];
+    for(const ch of keys){ for(const code of [...d[ch].codes]) lines.push(`${code.toLowerCase()}\t${ch}`); }
+    for(const ph of phraseKeys){ for(const code of [...dPhrase[ph].codes]) lines.push(`${code.toLowerCase()}\t${ph}`); }
+    lines.push("%chardef end");
+    return lines.join("\r\n") + "\r\n";
+  }
+
+  $("go").onclick = async () => {
+    const btn = $("go"); btn.disabled = true;
+    $("log").textContent = "";
+    const dl = $("dl"), dljs = $("dljs"), dlRime = $("dlRime"), dlCin = $("dlCin"), dllimit = $("dllimit");
+    hideDl(dl, dljs, dlRime, dlCin, dllimit);
+    for(const k of Object.keys(d)) delete d[k];
+    for(const k of Object.keys(dPhrase)) delete dPhrase[k];
+    dupMode = getDupMode(); outMode = getOutMode(); skipX = getFilterX(); skipZ = getFilterZ();
+    skipCnt = 0; xSkip = 0; zSkip = 0; notInLimitSkip = 0; phraseTooLongSkip = 0;
+
+    try{
+      let ids = srcListApi.getRanked();
+      const checkedLim = [...document.querySelectorAll("input[name=limSrc]:checked")];
+      filterActive = checkedLim.length > 0;
+
+      if(filterActive && TARGET_SET.size === 0){
+        throw new Error("已勾選「② 限制文字範圍」，但內容為空（請選擇檔案或輸入文字）");
+      }
+      if(!filterActive && ids.length === 0){
+        throw new Error("請至少選取一個「① 輸入法碼表來源」或勾選「② 限制文字範圍」");
+      }
+
+      if(filterActive){
+        const sortedTarget = [...TARGET_SET].sort(hanCmp);
+        const limitJs = `const charList=[${sortedTarget.map(c => JSON.stringify(c)).join(",")}];\n`;
+        setBlobHref(dllimit, new Blob([limitJs], { type:"application/javascript;charset=utf-8" }));
+        log(`📘 已生成 limit.js（範圍：${TARGET_LABEL}，共 ${sortedTarget.length} 字）。`);
+        if(ids.length === 0){
+          log("ℹ ① 碼表來源全部為「無」——已跳過碼表編譯，僅輸出 limit.js。");
+          syncActionState();
+          return;
+        }
+      }
+
+      currentHkscsPlan = detectHkscsSchemePlan(ids);
+      currentJpConvertTargets = getJyutpingConvertTargets(ids);
+      log(`碼表輸出：${outMode === "append" ? "疊加" : "取代"}｜重複：${dupMode === "ignore" ? "忽略較後" : "容錯合併"}｜單字≤7碼／詞條≤16碼｜X字頭：${skipX ? "篩除" : "保留"}｜Z字頭：${skipZ ? "篩除" : "保留"} (${VER})`);
+      if(currentJpConvertTargets.length) log(`🔄 全粵拼容錯轉換：啟用（自動追加 ${currentJpConvertTargets.map(s => SCHEME_LABELS[s] || s).join(" ＋ ")} 容錯碼）`);
+      if(ids.includes("hkscs") || ids.some(id => LOCAL_FILE_SET.has(id)) || ids.includes("murl")) log(`🔎 HKSCS 抽取優次（依非本機來源相對排名）：${formatHkscsPlan(currentHkscsPlan)}`);
+      if(filterActive) log(`範圍過濾：啟用（只保留 [${TARGET_LABEL}] 內之漢字）`);
+
+      const isAppendWithBase = outMode === "append" && Boolean(lastD || lastDPhrase);
+      if(isAppendWithBase){
+        const drop = ids.filter(id => {
+          if(lastBuiltIn.has(id)) return true;
+          if(LOCAL_FILE_SET.has(id)){ const f = getLocalFile(id); return !!(f && lastFiles.has(fileKey(f))); }
+          if(id === "murl") return lastUrls.has($("manualUrl").value.trim());
+          return false;
+        });
+        if(drop.length){
+          srcListApi.unselect(drop);
+          log(`⚠ 已自動取消與基底重複的來源（${drop.length} 項）`);
+          ids = ids.filter(x => !drop.includes(x));
+          if(!ids.length) throw new Error("所選來源均已包含於基底——請改用「取代」或重設基底");
+        }
+      }
+
+      let baseCharCnt = 0, basePhraseCnt = 0;
+      if(outMode === "append" && lastD){
+        for(const ch in lastD){
+          if(!filterActive || TARGET_SET.has(ch)){
+            const kept = lastD[ch].filter(c => {
+              if(skipX && c.startsWith("X")){ xSkip++; return false; }
+              if(skipZ && c.startsWith("Z")){ zSkip++; return false; }
+              return true;
+            });
+            if(kept.length){ d[ch] = { codes: new Set(kept), rank: 0 }; baseCharCnt++; }
+          }
+        }
+      }
+      if(outMode === "append" && lastDPhrase){
+        for(const ph in lastDPhrase){
+          if(!filterActive || [...ph].every(ch => TARGET_SET.has(ch))){
+            const kept = lastDPhrase[ph].filter(c => {
+              if(skipX && c.startsWith("X")){ xSkip++; return false; }
+              if(skipZ && c.startsWith("Z")){ zSkip++; return false; }
+              return true;
+            });
+            if(kept.length){ dPhrase[ph] = { codes: new Set(kept), rank: 0 }; basePhraseCnt++; }
+          }
+        }
+      }
+      if(baseCharCnt > 0 || basePhraseCnt > 0) log(`ℹ 已載入基底：單字 ${baseCharCnt} 字${basePhraseCnt ? `、多字詞 ${basePhraseCnt} 詞` : ""}`);
+
+      const loadedIds = [];
+      for(let i = 0; i < ids.length; i++){
+        const s = SOURCES.find(x => x.id === ids[i]);
+        curRank = i + 1;
+        log(`── 第 ${i + 1} 位：${s.name} ──`);
+        try{ await s.load(); loadedIds.push(ids[i]); }
+        catch(e){ log("⚠ " + s.name + "：" + e.message + "（跳過）"); }
+      }
+      if(loadedIds.length === 0 || (Object.keys(d).length === 0 && Object.keys(dPhrase).length === 0)){
+        throw new Error("無任何漢字或詞條成功載入或匹配編碼");
+      }
+      if($("mixCj35").checked && loadedIds.includes("cj5hk")){
+        await appendCj3Extension();
+      }
+
+      const app = outMode === "append";
+      const keys = Object.keys(d).sort(hanCmp);
+      const phraseKeys = Object.keys(dPhrase).sort(hanCmp);
+      if(app && (baseCharCnt > 0 || basePhraseCnt > 0)){
+        log(`ℹ 疊加完成：單字 ${baseCharCnt} → ${keys.length} 字${phraseKeys.length ? `；多字詞 ${basePhraseCnt} → ${phraseKeys.length} 詞` : ""}。`);
+      }
+      let srcs = loadedIds.map(id => SOURCES.find(s => s.id === id).name);
+      let creds = loadedIds.map(id => SOURCES.find(s => s.id === id).cred);
+      if(app && lastSrcs.length){
+        srcs = [...new Set(lastSrcs.concat(srcs))];
+        const seenC = new Set();
+        creds = lastCreds.concat(creds).filter(c => !seenC.has(c) && seenC.add(c));
+      }
+      const modeTxt = dupMode === "ignore" ? "忽略較後來源" : "容錯合併";
+      const outTxt = app ? "疊加（含基底）" : "取代（僅本次來源）";
+      const scopeTxt = filterActive ? `精簡過濾（${TARGET_LABEL}）` : "完整全字庫";
+      let tt = `# chinese.tt — 輸入法碼表（${scopeTxt} ${VER}）\n# 來源：${srcs.join(" → ")}\n# 生成：${new Date().toISOString()}\n# 輸出方式：${outTxt}｜重複處理：${modeTxt}\n#\n${creds.map(c => "# " + c.split("\n").join("\n# ")).join("\n#\n")}\n\n`;
+      let lineCnt = 0, multiCodeChars = 0, extChars = 0, phraseLineCnt = 0;
+
+      if(keys.length > 0){
+        ACTIVE_DICT_MAP.clear();
+        HAS_GENERATED_DICT = true;
+      }
+      for(const ch of keys){
+        const codesArr = [...d[ch].codes];
+        ACTIVE_DICT_MAP.set(ch, new Set(codesArr));
+        if(codesArr.length > 1) multiCodeChars++;
+        if(!isBMPHan(ch)) extChars++;
+        for(const code of codesArr){ tt += ch + " " + code + "\n"; lineCnt++; }
+      }
+      for(const ph of phraseKeys){ phraseLineCnt += dPhrase[ph].codes.size; }
+      const js = `/* chinese_dict.js — 輸入法碼表（${scopeTxt} ${VER}，共 ${keys.length} 字 / ${lineCnt} 碼） */\nwindow.EXTERNAL_CHINESE_TT=${JSON.stringify(tt)};\n`;
+      log(`📕 單字字庫共收錄 ${keys.length} 字（${lineCnt} 碼） (${VER})。`);
+      if(phraseKeys.length > 0){
+        log(`📝 多字詞條共收錄 ${phraseKeys.length} 詞（${phraseLineCnt} 碼）——於輸出 .cin 及 RIME .dict.yaml 時有效，不寫入 .tt / .js。`);
+      }
+      if(phraseTooLongSkip > 0) log(`ℹ 已略過超過 16 碼之超長詞條 ${phraseTooLongSkip} 條。`);
+
+      const statBar = $("dictStatsBar"), statTxt = $("dictStatsText");
+      if(statBar && statTxt){
+        statBar.style.display = "flex";
+        statTxt.textContent = `📊 體檢：單字 ${keys.length.toLocaleString()} 字（${lineCnt.toLocaleString()} 碼）` +
+          (phraseKeys.length ? ` ｜ 多字詞(.cin/.yaml) ${phraseKeys.length.toLocaleString()} 詞` : "") +
+          ` ｜ 含容錯碼 ${multiCodeChars.toLocaleString()} 字 ｜ 擴展區 ${extChars.toLocaleString()} 字`;
+      }
+      if(filterActive){
+        log(`🧹 已自動過濾非目標範圍編碼：${notInLimitSkip} 條。`);
+        const missing = [...TARGET_SET].sort(hanCmp).filter(ch => !d[ch]);
+        if(missing.length > 0) log(`⚠ 範圍內有 ${missing.length} 字查無編碼：${missing.slice(0, 25).join("")}${missing.length > 25 ? "…" : ""}`);
+      }
+      if(dupMode === "ignore" && skipCnt > 0) log(`ℹ 「忽略較後」共略過 ${skipCnt} 次。`);
+      if(xSkip > 0) log(`ℹ 已篩除 X 字頭編碼 ${xSkip} 條。`);
+      if(zSkip > 0) log(`ℹ 已篩除 Z 字頭編碼 ${zSkip} 條。`);
+
+      const profile = resolveOutputProfile(loadedIds, currentHkscsPlan, isAppendWithBase);
+      lastD = {}; for(const ch in d) lastD[ch] = [...d[ch].codes];
+      lastDPhrase = {}; for(const ph in dPhrase) lastDPhrase[ph] = [...dPhrase[ph].codes];
+      lastSrcs = srcs; lastCreds = creds;
+      lastBaseSchemes = isAppendWithBase
+        ? [...new Set(lastBaseSchemes.concat(currentHkscsPlan.schemes))]
+        : currentHkscsPlan.schemes.slice();
+      lastBaseIsCantonOnly = profile.isCantonOnly;
+      lastBaseIsJyutpingOnly = profile.isJyutpingOnly;
+      if(outMode !== "append"){ lastBuiltIn.clear(); lastFiles.clear(); lastUrls.clear(); }
+      for(const id of loadedIds){
+        if(LOCAL_FILE_SET.has(id)){ const f = getLocalFile(id); if(f) lastFiles.add(fileKey(f)); }
+        else if(id === "murl") lastUrls.add($("manualUrl").value.trim());
+        else lastBuiltIn.add(id);
+      }
+
+      if(keys.length > 0){
+        setBlobHref(dl, new Blob([tt], { type:"text/plain;charset=utf-8" }));
+        setBlobHref(dljs, new Blob([js], { type:"application/javascript;charset=utf-8" }));
+      }
+      dlRime.download = profile.isJyutpingOnly ? "jyutping_generated.dict.yaml" : (profile.isCantonOnly ? "cantonese_generated.dict.yaml" : "cangjie_generated.dict.yaml");
+      setBlobHref(dlRime, new Blob([emitRimeDict(keys, phraseKeys, profile)], { type:"text/yaml;charset=utf-8" }));
+      dlCin.download = profile.isJyutpingOnly ? "jyutping_dime.cin" : (profile.isCantonOnly ? "cantonese_dime.cin" : "cangjie_dime.cin");
+      setBlobHref(dlCin, new Blob([emitCinDict(keys, phraseKeys, srcs, profile)], { type:"text/plain;charset=utf-8" }));
+      log(`✅ 生成完成 (${VER})！請點擊上方連結下載${phraseKeys.length ? "（含多字詞條之 .cin 及 .dict.yaml 已就緒）" : ""}。`);
+    }catch(e){
+      log("❌ " + e.message);
+    }
+    syncActionState();
+  };
+})();
+
+/* ================= 右側面板：words.txt 詞語表 ＆ 一般網頁/文章轉 .atc ================= */
+(function(){
+  const LU_IDIOMS = ["按部就班","拔苗助長","班門弄斧","半途而廢","包羅萬象","暴風驟雨","杯弓蛇影","杯水車薪","卑躬屈膝","背水一戰","閉門造車","鞭長莫及","變本加厲","不言而喻","不一而足","不遺餘力","不約而同","不足掛齒","才高八斗","唇齒相依","唇亡齒寒","綽綽有餘","從善如流","摧枯拉朽","打草驚蛇","大而化之","大腹便便","大器晚成","大相徑庭","大智若愚","呆若木雞","待價而沽","當仁不讓","道不拾遺","得心應手","得意忘形","德高望重","登堂入室","飛短流長","飛黃騰達","分崩離析","分庭抗禮","豐衣足食","風起雲湧","風雨飄搖","風雨同舟","扶搖直上","浮光掠影","負荊請罪","負隅頑抗","改弦更張","感激涕零","綱舉目張","革故鼎新","管中窺豹","華而不實","李代桃僵","愛不釋手","標新立異","別開生面","並行不悖","撥亂反正","波瀾壯闊","不偏不倚","不求甚解","不屈不撓","不修邊幅","不學無術","出言不遜","初出茅廬","觸類旁通","隔靴搔癢","姑息養奸","孤陋寡聞","顧影自憐"];
+  let convFn = x => x;
+  let convMode = "conv";
+  const words = new Set();
+  const wordOwner = new Map();
+  let dupMode = "merge", outMode = "replace", curRank = 1, skipCnt = 0, missingDictSkip = 0;
+  const log = s => { $("wlog").textContent += s + "\n"; };
+  const getDupMode = () => document.querySelector("input[name=wdupMode]:checked").value;
+  const getConvMode = () => document.querySelector("input[name=wconv]:checked").value;
+  const getOutMode = () => document.querySelector("input[name=woutMode]:checked").value;
+  const getWInput = () => document.querySelector("input[name=wInput]:checked").value;
+  let lastWords = null, lastSrcs = [], lastCreds = [], lastBuiltIn = new Set(), lastFiles = new Set(), lastUrls = new Set();
+  const fileKey = f => `${f.name}:${f.size}:${f.lastModified}`;
+  let wListApi = { getRanked: () => [], unselect: () => {} };
+
+  const W_LOCAL_FILE_IDS = ["mfile1","mfile2","mfile3"];
+  const W_LOCAL_FILE_SET = new Set(W_LOCAL_FILE_IDS);
+  const getWLocalFile = id => {
+    const idx = W_LOCAL_FILE_IDS.indexOf(id);
+    return idx >= 0 ? $("wmanualFile" + (idx + 1))?.files[0] : null;
+  };
+
+  function initOpenCC(){
+    convMode = getConvMode();
+    if(convMode === "keep"){ convFn = x => x; return; }
+    if(typeof OpenCC === "undefined" || !OpenCC.Converter){
+      log("⚠ OpenCC 未載入（保留原樣）");
+      convFn = x => x;
+      return;
+    }
+    try{
+      convFn = convMode === "simp"
+        ? OpenCC.Converter({ from:"t", to:"cn" })
+        : OpenCC.Converter({ from:"cn", to:"t" });
+    }catch(_){ convFn = x => x; }
+  }
+
+  function addWord(w){
+    w = (w || "").trim();
+    if(!isWord(w)) return false;
+    const filterByDict = $("wFilterByDict")?.checked;
+    if(filterByDict && ACTIVE_DICT_MAP.size > 0){
+      if(![...w].every(ch => ACTIVE_DICT_MAP.has(ch))){
+        missingDictSkip++;
+        return false;
+      }
+    }
+    if(dupMode === "ignore"){
+      const owner = wordOwner.get(w);
+      if(owner !== undefined){
+        if(curRank > owner){ skipCnt++; return false; }
+        if(curRank === owner) return false;
+      }
+      const isNew = !words.has(w);
+      wordOwner.set(w, curRank);
+      words.add(w);
+      return isNew;
+    }
+    const isNew = !words.has(w);
+    words.add(w);
+    return isNew;
+  }
+
+  async function processAny(txt, tag){
+    let n = 0;
+    let trimmed = String(txt || "").replace(/^\uFEFF/, "").trim();
+    const jsMatch = trimmed.match(/EXTERNAL_WORDS\s*=\s*("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')/);
+    if(jsMatch){
+      try{ trimmed = jsMatch[1].startsWith('"') ? JSON.parse(jsMatch[1]) : jsMatch[1].slice(1, -1); }catch(_){}
+    }
+    try{
+      const j = JSON.parse(trimmed);
+      if(Array.isArray(j)){
+        for(const it of j){
+          const w = typeof it === "string" ? it : (it && (it.word || it.ci || it.idiom || it.text));
+          if(typeof w === "string" && addWord(convFn(w))) n++;
+        }
+      } else if(j && typeof j === "object"){
+        for(const k of Object.keys(j)){ if(addWord(convFn(k))) n++; }
+      }
+    }catch(_){
+      for(const line of trimmed.split(/\r?\n/)){
+        if(/^[#;]/.test(line.trim())) continue;
+        const csvLike = /[,\t]/.test(line);
+        const cleanedLine = line.replace(/[(（【\[].*?[)）】\]]/g, " ");
+        const p = cleanedLine.split(/[,，、;；\t\s「」『』"*]+/).map(x => x.replace(/^[0-9.．、]+/, "").trim()).filter(Boolean);
+        let taken = 0;
+        for(const raw of p){
+          if([...raw].length > 8) break;
+          const w = convFn(raw);
+          if(isWord(w)){ if(addWord(w)) n++; taken++; }
+          if(csvLike && taken > 0) break;
+        }
+      }
+    }
+    log(`${tag} 收錄 ${n} 條`);
+  }
+
+  document.querySelectorAll("input[name=wInput]").forEach(r => {
+    r.addEventListener("change", () => {
+      const v = getWInput();
+      $("wSourcesBox").style.display = v === "sources" ? "block" : "none";
+      $("wTextBox").style.display = v === "text" ? "block" : "none";
+      $("wWebAtcBox").style.display = v === "webatc" ? "block" : "none";
+      $("wTextToAtcBtn").style.display = v === "text" ? "inline-block" : "none";
+      $("wgo").style.display = v === "webatc" ? "none" : "inline-block";
+      $("wgo").disabled = (v === "sources" && wListApi.getRanked().length === 0);
+    });
+  });
+
+  const SOURCES = [
+    {id:"lnu",name:"嶺南大學成語表（內嵌部分）",note:"PDF 精選高頻成語",cred:"嶺南大學中國語文教學與測試中心",load:async()=>{let n=0;for(const w of LU_IDIOMS)if(addWord(convFn(w)))n++;log(`[嶺南] ${n} 條`);}},
+    {id:"crazywhale",name:"idiom-database（30,000+）",note:"簡體源，MIT License",cred:"crazywhalecc — MIT\nhttps://github.com/crazywhalecc/idiom-database",load:async()=>{const arr=JSON.parse(await fetchText("https://raw.githubusercontent.com/crazywhalecc/idiom-database/master/data/idiom.json"));let n=0;for(const it of arr)if(addWord(convFn(it.word||"")))n++;log(`[idiom-db] ${n} 條`);}},
+    {id:"moe_idiom",name:"中華新華成語庫（線上）",note:"chinese-xinhua 成語資料",cred:"pwxcoo — chinese-xinhua\nhttps://github.com/pwxcoo/chinese-xinhua",load:async()=>{const arr=JSON.parse(await fetchText("https://raw.githubusercontent.com/pwxcoo/chinese-xinhua/master/data/idiom.json"));let n=0;for(const it of arr)if(addWord(convFn(it.word||"")))n++;log(`[新華成語] ${n} 條`);}},
+    {id:"thu_ocl",name:"THU-OCL 清華開放中文詞庫",note:"清華大學開放中文詞庫",cred:"清華大學自然語言處理實驗室 (THU-OCL)",load:async()=>processAny(await fetchText("https://raw.githubusercontent.com/thunlp/THU-OCL/master/data/THUOCL_it.txt"),"[THU-OCL]")},
+    ...W_LOCAL_FILE_IDS.map((fid, idx) => ({
+      id: fid,
+      name: `本機檔案 ${idx + 1}`,
+      note: ".txt／.csv／.json／.atc／words_dict.js",
+      cred: `使用者自選（本機檔案 ${idx + 1}）——請自行確認授權。`,
+      load: async () => {
+        const f = $("wmanualFile" + (idx + 1)).files[0];
+        if(!f) throw new Error(`請選擇本機檔案 ${idx + 1}`);
+        await processAny(await readFileCached(f), `[本機${idx + 1}：${f.name}]`);
+      }
+    })),
+    {id:"murl",name:"網址（URL）",note:"輸入 URL 下載詞語檔",cred:"使用者自選 URL——請自行確認授權。",load:async()=>{const url=$("wmanualUrl").value.trim();if(!url)throw new Error("請輸入 URL");await processAny(await fetchText(url),"[URL]");}}
+  ];
+
+  wListApi = createSourceList($("wsrcList"), SOURCES, {
+    btn: $("wgo"),
+    log,
+    manualBoxes: { mfile1:"wmFileBox1", mfile2:"wmFileBox2", mfile3:"wmFileBox3", murl:"wmUrlBox" }
+  });
+  W_LOCAL_FILE_IDS.forEach((_, idx) => bindFileName($("wmanualFile" + (idx + 1)), $("wmFileName" + (idx + 1))));
+
+  $("wclearAcc").onclick = () => {
+    lastWords = null; lastSrcs = []; lastCreds = [];
+    lastBuiltIn.clear(); lastFiles.clear(); lastUrls.clear();
+    log(`🧹 詞語基底已重設 (${VER})。`);
+  };
+
+  function buildAtcFromHtmlOrText(rawInput, sourceUrlOrLabel, customTitle){
+    initOpenCC();
+    let pageTitle = (customTitle || "").trim();
+    let bodyText = String(rawInput || "");
+
+    if(/<[a-z][\s\S]*>/i.test(bodyText)){
+      try{
+        const doc = new DOMParser().parseFromString(bodyText, "text/html");
+        if(!pageTitle && doc.title) pageTitle = doc.title.trim();
+        doc.querySelectorAll("script,style,nav,header,footer,aside,noscript,svg,iframe,form,button,.mw-editsection,.reference,.navbox,.sidebar,.toc").forEach(el => el.remove());
+        const mainEl = doc.querySelector("article, #mw-content-text, main, [role='main'], .post-content, .article-content") || doc.body;
+        bodyText = mainEl ? (mainEl.textContent || "") : "";
+      }catch(_){
+        bodyText = bodyText
+          .replace(/<(script|style|nav|header|footer|aside|noscript|svg)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, " ")
+          .replace(/<[^>]+>/g, "\n");
+      }
+    }
+
+    const converted = convFn(bodyText);
+    const filterByDict = $("wFilterByDict")?.checked;
+    if(filterByDict && !HAS_GENERATED_DICT){
+      log("⚠ 提醒：左側尚未生成完整字庫，目前「過濾缺碼字」僅以內建少量示範字庫比對；若需保留全部文字請取消勾選「過濾缺碼字」或先於左側生成字庫。");
+    }
+    let dictFilteredCnt = 0;
+    const validChars = [...converted].filter(ch => {
+      if(!isHan(ch)) return false;
+      if(filterByDict && ACTIVE_DICT_MAP.size > 0 && !ACTIVE_DICT_MAP.has(ch)){
+        dictFilteredCnt++;
+        return false;
+      }
+      return true;
+    });
+    if(validChars.length < 10) throw new Error(`提取到的有效漢字不足（僅 ${validChars.length} 字）`);
+
+    const safeTitle = (pageTitle || "article").replace(/[\\/:*?"<>|\r\n]+/g, "_").slice(0, 45) || "article";
+    const atcContent =
+      `# ${pageTitle || "自訂文章題庫"}\n` +
+      `# 來源: ${sourceUrlOrLabel}\n` +
+      `# 生成時間: ${new Date().toISOString()} (${VER})\n` +
+      `# 有效漢字: ${validChars.length} 字\n\n` +
+      validChars.join("") + "\n";
+
+    const dlLink = $("wdlAtc");
+    setBlobHref(dlLink, new Blob([atcContent], { type:"text/plain;charset=utf-8" }));
+    dlLink.download = `${safeTitle}.atc`;
+    dlLink.textContent = `⬇ ${safeTitle}.atc (${validChars.length}字)`;
+
+    const estMins = (validChars.length / 40).toFixed(1);
+    const hintBox = $("atcStatsHint");
+    if(hintBox){
+      hintBox.innerHTML = `✅ <b>${safeTitle}.atc</b> 已就緒！有效漢字：<b>${validChars.length.toLocaleString()}</b> 字${dictFilteredCnt ? `（已自動濾除 ${dictFilteredCnt} 個缺碼字）` : ""}｜以 40 字/分計算約需 <b>${estMins}</b> 分鐘打完。`;
+    }
+    log(`✅ 已生成 ${safeTitle}.atc（共 ${validChars.length} 漢字${dictFilteredCnt ? `，濾除缺碼 ${dictFilteredCnt} 字` : ""}，預估約 ${estMins} 分鐘）。`);
+  }
+
+  $("btnFetchWebAtc")?.addEventListener("click", async () => {
+    const url = $("inpWebUrl")?.value.trim() || "";
+    const customTitle = $("inpAtcTitle")?.value.trim() || "";
+    if(!url){ log("❌ 請輸入有效的網頁 URL（或直接將文字貼在下方備援框）"); return; }
+    const btn = $("btnFetchWebAtc");
+    btn.disabled = true;
+    log(`🌐 正在抓取網頁：${url} …`);
+    try{
+      const proxies = [
+        u => "https://api.allorigins.win/raw?url=" + encodeURIComponent(u),
+        u => "https://corsproxy.io/?url=" + encodeURIComponent(u),
+        u => u
+      ];
+      let htmlTxt = null;
+      for(let i = 0; i < proxies.length; i++){
+        try{
+          const txt = await fetchText(proxies[i](url), 15000);
+          if(txt && txt.length > 50){ htmlTxt = txt; break; }
+        }catch(_){}
+      }
+      if(!htmlTxt) throw new Error("跨域代理無法讀取該網址，請直接複製網頁內文貼至下方備援框轉檔");
+      buildAtcFromHtmlOrText(htmlTxt, url, customTitle);
+    }catch(e){
+      log("❌ 抓取失敗：" + e.message);
+    }finally{
+      btn.disabled = false;
+    }
+  });
+
+  $("btnRawTextToAtc")?.addEventListener("click", () => {
+    const raw = $("inpWebRawText")?.value || "";
+    const customTitle = $("inpAtcTitle")?.value.trim() || "pasted_article";
+    try{
+      if(!raw.trim()) throw new Error("請先在備援文本框貼上網頁文字或文章內容");
+      buildAtcFromHtmlOrText(raw, "手動貼上文章", customTitle);
+    }catch(e){ log("❌ " + e.message); }
+  });
+
+  $("wTextToAtcBtn")?.addEventListener("click", () => {
+    const raw = $("wText")?.value || "";
+    try{
+      if(!raw.trim()) throw new Error("文本框為空，請先貼上文章內容");
+      buildAtcFromHtmlOrText(raw, "文本框貼上", "custom_article");
+    }catch(e){ log("❌ " + e.message); }
+  });
+
+  function emit(ids, baseWordCnt){
+    const app = outMode === "append";
+    const arr = [...words].sort(hanCmp);
+    if(app && baseWordCnt > 0) log(`ℹ 疊加完成：基底 ${baseWordCnt} → 現共 ${arr.length} 詞。`);
+    let srcs = ids.map(id => id === "text" ? "文本框貼上" : SOURCES.find(s => s.id === id).name);
+    let creds = ids.map(id => id === "text" ? "使用者文本框輸入" : SOURCES.find(s => s.id === id).cred);
+    if(app && lastSrcs.length){
+      srcs = [...new Set(lastSrcs.concat(srcs))];
+      const seenC = new Set();
+      creds = lastCreds.concat(creds).filter(c => !seenC.has(c) && seenC.add(c));
+    }
+    const modeTxt = dupMode === "ignore" ? "忽略較後" : "容錯合併";
+    const convTxt = convMode === "conv" ? "簡→繁" : convMode === "simp" ? "繁→簡" : "保留原樣";
+    const outTxt = app ? "疊加" : "取代";
+    const tt = `# words.txt (${VER})\n# 來源：${srcs.join(" → ")}\n# 生成：${new Date().toISOString()}\n# ${convTxt}｜${modeTxt}｜${outTxt}\n\n${arr.join("\n")}\n`;
+    const js = `window.EXTERNAL_WORDS=${JSON.stringify(arr.join(" "))};\n`;
+    log(`📗 共收錄 ${arr.length} 詞 (${VER})` + (missingDictSkip > 0 ? `（已自動濾除含缺碼字詞條：${missingDictSkip} 條）` : "") + "。");
+
+    lastWords = [...words]; lastSrcs = srcs; lastCreds = creds;
+    if(!app){ lastBuiltIn.clear(); lastFiles.clear(); lastUrls.clear(); }
+    for(const id of ids){
+      if(W_LOCAL_FILE_SET.has(id)){ const f = getWLocalFile(id); if(f) lastFiles.add(fileKey(f)); }
+      else if(id === "murl") lastUrls.add($("wmanualUrl").value.trim());
+      else if(id !== "text") lastBuiltIn.add(id);
+    }
+    setBlobHref($("wdl"), new Blob([tt], { type:"text/plain;charset=utf-8" }));
+    setBlobHref($("wdljs"), new Blob([js], { type:"application/javascript;charset=utf-8" }));
+    log(`✅ 已生成 words.txt 與 words_dict.js (${VER})。`);
+  }
+
+  $("wgo").onclick = async () => {
+    const btn = $("wgo"); btn.disabled = true; $("wlog").textContent = "";
+    hideDl($("wdl"), $("wdljs"));
+    words.clear(); wordOwner.clear(); dupMode = getDupMode(); outMode = getOutMode(); skipCnt = 0; missingDictSkip = 0;
+    initOpenCC();
+    if($("wFilterByDict")?.checked && !HAS_GENERATED_DICT){
+      log("⚠ 提醒：左側尚未生成完整字庫，目前「過濾缺碼字」僅以內建少量示範字庫比對；若被濾除過多請取消勾選「過濾缺碼字」或先於左側生成字庫。");
+    }
+    log(`輸出方式：${outMode === "append" ? "疊加" : "取代"} (${VER})`);
+    try{
+      const inputType = getWInput();
+      const baseCnt = (outMode === "append" && lastWords) ? lastWords.length : 0;
+      if(baseCnt > 0){
+        for(const w of lastWords){ words.add(w); wordOwner.set(w, 0); }
+        log(`ℹ 基底 ${baseCnt} 詞`);
+      }
+      if(inputType === "text"){
+        const t = $("wText").value;
+        if(!t.trim()) throw new Error("文本框為空");
+        curRank = 1;
+        log("📥 文本框貼上模式");
+        await processAny(t, "[文本框]");
+        if(!words.size) throw new Error("未提取到任何 2~8 字詞語（若要轉整篇文章請按「📄 轉為 .atc 文章卷」）");
+        emit(["text"], baseCnt);
+      } else {
+        let ids = wListApi.getRanked();
+        if(!ids.length) throw new Error("未選來源");
+        if(baseCnt){
+          const drop = ids.filter(id => {
+            if(lastBuiltIn.has(id)) return true;
+            if(W_LOCAL_FILE_SET.has(id)){ const f = getWLocalFile(id); return !!(f && lastFiles.has(fileKey(f))); }
+            if(id === "murl") return lastUrls.has($("wmanualUrl").value.trim());
+            return false;
+          });
+          if(drop.length){
+            wListApi.unselect(drop);
+            ids = ids.filter(x => !drop.includes(x));
+            if(!ids.length) throw new Error("所選來源均已包含於基底");
+          }
+        }
+        const loadedIds = [];
+        for(let i = 0; i < ids.length; i++){
+          const s = SOURCES.find(x => x.id === ids[i]);
+          curRank = i + 1;
+          log(`── ${s.name} ──`);
+          try{ await s.load(); loadedIds.push(ids[i]); }
+          catch(e){ log("⚠ " + e.message); }
+        }
+        if(!loadedIds.length || !words.size) throw new Error("無來源成功載入");
+        emit(loadedIds, baseCnt);
+      }
+    }catch(e){
+      log("❌ " + e.message);
+    }
+    btn.disabled = (getWInput() === "sources") && wListApi.getRanked().length === 0;
+  };
+
+  $("dlAtcZip")?.addEventListener("click", async () => {
+    const btn = $("dlAtcZip");
+    if(btn.disabled) return;
+    const old = btn.textContent;
+    btn.disabled = true; btn.textContent = "⏳ 下載中…";
+    log(`📦 開始下載 .atc示範題庫包 (${VER}) …`);
+    const repo = "https://raw.githubusercontent.com/ck-from-hk/-/";
+    let blob = null;
+    try{
+      for(const br of ["main", "master"]){
+        try{
+          const r = await fetch(repo + br + "/atc.zip", { cache:"no-store" });
+          if(r.ok){ blob = await r.blob(); break; }
+        }catch(_){}
+      }
+      if(!blob) throw new Error("找不到 atc.zip");
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = "atc.zip"; a.style.display = "none";
+      document.body.appendChild(a); a.click();
+      setTimeout(() => { try{ a.remove(); }catch(_){} URL.revokeObjectURL(url); }, 1500);
+      log(`✅ 已下載 atc.zip（${(blob.size / 1024).toFixed(1)} KB）——解壓後於「電腦命題」選資料夾即用。`);
+      btn.textContent = "✅ 已下載";
+      setTimeout(() => { btn.textContent = old; btn.disabled = false; }, 2500);
+    }catch(e){
+      log("❌ 下載失敗：" + e.message);
+      btn.textContent = "❌ 失敗";
+      setTimeout(() => { btn.textContent = old; btn.disabled = false; }, 2500);
+    }
+  });
+})();
+</script>
+</body>
+</html>

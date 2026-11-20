@@ -1,0 +1,3007 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-HK">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>三合一 IME 碼表與雲端編譯生成器（Windows / macOS / 手機・支援 3 本機檔案）</title>
+  <style>
+    :root {
+      --bg: #f4f6f9;
+      --card: #ffffff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --accent: #0f766e;
+      --accent-hover: #115e59;
+      --purple: #6d28d9;
+      --purple-hover: #5b21b6;
+      --danger: #dc2626;
+      --warn-bg: #fffbeb;
+      --warn-border: #fcd34d;
+      --warn-text: #92400e;
+      --ok-bg: #ecfdf5;
+      --ok-border: #6ee7b7;
+      --ok-text: #065f46;
+      --code-bg: #0f172a;
+      --code-text: #e2e8f0;
+      --radius: 12px;
+      --shadow: 0 2px 10px rgba(15, 23, 42, 0.06);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", "PingFang HK", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+      padding: 24px 16px 64px;
+    }
+
+    .container {
+      max-width: 1060px;
+      margin: 0 auto;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1e3a8a, #2563eb 52%, #0f766e);
+      color: #fff;
+      padding: 28px 32px;
+      border-radius: 16px;
+      margin-bottom: 24px;
+      box-shadow: 0 8px 24px rgba(37, 99, 235, 0.2);
+    }
+    header h1 {
+      margin: 0 0 8px;
+      font-size: 1.65rem;
+      letter-spacing: 0.3px;
+    }
+    header p {
+      margin: 0;
+      opacity: 0.92;
+      font-size: 0.96rem;
+    }
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .badge {
+      background: rgba(255, 255, 255, 0.16);
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px 24px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .card-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0;
+      font-size: 1.15rem;
+    }
+    .step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 14px 18px;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+    }
+
+    label.field-label {
+      display: block;
+      font-weight: 600;
+      font-size: 0.88rem;
+      margin-bottom: 5px;
+      color: #334155;
+    }
+    .hint {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+    .hint-warn {
+      color: #b45309;
+      font-weight: 600;
+    }
+
+    input[type="text"], select, textarea {
+      width: 100%;
+      padding: 8px 11px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      background: #fff;
+      color: var(--text);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    input[type="text"]:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+    }
+    textarea {
+      min-height: 92px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.85rem;
+      resize: vertical;
+    }
+
+    .dropzone {
+      border: 2px dashed #94a3b8;
+      border-radius: 10px;
+      padding: 18px 20px;
+      text-align: center;
+      background: #f8fafc;
+      cursor: pointer;
+      transition: all 0.18s;
+      margin-bottom: 14px;
+    }
+    .dropzone:hover, .dropzone.dragover {
+      border-color: var(--primary);
+      background: #eff6ff;
+    }
+    .dropzone strong { display: block; font-size: 0.98rem; margin-bottom: 4px; }
+    .dropzone span { font-size: 0.84rem; color: var(--muted); }
+
+    /* Multi-file slot cards */
+    .slots-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .slot-card {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      background: #f8fafc;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .slot-card.loaded {
+      background: #ffffff;
+      border-color: #93c5fd;
+    }
+    .slot-card.disabled-slot {
+      opacity: 0.6;
+      background: #f1f5f9;
+    }
+    .slot-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .slot-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .slot-tag {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: #dbeafe;
+      color: #1e40af;
+    }
+    .slot-tag.slot-2 { background: #ccfbf1; color: #115e59; }
+    .slot-tag.slot-3 { background: #ede9fe; color: #5b21b6; }
+    .slot-tag.slot-manual { background: #fef3c7; color: #92400e; }
+
+    .slot-filename {
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: var(--text);
+      word-break: break-all;
+    }
+    .slot-empty-text {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .slot-count {
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #d1fae5;
+      color: #065f46;
+    }
+    .slot-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .slot-controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 8px 12px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed var(--border);
+    }
+    .slot-controls label {
+      display: block;
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: #475569;
+      margin-bottom: 3px;
+    }
+    .slot-controls select {
+      padding: 5px 8px;
+      font-size: 0.82rem;
+    }
+
+    .checkbox-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-top: 12px;
+    }
+    .checkbox-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 0.89rem;
+      cursor: pointer;
+      user-select: none;
+    }
+    .checkbox-item input {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+
+    /* Locale selector cards */
+    .locale-box {
+      margin-top: 14px;
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #f8fafc;
+    }
+    .locale-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .locale-presets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .locale-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+      gap: 8px;
+    }
+    .locale-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 11px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      background: #fff;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s;
+      font-size: 0.86rem;
+    }
+    .locale-chip:hover { border-color: var(--primary); }
+    .locale-chip.active {
+      border-color: var(--primary);
+      background: #eff6ff;
+      color: #1e3a8a;
+      font-weight: 600;
+    }
+    .locale-chip input { width: 15px; height: 15px; margin: 0; cursor: pointer; }
+    .locale-chip small { display: block; font-weight: 400; font-size: 0.74rem; color: var(--muted); }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 10px 16px;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      font-size: 0.91rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: var(--primary-hover); }
+    .btn-accent { background: var(--accent); color: #fff; }
+    .btn-accent:hover:not(:disabled) { background: var(--accent-hover); }
+    .btn-purple { background: var(--purple); color: #fff; }
+    .btn-purple:hover:not(:disabled) { background: var(--purple-hover); }
+    .btn-outline { background: #fff; color: var(--text); border-color: #cbd5e1; }
+    .btn-outline:hover:not(:disabled) { background: #f8fafc; border-color: #94a3b8; }
+    .btn-danger-outline { background: #fff; color: var(--danger); border-color: #fecaca; }
+    .btn-danger-outline:hover:not(:disabled) { background: #fef2f2; border-color: #f87171; }
+    .btn-sm { padding: 6px 11px; font-size: 0.82rem; }
+    .btn-xs { padding: 4px 9px; font-size: 0.76rem; border-radius: 6px; }
+    .btn-lg { padding: 12px 18px; font-size: 0.96rem; width: 100%; }
+
+    .alert {
+      padding: 11px 14px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      margin-top: 12px;
+      border: 1px solid transparent;
+    }
+    .alert-ok { background: var(--ok-bg); border-color: var(--ok-border); color: var(--ok-text); }
+    .alert-warn { background: var(--warn-bg); border-color: var(--warn-border); color: var(--warn-text); }
+
+    table.preview-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 0.85rem;
+    }
+    table.preview-table th, table.preview-table td {
+      border: 1px solid var(--border);
+      padding: 6px 9px;
+      text-align: left;
+    }
+    table.preview-table th { background: #f1f5f9; font-weight: 600; }
+    table.preview-table td code {
+      background: #f1f5f9;
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-family: ui-monospace, Consolas, monospace;
+    }
+
+    .code-box {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.8rem;
+      overflow-x: auto;
+      white-space: pre;
+      max-height: 240px;
+      margin-top: 10px;
+    }
+
+    .hero-export {
+      border: 2px solid var(--purple);
+      background: linear-gradient(135deg, #f5f3ff, #eff6ff);
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+    .hero-export h3 { margin: 0 0 5px; font-size: 1.08rem; color: #3b0764; }
+    .hero-export p { margin: 0; font-size: 0.87rem; color: #334155; max-width: 640px; }
+
+    .action-box {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 18px;
+      background: #fafcff;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .action-box.featured { border: 2px solid var(--primary); background: #eff6ff; }
+    .action-box.macos-box { border: 2px solid #0f766e; background: #f0fdfa; }
+    .action-box h3 { margin: 0 0 6px; font-size: 1rem; }
+    .action-box p { margin: 0; font-size: 0.85rem; color: #475569; }
+    .action-box ul { margin: 8px 0 0; padding-left: 18px; font-size: 0.82rem; color: #334155; }
+
+    .stat-pill {
+      display: inline-block;
+      background: #e2e8f0;
+      color: #1e293b;
+      font-weight: 700;
+      font-size: 0.82rem;
+      padding: 4px 11px;
+      border-radius: 999px;
+    }
+    .stat-pill.ready { background: #d1fae5; color: #065f46; }
+
+    details summary {
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.88rem;
+      color: var(--primary);
+      margin-top: 10px;
+      user-select: none;
+    }
+
+    .log-output {
+      font-family: ui-monospace, Consolas, monospace;
+      font-size: 0.8rem;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      max-height: 180px;
+      overflow-y: auto;
+      margin-top: 10px;
+      white-space: pre-wrap;
+    }
+
+    .footer-note {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.82rem;
+      margin-top: 28px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>三合一 IME 碼表與雲端編譯生成器</h1>
+      <p>支援同時載入並合併<strong>最多 3 個本機碼表檔案</strong>，完全離線一站式輸出 <strong>Windows (TSF DLL)</strong>、<strong>macOS (Universal .app / 原生 .cin)</strong> 與 <strong>Android / iOS (萊姆 / Rime)</strong>。</p>
+      <div class="badges">
+        <span class="badge">最多 3 個本機碼表合併＋獨立編碼設定</span>
+        <span class="badge">Windows + macOS + 手機三合一</span>
+        <span class="badge">支援香港 HKSCS 與 \U000XXXXX 漢字</span>
+        <span class="badge">100% 離線瀏覽器運算</span>
+      </div>
+    </header>
+
+    <!-- STEP 1: MULTI-FILE DICTIONARY INPUT (UP TO 3 LOCAL FILES) -->
+    <section class="card">
+      <div class="card-header">
+        <h2 class="card-title"><span class="step-num">1</span>匯入並合併本機碼表（最多 3 個本機檔案）</h2>
+        <span id="entryCountBadge" class="stat-pill">尚未載入碼表</span>
+      </div>
+
+      <div id="multiDropzone" class="dropzone">
+        <strong>點擊一次選取或拖放 1～3 個本機碼表檔（.txt / .cin / .yaml / .csv）</strong>
+        <span>可混合載入不同編碼（UTF-8 / UTF-16 / Big5 / GBK）及不同欄位順序，系統會按「檔案 1 → 檔案 2 → 檔案 3」優先順序自動合併</span>
+        <input type="file" id="multiFileInput" accept=".txt,.cin,.dict,.yaml,.csv,text/plain" multiple style="display:none" />
+      </div>
+
+      <!-- 3 LOCAL FILE SLOTS -->
+      <div id="slotsContainer" class="slots-list"></div>
+
+      <!-- GLOBAL PARSE OPTIONS -->
+      <div class="grid-3" style="margin-bottom: 10px;">
+        <div>
+          <label class="field-label" for="delimiterSelect">預設欄位分隔符號</label>
+          <select id="delimiterSelect">
+            <option value="auto" selected>自動偵測（Tab / 空格 / = / 逗號）</option>
+            <option value="tab">Tab 鍵 (\t)</option>
+            <option value="space">空格（單個或多個空白）</option>
+            <option value="equal">等號 (=)</option>
+            <option value="comma">逗號 (,)</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-label" for="orderSelect">預設欄位順序</label>
+          <select id="orderSelect">
+            <option value="code_word" selected>編碼 在前，字詞 在後（如：a 日）</option>
+            <option value="word_code">字詞 在前，編碼 在後（如：日 a）</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-label" for="caseSelect">編碼英文字母大小寫</label>
+          <select id="caseSelect">
+            <option value="lower" selected>全部轉小寫（SampleIME / macOS 推薦）</option>
+            <option value="keep">保持原樣</option>
+            <option value="upper">全部轉大寫</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="checkbox-row" style="margin-bottom: 14px;">
+        <label class="checkbox-item">
+          <input type="checkbox" id="skipComments" checked />
+          跳過空行、註解行（# / ; / //）及 .cin / YAML 檔頭
+        </label>
+        <label class="checkbox-item">
+          <input type="checkbox" id="stripQuotes" checked />
+          自動去除兩端雙引號（如 "a"="日"）
+        </label>
+        <label class="checkbox-item">
+          <input type="checkbox" id="dedupeEntries" checked />
+          跨檔案自動去重（保留優先順序較前的項目）
+        </label>
+      </div>
+
+      <!-- OPTIONAL MANUAL INPUT -->
+      <label class="field-label" for="rawTxtInput">額外手動補充詞條（可選：直接貼上或快速載入測試範例，會附加於 3 個檔案之後）</label>
+      <textarea id="rawTxtInput" placeholder="可留空，或直接貼上額外補充詞條（例如：&#10;hk	香港&#10;lip	𨋢）"></textarea>
+      <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn btn-outline btn-sm" id="loadSampleBtn" type="button">填入香港字測試範例</button>
+        <button class="btn btn-outline btn-sm" id="swapOrderBtn" type="button">快速對調全域「編碼／字詞」順序</button>
+        <button class="btn btn-danger-outline btn-sm" id="clearAllSourcesBtn" type="button">清空全部本機檔案與手動詞條</button>
+      </div>
+
+      <!-- PREVIEW TABLE -->
+      <div id="previewContainer" style="margin-top: 14px; display:none;">
+        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+          <span id="previewTitle" style="font-weight:600; font-size:0.88rem; color:#334155;">合併結果預覽：</span>
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <select id="previewFilterSelect" style="width:auto; padding:4px 8px; font-size:0.8rem;">
+              <option value="all" selected>篩選：全部來源</option>
+              <option value="slot0">僅看 檔案 1</option>
+              <option value="slot1">僅看 檔案 2</option>
+              <option value="slot2">僅看 檔案 3</option>
+              <option value="manual">僅看 手動補充</option>
+            </select>
+            <button class="btn btn-outline btn-xs" id="togglePreviewMoreBtn" type="button" style="display:none;">顯示更多（前 50 筆）</button>
+          </div>
+        </div>
+        <table class="preview-table">
+          <thead>
+            <tr>
+              <th style="width:54px;">#</th>
+              <th style="width:82px;">來源</th>
+              <th>輸入編碼 (Code)</th>
+              <th>輸出字詞 (Word)</th>
+              <th>SampleIME 格式預覽</th>
+            </tr>
+          </thead>
+          <tbody id="previewTbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- STEP 2: IME CONFIGURATION & MULTI-LOCALE -->
+    <section class="card">
+      <div class="card-header">
+        <h2 class="card-title"><span class="step-num">2</span>設定輸入法名稱、中文語系與不衝突 GUID</h2>
+        <button class="btn btn-outline btn-sm" id="regenGuidsBtn" type="button">🔄 重新生成全部 GUID</button>
+      </div>
+
+      <div class="grid-3">
+        <div>
+          <label class="field-label" for="imeDisplayName">輸入法顯示名稱（顯示於語言列）</label>
+          <input type="text" id="imeDisplayName" value="我的香港輸入法" />
+          <div class="hint">安全 C++ Unicode 轉義：<code id="escapedNamePreview"></code></div>
+        </div>
+        <div>
+          <label class="field-label" for="imeTargetName">英文代號 / DLL・APP・碼表檔名</label>
+          <input type="text" id="imeTargetName" value="MyHKIME" />
+          <div class="hint">輸出：<code id="dllNamePreview">MyHKIME.dll</code> / <code id="appNamePreview">MyHKIME.app</code></div>
+          <div id="targetNameWarn" class="hint hint-warn" style="display:none;"></div>
+        </div>
+        <div>
+          <label class="field-label" for="fontSelect">Windows 候選字窗字體（防缺字）</label>
+          <select id="fontSelect">
+            <option value="Microsoft JhengHei" selected>Microsoft JhengHei（微軟正黑體，推薦）</option>
+            <option value="MingLiU_HKSCS">MingLiU_HKSCS（細明體_HKSCS，完整香港字）</option>
+            <option value="Microsoft YaHei">Microsoft YaHei（微軟雅黑）</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- MULTI-LOCALE SELECTOR -->
+      <div class="locale-box">
+        <div class="locale-header">
+          <label class="field-label" style="margin:0;">註冊中文語系（Windows 多語系掛載＋macOS 語系設定）</label>
+          <div class="locale-presets">
+            <button type="button" class="btn btn-outline btn-xs" id="presetHkBtn">僅香港 (zh-HK)</button>
+            <button type="button" class="btn btn-outline btn-xs" id="presetTradBtn">繁體三地 (HK+TW+MO)</button>
+            <button type="button" class="btn btn-outline btn-xs" id="presetAllZhBtn">全部中文語系全選</button>
+          </div>
+        </div>
+        <div class="locale-grid" id="localeGrid">
+          <label class="locale-chip active" data-locale="zh-HK">
+            <input type="checkbox" class="locale-cb" value="zh-HK" checked />
+            <div>🇭🇰 香港繁體<small>zh-HK (0x0C04)</small></div>
+          </label>
+          <label class="locale-chip" data-locale="zh-TW">
+            <input type="checkbox" class="locale-cb" value="zh-TW" />
+            <div>🇹🇼 台灣繁體<small>zh-TW (0x0404)</small></div>
+          </label>
+          <label class="locale-chip" data-locale="zh-MO">
+            <input type="checkbox" class="locale-cb" value="zh-MO" />
+            <div>🇲🇴 澳門繁體<small>zh-MO (0x1404)</small></div>
+          </label>
+          <label class="locale-chip" data-locale="zh-CN">
+            <input type="checkbox" class="locale-cb" value="zh-CN" />
+            <div>🇨🇳 簡體中文<small>zh-CN (0x0804)</small></div>
+          </label>
+          <label class="locale-chip" data-locale="zh-SG">
+            <input type="checkbox" class="locale-cb" value="zh-SG" />
+            <div>🇸🇬 新加坡簡體<small>zh-SG (0x1004)</small></div>
+          </label>
+        </div>
+        <div id="localeSummaryHint" class="hint" style="margin-top:8px;"></div>
+      </div>
+
+      <div class="checkbox-row">
+        <label class="checkbox-item">
+          <input type="checkbox" id="buildWin32" checked />
+          Windows 同時編譯 32 位元（Win32）DLL
+        </label>
+        <label class="checkbox-item">
+          <input type="checkbox" id="staticCrt" checked />
+          Windows 靜態連結 CRT（/MT，免裝 VC++ 執行階段）
+        </label>
+      </div>
+
+      <details>
+        <summary>查看自動生成的 16 組全新 Windows C++ GUID（已防止與原版 SampleIME 衝突）</summary>
+        <div id="guidPreviewBox" class="code-box"></div>
+      </details>
+    </section>
+
+    <!-- STEP 3: 3-IN-1 EXPORT HUB -->
+    <section class="card">
+      <div class="card-header">
+        <h2 class="card-title"><span class="step-num">3</span>三合一全平台打包輸出</h2>
+      </div>
+
+      <!-- HERO 3-IN-1 BUNDLE -->
+      <div class="hero-export">
+        <div>
+          <h3>🌟 三合一全平台 GitHub 倉庫包（Windows + macOS + 手機碼表）</h3>
+          <p>一次過打包 <strong>Windows TSF DLL</strong> 與 <strong>macOS Universal .app</strong> 兩套雲端編譯腳本，同時內附 <strong>.cin</strong> 與 <strong>Rime (.yaml)</strong> 合併碼表，推上單一 GitHub 倉庫即可雲端編譯雙桌面系統，並直接支援 Android / iOS。</p>
+        </div>
+        <button class="btn btn-purple" id="downloadAllInOneKitBtn" type="button" style="padding:13px 22px; font-size:0.96rem;">
+          ⬇️ 一鍵下載三合一全平台包 (.zip)
+        </button>
+      </div>
+
+      <div class="grid-3">
+        <!-- WINDOWS CLOUD KIT -->
+        <div class="action-box featured">
+          <div>
+            <h3>🪟 Windows 雲端編譯包</h3>
+            <p>免下載微軟源碼、免裝 Visual Studio；上傳至 GitHub 按 Run workflow 自動編譯 TSF DLL：</p>
+            <ul>
+              <li>自動拉取 <code>SampleIME</code> 並套用名稱、多中文語系與 16 組 GUID</li>
+              <li>內嵌合併後的 <strong>UTF-16 LE BOM</strong> 碼表</li>
+              <li>附 <code>install_ime.bat</code> / <code>uninstall_ime.bat</code></li>
+            </ul>
+          </div>
+          <button class="btn btn-primary btn-lg" id="downloadWinCloudKitBtn" type="button">
+            ⬇️ 下載 Windows 雲端包 (.zip)
+          </button>
+        </div>
+
+        <!-- MACOS CLOUD KIT -->
+        <div class="action-box macos-box">
+          <div>
+            <h3>🍎 macOS 原生 .app 雲端包</h3>
+            <p>純 Swift <code>InputMethodKit</code> 獨立輸入法，在 GitHub <code>macos-latest</code> 免 Xcode 專案檔直接編譯：</p>
+            <ul>
+              <li>自動輸出 Apple Silicon + Intel <strong>Universal .app</strong></li>
+              <li>自動 Ad-hoc 簽章（永久可用、無 7 天過期）</li>
+              <li>附一鍵安裝／移除 <code>.command</code> 腳本</li>
+            </ul>
+          </div>
+          <button class="btn btn-accent btn-lg" id="downloadMacCloudKitBtn" type="button">
+            ⬇️ 下載 macOS 雲端包 (.zip)
+          </button>
+        </div>
+
+        <!-- LOCAL WINDOWS PATCH -->
+        <div class="action-box">
+          <div>
+            <h3>🔧 修補本地 SampleIME 資料夾</h3>
+            <p>電腦已下載微軟 <code>Samples/IME/cpp</code> 時使用，離線修補全部 C++ 檔並打包（僅電腦瀏覽器支援）：</p>
+            <input type="file" id="sourceFolderInput" webkitdirectory directory multiple style="display:none" />
+            <div style="margin-top:10px;">
+              <button class="btn btn-outline btn-sm" id="selectFolderBtn" type="button" style="width:100%;">
+                📂 選取本地 SampleIME / cpp 資料夾
+              </button>
+            </div>
+            <div id="folderStatus" class="hint" style="margin-top:6px;">尚未選取本地源碼資料夾</div>
+            <div id="patchLogBox" class="log-output" style="display:none;"></div>
+          </div>
+          <button class="btn btn-outline btn-lg" id="downloadPatchedSrcBtn" type="button" disabled>
+            ⬇️ 下載已修補倉庫 (.zip)
+          </button>
+        </div>
+      </div>
+
+      <!-- DIRECT MERGED TABLE EXPORTS -->
+      <div style="margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border);">
+        <h3 style="margin: 0 0 10px; font-size: 0.98rem;">📱 直接匯出合併後的通用碼表（免編譯・即掛即用）</h3>
+        <div class="grid-3">
+          <button class="btn btn-outline" id="downloadSampleTxtBtn" type="button">
+            📄 SampleIME 合併碼表 (UTF-16 LE)
+          </button>
+          <button class="btn btn-outline" id="downloadCinBtn" type="button">
+            📱 .cin 合併碼表 (macOS 原生 / DIME / 萊姆)
+          </button>
+          <button class="btn btn-outline" id="downloadRimeZipBtn" type="button">
+            🐺 Rime 合併設定包 (小狼毫 / 鼠鬚管 / 元書 / Fcitx5)
+          </button>
+        </div>
+      </div>
+
+      <div id="statusAlert" class="alert" style="display:none;"></div>
+    </section>
+
+    <p class="footer-note">所有檔案解析、多檔合併、GUID 生成與 ZIP 封裝（STORE 無壓縮模式）均在你的瀏覽器本地完成，不會上傳任何資料。</p>
+  </div>
+
+<!-- ==================== WINDOWS TEMPLATES ==================== -->
+<script type="text/plain" id="tpl-patch-ps1">#Requires -Version 5.1
+param(
+    [Parameter(Mandatory = $true)]
+    [string]$SourceDir
+)
+
+$ErrorActionPreference = 'Stop'
+
+function Replace-InFile {
+    param([string]$Path, [scriptblock]$Transform)
+    $raw = [System.IO.File]::ReadAllText($Path)
+    $updated = & $Transform $raw
+    if ($updated -ne $raw) {
+        [System.IO.File]::WriteAllText($Path, $updated, [System.Text.UTF8Encoding]::new($true))
+        Write-Host "[PATCHED] $Path"
+    } else {
+        Write-Host "[NO CHANGE] $Path"
+    }
+}
+
+function New-CppGuid {
+    $b = ([guid]::NewGuid()).ToByteArray()
+    $d1 = [BitConverter]::ToUInt32($b, 0)
+    $d2 = [BitConverter]::ToUInt16($b, 4)
+    $d3 = [BitConverter]::ToUInt16($b, 6)
+    $d4 = ($b[8..15] | ForEach-Object { '0x{0:x2}' -f $_ }) -join ', '
+    return "{{ 0x{0:x8}, 0x{1:x4}, 0x{2:x4}, {{ {3} }} }}" -f $d1, $d2, $d3, $d4
+}
+
+$PresetGuids = @(
+__GUIDS_PS_ARRAY__
+)
+
+$ExtraSublangs = @(
+__EXTRA_SUBLANGS_PS_ARRAY__
+)
+
+Write-Host "=== Patching SampleIME Source in: $SourceDir ==="
+
+# 1. Register.cpp -> IME display name & optional multi-locale profile registration
+Get-ChildItem -Path $SourceDir -Recurse -Filter 'Register.cpp' | ForEach-Object {
+    Replace-InFile $_.FullName {
+        param($c)
+        $out = $c.Replace('L"Sample IME"', 'L"__ESCAPED_DISPLAY_NAME__"')
+        if ($ExtraSublangs.Count -gt 0) {
+            $regBlock = ''
+            $unregBlock = ''
+            foreach ($sub in $ExtraSublangs) {
+                $regBlock += "`r`n    if (SUCCEEDED(hr)) { hr = pITfInputProcessorProfileMgr->RegisterProfile(Global::SampleIMECLSID, MAKELANGID(LANG_CHINESE, $sub), Global::SampleIMEGuidProfile, TEXTSERVICE_DESC, static_cast<ULONG>(lenOfDesc), achIconFile, cchA, (UINT)TEXTSERVICE_ICON_INDEX, NULL, 0, TRUE, 0); }"
+                $unregBlock += "`r`n    pITfInputProcessorProfileMgr->UnregisterProfile(Global::SampleIMECLSID, MAKELANGID(LANG_CHINESE, $sub), Global::SampleIMEGuidProfile, 0);"
+            }
+            $out = [regex]::Replace($out, '(hr\s*=\s*pITfInputProcessorProfileMgr->RegisterProfile\([\s\S]*?\);)', {
+                param($m) $m.Groups[1].Value + $regBlock
+            }, 1)
+            $out = [regex]::Replace($out, '(pITfInputProcessorProfileMgr->UnregisterProfile\([\s\S]*?\);)', {
+                param($m) $m.Groups[1].Value + $unregBlock
+            }, 1)
+        }
+        return $out
+    }
+}
+
+# 2. Define.h -> Primary Language ID
+Get-ChildItem -Path $SourceDir -Recurse -Filter 'Define.h' | ForEach-Object {
+    Replace-InFile $_.FullName {
+        param($c)
+        $c.Replace('SUBLANG_CHINESE_SIMPLIFIED', '__PRIMARY_SUBLANG__')
+    }
+}
+
+# 3. SampleIME.cpp -> Touch keyboard preferred layout
+Get-ChildItem -Path $SourceDir -Recurse -Filter 'SampleIME.cpp' | ForEach-Object {
+    Replace-InFile $_.FullName {
+        param($c)
+        $c.Replace('TKBL_OPT_SIMPLIFIED_CHINESE_PINYIN', '__TOUCH_LAYOUT__')
+    }
+}
+
+# 4. Globals.cpp -> Replace all custom GUIDs & candidate font
+Get-ChildItem -Path $SourceDir -Recurse -Filter 'Globals.cpp' | ForEach-Object {
+    Replace-InFile $_.FullName {
+        param($c)
+        $script:guidIdx = 0
+        $pattern = '(?m)^(\s*(?:extern\s+)?const\s+(?:CLSID|GUID)\s+SampleIME\w*\s*=\s*)\{\s*0x[0-9a-fA-F]+,\s*0x[0-9a-fA-F]+,\s*0x[0-9a-fA-F]+,\s*\{[^}]+\}\s*\};'
+        $out = [regex]::Replace($c, $pattern, {
+            param($m)
+            $g = if ($script:guidIdx -lt $PresetGuids.Count) { $PresetGuids[$script:guidIdx] } else { New-CppGuid }
+            $script:guidIdx++
+            return $m.Groups[1].Value + $g + ';'
+        })
+        Write-Host "  -> Replaced $($script:guidIdx) custom GUIDs in Globals.cpp"
+        $out = $out.Replace('L"Microsoft YaHei"', 'L"__FONT_NAME__"')
+        $out = $out.Replace('L"SimSun"', 'L"__FONT_NAME__"')
+        $out = $out.Replace('L"MS Shell Dlg"', 'L"__FONT_NAME__"')
+        return $out
+    }
+}
+
+# 5. Dictionary filename across all C++ source/header files
+Get-ChildItem -Path $SourceDir -Recurse -Include '*.cpp','*.h' | ForEach-Object {
+    $raw = [System.IO.File]::ReadAllText($_.FullName)
+    if ($raw.Contains('SampleIMESimplifiedQuanPin.txt')) {
+        Replace-InFile $_.FullName {
+            param($c)
+            $c.Replace('SampleIMESimplifiedQuanPin.txt', '__DICT_FILENAME__')
+        }
+    }
+}
+
+# 6. SampleIME.def -> LIBRARY declaration (reference only; actual DLL filename controlled by TargetName)
+Get-ChildItem -Path $SourceDir -Recurse -Filter 'SampleIME.def' | ForEach-Object {
+    Replace-InFile $_.FullName {
+        param($c)
+        [regex]::Replace($c, '(?mi)^LIBRARY\s+"?SampleIME"?', 'LIBRARY "__TARGET_NAME__"')
+    }
+}
+
+# 7. SampleIME.vcxproj -> TargetName + /utf-8 + fix LNK1295 (/OPT:NOREF vs /LTCG:incremental) + optional /MT
+Get-ChildItem -Path $SourceDir -Recurse -Filter 'SampleIME.vcxproj' | ForEach-Object {
+    Replace-InFile $_.FullName {
+        param($c)
+        $out = $c
+        if ($out -notmatch '<TargetName>') {
+            $out = [regex]::Replace($out, '(<PropertyGroup[^>]*Label="Globals"[^>]*>)', {
+                param($m)
+                $m.Groups[1].Value + "`r`n    <TargetName>__TARGET_NAME__</TargetName>"
+            })
+        } else {
+            $out = [regex]::Replace($out, '<TargetName>[^<]*</TargetName>', '<TargetName>__TARGET_NAME__</TargetName>')
+        }
+        # Fix LNK1295: legacy SampleIME sets /OPT:NOREF while VS2022/v143 defaults WPO to /LTCG:incremental
+        $out = $out.Replace('<WholeProgramOptimization>true</WholeProgramOptimization>', '<WholeProgramOptimization>false</WholeProgramOptimization>')
+        $out = $out.Replace('<OptimizeReferences>false</OptimizeReferences>', '<OptimizeReferences>true</OptimizeReferences>')
+        $out = $out.Replace('<EnableCOMDATFolding>false</EnableCOMDATFolding>', '<EnableCOMDATFolding>true</EnableCOMDATFolding>')
+        # Fix Win32 Release C2220/C4463: disable TreatWarningAsError (/WX) for legacy SampleIME bit-field code
+        $out = $out.Replace('<TreatWarningAsError>true</TreatWarningAsError>', '<TreatWarningAsError>false</TreatWarningAsError>')
+        $out = [regex]::Replace($out, '(<Link>)', {
+            param($m)
+            $m.Groups[1].Value + "`r`n      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>"
+        })
+        $out = [regex]::Replace($out, '(<ClCompile>)', {
+            param($m)
+            $m.Groups[1].Value + "`r`n      <AdditionalOptions>/utf-8 /WX- /wd4463 %(AdditionalOptions)</AdditionalOptions>"
+        })
+        __STATIC_CRT_BLOCK__
+        return $out
+    }
+}
+
+Write-Host "=== Patch Complete ==="
+</script>
+
+<script type="text/plain" id="tpl-workflow-win-cloud">name: Build Windows IME (__TARGET_NAME__ DLL)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Fetch Microsoft SampleIME source & resolve Windows SDK version
+        shell: pwsh
+        run: |
+          git clone --depth 1 --filter=blob:none --sparse https://github.com/microsoft/Windows-classic-samples.git upstream_src
+          cd upstream_src
+          git sparse-checkout set Samples/IME/cpp
+          cd ..
+          $sdkVer = (Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\Include" -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -match '^10\.0\.\d+\.0$' } | Sort-Object Name -Descending | Select-Object -First 1).Name
+          if (-not $sdkVer) { $sdkVer = "10.0" }
+          Write-Host "Detected Windows SDK: $sdkVer"
+          "WIN_SDK=$sdkVer" >> $env:GITHUB_ENV
+          "SLN_PATH=$PWD\upstream_src\Samples\IME\cpp\SampleIME.sln" >> $env:GITHUB_ENV
+          "SLN_DIR=$PWD\upstream_src\Samples\IME\cpp" >> $env:GITHUB_ENV
+
+      - name: Patch name, locales (__LANG_SUMMARY__), font, GUIDs, and dictionary
+        shell: pwsh
+        run: |
+          pwsh -ExecutionPolicy Bypass -File ./patch_sampleime.ps1 -SourceDir "$env:SLN_DIR"
+          $dictTargetDir = Join-Path $env:SLN_DIR "SampleIME\Dictionary"
+          if (-not (Test-Path $dictTargetDir)) { New-Item -ItemType Directory -Force -Path $dictTargetDir | Out-Null }
+          Copy-Item -Force "./dictionary/__DICT_FILENAME__" (Join-Path $dictTargetDir "__DICT_FILENAME__")
+
+      - name: Build 64-bit (x64) Release DLL
+        shell: pwsh
+        run: msbuild "$env:SLN_PATH" /p:Configuration=Release /p:Platform=x64 /p:PlatformToolset=v143 /p:WindowsTargetPlatformVersion="$env:WIN_SDK" /p:TargetName=__TARGET_NAME__ /p:WholeProgramOptimization=false
+__WIN32_BUILD_BLOCK__
+      - name: Package DLL, UTF-16 dictionary, and install scripts
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path "dist/x64" | Out-Null
+          $dll64 = Get-ChildItem -Path $env:SLN_DIR -Recurse -Filter "__TARGET_NAME__.dll" | Where-Object { $_.FullName -like '*\x64\Release\*' } | Select-Object -First 1
+          if (-not $dll64) { throw "Cannot find compiled x64 __TARGET_NAME__.dll" }
+          Copy-Item -Force $dll64.FullName "dist/x64/__TARGET_NAME__.dll"
+          Copy-Item -Force "./dictionary/__DICT_FILENAME__" "dist/x64/__DICT_FILENAME__"
+
+          $dll32 = Get-ChildItem -Path $env:SLN_DIR -Recurse -Filter "__TARGET_NAME__.dll" | Where-Object { $_.FullName -like '*\Release\*' -and $_.FullName -notlike '*\x64\*' } | Select-Object -First 1
+          if ($dll32) {
+            New-Item -ItemType Directory -Force -Path "dist/x86" | Out-Null
+            Copy-Item -Force $dll32.FullName "dist/x86/__TARGET_NAME__.dll"
+            Copy-Item -Force "./dictionary/__DICT_FILENAME__" "dist/x86/__DICT_FILENAME__"
+          }
+
+          if (Test-Path "scripts/install_ime.bat") { Copy-Item -Force "scripts/install_ime.bat" "dist/" }
+          if (Test-Path "scripts/uninstall_ime.bat") { Copy-Item -Force "scripts/uninstall_ime.bat" "dist/" }
+
+      - name: Upload Windows IME Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: __TARGET_NAME__-Windows-IME
+          path: dist/
+</script>
+
+<script type="text/plain" id="tpl-workflow-win-local">name: Build Windows IME (__TARGET_NAME__ DLL)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Locate SampleIME.sln, dictionary, and Windows SDK
+        shell: pwsh
+        run: |
+          $sln = Get-ChildItem -Recurse -Filter "SampleIME.sln" | Select-Object -First 1
+          if (-not $sln) { throw "Cannot find SampleIME.sln in repository" }
+          $dict = Get-ChildItem -Recurse -Filter "__DICT_FILENAME__" | Select-Object -First 1
+          if (-not $dict) { throw "Cannot find __DICT_FILENAME__ in repository" }
+          $sdkVer = (Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\Include" -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -match '^10\.0\.\d+\.0$' } | Sort-Object Name -Descending | Select-Object -First 1).Name
+          if (-not $sdkVer) { $sdkVer = "10.0" }
+          Write-Host "Detected Windows SDK: $sdkVer"
+          "WIN_SDK=$sdkVer" >> $env:GITHUB_ENV
+          "SLN_PATH=$($sln.FullName)" >> $env:GITHUB_ENV
+          "SLN_DIR=$($sln.DirectoryName)" >> $env:GITHUB_ENV
+          "DICT_PATH=$($dict.FullName)" >> $env:GITHUB_ENV
+
+      - name: Build 64-bit (x64) Release DLL
+        shell: pwsh
+        run: msbuild "$env:SLN_PATH" /p:Configuration=Release /p:Platform=x64 /p:PlatformToolset=v143 /p:WindowsTargetPlatformVersion="$env:WIN_SDK" /p:TargetName=__TARGET_NAME__ /p:WholeProgramOptimization=false
+__WIN32_BUILD_BLOCK__
+      - name: Package DLL, UTF-16 dictionary, and install scripts
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path "dist/x64" | Out-Null
+          $dll64 = Get-ChildItem -Path $env:SLN_DIR -Recurse -Filter "__TARGET_NAME__.dll" | Where-Object { $_.FullName -like '*\x64\Release\*' } | Select-Object -First 1
+          if (-not $dll64) { throw "Cannot find compiled x64 __TARGET_NAME__.dll" }
+          Copy-Item -Force $dll64.FullName "dist/x64/__TARGET_NAME__.dll"
+          Copy-Item -Force "$env:DICT_PATH" "dist/x64/__DICT_FILENAME__"
+
+          $dll32 = Get-ChildItem -Path $env:SLN_DIR -Recurse -Filter "__TARGET_NAME__.dll" | Where-Object { $_.FullName -like '*\Release\*' -and $_.FullName -notlike '*\x64\*' } | Select-Object -First 1
+          if ($dll32) {
+            New-Item -ItemType Directory -Force -Path "dist/x86" | Out-Null
+            Copy-Item -Force $dll32.FullName "dist/x86/__TARGET_NAME__.dll"
+            Copy-Item -Force "$env:DICT_PATH" "dist/x86/__DICT_FILENAME__"
+          }
+
+          if (Test-Path "scripts/install_ime.bat") { Copy-Item -Force "scripts/install_ime.bat" "dist/" }
+          if (Test-Path "scripts/uninstall_ime.bat") { Copy-Item -Force "scripts/uninstall_ime.bat" "dist/" }
+
+      - name: Upload Windows IME Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: __TARGET_NAME__-Windows-IME
+          path: dist/
+</script>
+
+<script type="text/plain" id="tpl-win32-step">
+      - name: Build 32-bit (Win32) Release DLL
+        shell: pwsh
+        run: msbuild "$env:SLN_PATH" /p:Configuration=Release /p:Platform=Win32 /p:PlatformToolset=v143 /p:WindowsTargetPlatformVersion="$env:WIN_SDK" /p:TargetName=__TARGET_NAME__ /p:WholeProgramOptimization=false
+</script>
+
+<script type="text/plain" id="tpl-install-bat">@echo off
+chcp 65001 >nul
+net session >nul 2>&1
+if %errorLevel% neq 0 (
+    echo [錯誤] 請在此檔案上按右鍵，選擇「以系統管理員身分執行」！
+    pause
+    exit /b 1
+)
+
+set "BASE=%~dp0"
+set "DST64=%ProgramFiles%\__TARGET_NAME__"
+
+echo 正在檢查系統已啟用的中文語系...
+reg query "HKCU\Control Panel\International\User Profile" /v Languages 2>nul | findstr /I "zh-" >nul
+if %errorLevel% neq 0 (
+    echo [提示] 偵測到目前帳戶可能尚未在 Windows「設定 -＞ 時間與語言 -＞ 語言與地區」加入中文語系。
+    echo        若註冊後按 Win+Space 未見輸入法，請先在 Windows 設定新增「__LANG_LABELS__」。
+    echo.
+)
+
+echo 正在安裝 __TARGET_NAME__ (64位元)...
+if not exist "%DST64%" mkdir "%DST64%"
+copy /Y "%BASE%x64\__TARGET_NAME__.dll" "%DST64%\" >nul
+copy /Y "%BASE%x64\__DICT_FILENAME__" "%DST64%\" >nul
+regsvr32 "%DST64%\__TARGET_NAME__.dll"
+if %errorLevel% neq 0 (
+    echo [警告] 64 位元 DLL 註冊回傳非零代碼，請確認架構相符及檔案未被防毒軟體攔截。
+)
+
+if defined ProgramFiles(x86) (
+    if exist "%BASE%x86\__TARGET_NAME__.dll" (
+        echo 正在安裝 __TARGET_NAME__ (32位元支援)...
+        if not exist "%ProgramFiles(x86)%\__TARGET_NAME__" mkdir "%ProgramFiles(x86)%\__TARGET_NAME__"
+        copy /Y "%BASE%x86\__TARGET_NAME__.dll" "%ProgramFiles(x86)%\__TARGET_NAME__\" >nul
+        copy /Y "%BASE%x86\__DICT_FILENAME__" "%ProgramFiles(x86)%\__TARGET_NAME__\" >nul
+        "%SystemRoot%\SysWOW64\regsvr32.exe" "%ProgramFiles(x86)%\__TARGET_NAME__\__TARGET_NAME__.dll"
+    )
+)
+
+echo.
+echo ============================================================
+echo 註冊程序已執行！已掛載語系：__LANG_LABELS__
+echo 1. 按 Win + Space 即可切換到「__DISPLAY_NAME__」（按 Shift 切換中/英）。
+echo 2. 若語言列未即時更新，請重新登入 Windows 或執行 ctfmon.exe。
+echo ============================================================
+pause
+</script>
+
+<script type="text/plain" id="tpl-uninstall-bat">@echo off
+chcp 65001 >nul
+net session >nul 2>&1
+if %errorLevel% neq 0 (
+    echo [錯誤] 請在此檔案上按右鍵，選擇「以系統管理員身分執行」！
+    pause
+    exit /b 1
+)
+
+set "DST64=%ProgramFiles%\__TARGET_NAME__"
+
+if exist "%DST64%\__TARGET_NAME__.dll" (
+    echo 正在取消註冊 64 位元輸入法...
+    regsvr32 /u "%DST64%\__TARGET_NAME__.dll"
+    del /F /Q "%DST64%\__DICT_FILENAME__" >nul 2>&1
+    del /F /Q "%DST64%\__TARGET_NAME__.dll" >nul 2>&1
+    rmdir "%DST64%" >nul 2>&1
+)
+
+if defined ProgramFiles(x86) (
+    if exist "%ProgramFiles(x86)%\__TARGET_NAME__\__TARGET_NAME__.dll" (
+        echo 正在取消註冊 32 位元輸入法...
+        "%SystemRoot%\SysWOW64\regsvr32.exe" /u "%ProgramFiles(x86)%\__TARGET_NAME__\__TARGET_NAME__.dll"
+        del /F /Q "%ProgramFiles(x86)%\__TARGET_NAME__\__DICT_FILENAME__" >nul 2>&1
+        del /F /Q "%ProgramFiles(x86)%\__TARGET_NAME__\__TARGET_NAME__.dll" >nul 2>&1
+        rmdir "%ProgramFiles(x86)%\__TARGET_NAME__" >nul 2>&1
+    )
+)
+
+echo.
+echo ============================================================
+echo 解除安裝程序已執行完畢。
+echo 若因系統正在使用而殘留資料夾，請重新登入或重開機後刪除即可。
+echo ============================================================
+pause
+</script>
+
+<!-- ==================== MACOS TEMPLATES ==================== -->
+<script type="text/plain" id="tpl-macos-swift">import Cocoa
+import InputMethodKit
+
+final class DictionaryStore {
+    static let shared = DictionaryStore()
+    private var exactMap: [String: [String]] = [:]
+    private var sortedKeys: [String] = []
+    private(set) var validChars: Set<Character> = []
+
+    private init() {
+        loadDictionary()
+    }
+
+    private func loadDictionary() {
+        guard let url = Bundle.main.url(forResource: "dictionary", withExtension: "txt"),
+              let content = try? String(contentsOf: url, encoding: .utf8) else {
+            return
+        }
+        var map: [String: [String]] = [:]
+        var chars: Set<Character> = []
+        content.enumerateLines { line, _ in
+            guard !line.isEmpty, let tabIdx = line.firstIndex(of: "\t") else { return }
+            let code = String(line[..<tabIdx])
+            let word = String(line[line.index(after: tabIdx)...])
+            guard !code.isEmpty, !word.isEmpty else { return }
+            map[code, default: []].append(word)
+            for ch in code { chars.insert(ch) }
+        }
+        self.exactMap = map
+        self.sortedKeys = map.keys.sorted()
+        self.validChars = chars
+    }
+
+    func lookup(code: String, limit: Int = 50) -> [String] {
+        guard !code.isEmpty else { return [] }
+        var result: [String] = []
+        var seen: Set<String> = []
+
+        if let exact = exactMap[code] {
+            for w in exact {
+                if seen.insert(w).inserted {
+                    result.append(w)
+                    if result.count >= limit { return result }
+                }
+            }
+        }
+
+        // Binary search for prefix matches
+        var lo = 0
+        var hi = sortedKeys.count
+        while lo < hi {
+            let mid = (lo + hi) / 2
+            if sortedKeys[mid] < code { lo = mid + 1 } else { hi = mid }
+        }
+        var idx = lo
+        while idx < sortedKeys.count && sortedKeys[idx].hasPrefix(code) {
+            let key = sortedKeys[idx]
+            if key != code, let words = exactMap[key] {
+                for w in words {
+                    if seen.insert(w).inserted {
+                        result.append(w)
+                        if result.count >= limit { return result }
+                    }
+                }
+            }
+            idx += 1
+        }
+        return result
+    }
+}
+
+@objc(CustomIMEController)
+class CustomIMEController: IMKInputController {
+    private var composedBuffer: String = ""
+    private var currentCandidates: [String] = []
+    private var isEnglishMode: Bool = false
+    private var shiftPressedAlone: Bool = false
+
+    override func recognizedEvents(_ sender: Any!) -> Int {
+        return Int(NSEvent.EventTypeMask.keyDown.rawValue | NSEvent.EventTypeMask.flagsChanged.rawValue)
+    }
+
+    private func updateMarkedText(client: IMKTextInput) {
+        let len = (composedBuffer as NSString).length
+        client.setMarkedText(
+            composedBuffer,
+            selectionRange: NSRange(location: len, length: 0),
+            replacementRange: NSRange(location: NSNotFound, length: NSNotFound)
+        )
+        currentCandidates = DictionaryStore.shared.lookup(code: composedBuffer)
+        if let panel = AppDelegate.sharedCandidates {
+            panel.update()
+            if currentCandidates.isEmpty {
+                panel.hide()
+            } else {
+                panel.show(IMKCandidatesLocationHint(kIMKLocateCandidatesBelowHint))
+            }
+        }
+    }
+
+    private func commit(text: String, client: IMKTextInput) {
+        if !text.isEmpty {
+            client.insertText(text, replacementRange: NSRange(location: NSNotFound, length: NSNotFound))
+        }
+        composedBuffer = ""
+        currentCandidates = []
+        AppDelegate.sharedCandidates?.hide()
+    }
+
+    override func handle(_ event: NSEvent!, client sender: Any!) -> Bool {
+        guard let event = event, let textClient = sender as? IMKTextInput else { return false }
+
+        if event.type == .flagsChanged {
+            let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+            if flags == .shift {
+                shiftPressedAlone = true
+            } else if flags.isEmpty && shiftPressedAlone {
+                shiftPressedAlone = false
+                if !composedBuffer.isEmpty {
+                    commit(text: composedBuffer, client: textClient)
+                }
+                isEnglishMode.toggle()
+            } else {
+                shiftPressedAlone = false
+            }
+            return false
+        }
+
+        shiftPressedAlone = false
+        guard event.type == .keyDown else { return false }
+
+        let mods = event.modifierFlags.intersection([.command, .control, .option])
+        if !mods.isEmpty { return false }
+        if isEnglishMode { return false }
+
+        let keyCode = event.keyCode
+        let chars = event.characters ?? ""
+
+        // Escape: clear buffer
+        if keyCode == 53 {
+            if !composedBuffer.isEmpty {
+                commit(text: "", client: textClient)
+                return true
+            }
+            return false
+        }
+
+        // Backspace
+        if keyCode == 51 {
+            if !composedBuffer.isEmpty {
+                composedBuffer.removeLast()
+                updateMarkedText(client: textClient)
+                return true
+            }
+            return false
+        }
+
+        // Return / Enter: commit raw code buffer
+        if keyCode == 36 || keyCode == 76 {
+            if !composedBuffer.isEmpty {
+                commit(text: composedBuffer, client: textClient)
+                return true
+            }
+            return false
+        }
+
+        // Space: commit first candidate
+        if keyCode == 49 {
+            if !composedBuffer.isEmpty {
+                let best = currentCandidates.first ?? composedBuffer
+                commit(text: best, client: textClient)
+                return true
+            }
+            return false
+        }
+
+        // Arrow / Page keys while candidate window is active
+        if !composedBuffer.isEmpty && [123, 124, 125, 126, 116, 121].contains(Int(keyCode)) {
+            AppDelegate.sharedCandidates?.interpretKeyEvents([event])
+            return true
+        }
+
+        // Number key 1-9 to select candidate directly
+        if !composedBuffer.isEmpty, chars.count == 1, let ch = chars.first,
+           ch >= "1", ch <= "9", !DictionaryStore.shared.validChars.contains(ch) {
+            let idx = Int(String(ch))! - 1
+            if idx < currentCandidates.count {
+                commit(text: currentCandidates[idx], client: textClient)
+                return true
+            }
+        }
+
+        // Input code character
+        if chars.count == 1, let rawCh = chars.first {
+            let candidateCh = DictionaryStore.shared.validChars.contains(rawCh)
+                ? rawCh
+                : (rawCh.lowercased().first ?? rawCh)
+            if DictionaryStore.shared.validChars.contains(candidateCh) {
+                composedBuffer.append(candidateCh)
+                updateMarkedText(client: textClient)
+                return true
+            }
+        }
+
+        // Non-code punctuation while composing: flush first candidate then pass through
+        if !composedBuffer.isEmpty {
+            let best = currentCandidates.first ?? composedBuffer
+            commit(text: best, client: textClient)
+        }
+        return false
+    }
+
+    override func candidates(_ sender: Any!) -> [Any]! {
+        return currentCandidates
+    }
+
+    override func candidateSelected(_ candidateString: NSAttributedString!) {
+        guard let text = candidateString?.string, let textClient = self.client() else { return }
+        commit(text: text, client: textClient)
+    }
+
+    override func commitComposition(_ sender: Any!) {
+        guard !composedBuffer.isEmpty, let textClient = (sender as? IMKTextInput) ?? self.client() else { return }
+        let best = currentCandidates.first ?? composedBuffer
+        commit(text: best, client: textClient)
+    }
+
+    override func deactivateServer(_ sender: Any!) {
+        if !composedBuffer.isEmpty, let textClient = (sender as? IMKTextInput) ?? self.client() {
+            commit(text: currentCandidates.first ?? composedBuffer, client: textClient)
+        }
+        AppDelegate.sharedCandidates?.hide()
+        super.deactivateServer(sender)
+    }
+}
+
+class AppDelegate: NSObject, NSApplicationDelegate {
+    static var sharedCandidates: IMKCandidates?
+    var server: IMKServer?
+
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        let connName = Bundle.main.object(forInfoDictionaryKey: "InputMethodConnectionName") as? String ?? "__TARGET_NAME___Connection"
+        server = IMKServer(name: connName, bundleIdentifier: Bundle.main.bundleIdentifier)
+        if let srv = server {
+            AppDelegate.sharedCandidates = IMKCandidates(
+                server: srv,
+                panelType: IMKCandidatePanelType(kIMKSingleColumnScrollingCandidatePanel)
+            )
+        }
+        _ = DictionaryStore.shared
+    }
+}
+
+let app = NSApplication.shared
+let delegate = AppDelegate()
+app.delegate = delegate
+app.run()
+</script>
+
+<script type="text/plain" id="tpl-macos-plist"><?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>__MAC_INTENDED_LANG__</string>
+    <key>CFBundleDisplayName</key>
+    <string>__XML_DISPLAY_NAME__</string>
+    <key>CFBundleExecutable</key>
+    <string>__TARGET_NAME__</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.custom.inputmethod.__TARGET_NAME_LOWER__</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleName</key>
+    <string>__XML_DISPLAY_NAME__</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    <key>LSBackgroundOnly</key>
+    <true/>
+    <key>LSMinimumSystemVersion</key>
+    <string>12.0</string>
+    <key>InputMethodConnectionName</key>
+    <string>__TARGET_NAME___Connection</string>
+    <key>InputMethodServerControllerClass</key>
+    <string>CustomIMEController</string>
+    <key>TISInputSourceID</key>
+    <string>com.custom.inputmethod.__TARGET_NAME_LOWER__</string>
+    <key>TISIntendedLanguage</key>
+    <string>__MAC_INTENDED_LANG__</string>
+    <key>tsInputMethodCharacterRepertoireKey</key>
+    <array>
+__MAC_REPERTOIRE_ITEMS__
+    </array>
+    <key>tsInputMethodIconFileKey</key>
+    <string></string>
+</dict>
+</plist>
+</script>
+
+<script type="text/plain" id="tpl-workflow-mac-cloud">name: Build macOS IME (__TARGET_NAME__ Universal .app)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Compile Universal Binary (Apple Silicon arm64 + Intel x86_64)
+        run: |
+          mkdir -p build "dist/__TARGET_NAME__.app/Contents/MacOS" "dist/__TARGET_NAME__.app/Contents/Resources"
+          swiftc -swift-version 5 -O -target arm64-apple-macos12.0 \
+            -framework Cocoa -framework InputMethodKit \
+            macos/Sources/main.swift -o build/ime_arm64
+          swiftc -swift-version 5 -O -target x86_64-apple-macos12.0 \
+            -framework Cocoa -framework InputMethodKit \
+            macos/Sources/main.swift -o build/ime_x86_64
+          lipo -create -output "dist/__TARGET_NAME__.app/Contents/MacOS/__TARGET_NAME__" build/ime_arm64 build/ime_x86_64
+
+      - name: Assemble .app bundle & Ad-hoc sign
+        run: |
+          cp macos/Info.plist "dist/__TARGET_NAME__.app/Contents/Info.plist"
+          cp macos/Resources/dictionary.txt "dist/__TARGET_NAME__.app/Contents/Resources/dictionary.txt"
+          codesign --force --deep --sign - "dist/__TARGET_NAME__.app"
+          cp macos/install_macos_ime.command dist/
+          cp macos/uninstall_macos_ime.command dist/
+          chmod +x dist/install_macos_ime.command dist/uninstall_macos_ime.command
+
+      - name: Upload macOS IME Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: __TARGET_NAME__-macOS-IME
+          path: dist/
+</script>
+
+<script type="text/plain" id="tpl-macos-install-cmd">#!/bin/bash
+set -e
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+APP_NAME="__TARGET_NAME__.app"
+DEST="$HOME/Library/Input Methods"
+
+mkdir -p "$DEST"
+rm -rf "$DEST/$APP_NAME"
+cp -R "$SCRIPT_DIR/$APP_NAME" "$DEST/$APP_NAME"
+xattr -cr "$DEST/$APP_NAME" 2>/dev/null || true
+
+echo "============================================================"
+echo "已安裝 $APP_NAME 到：$DEST"
+echo "1. 請先「登出 macOS 再重新登入」（讓系統掃描新輸入法）。"
+echo "2. 前往「系統設定 → 鍵盤 → 文字輸入 → 編輯 → +」加入「__DISPLAY_NAME__」。"
+echo "3. 打字時按 Shift 切換中/英文，Space 選第 1 字，數字鍵 1-9 選字。"
+echo "============================================================"
+</script>
+
+<script type="text/plain" id="tpl-macos-uninstall-cmd">#!/bin/bash
+set -e
+APP_NAME="__TARGET_NAME__.app"
+DEST="$HOME/Library/Input Methods/$APP_NAME"
+
+killall "__TARGET_NAME__" 2>/dev/null || true
+rm -rf "$DEST"
+echo "已移除 $DEST。請重新登入 macOS 完成清理。"
+</script>
+
+<script type="text/plain" id="tpl-readme"># __DISPLAY_NAME__ (__TARGET_NAME__)
+
+由「三合一 IME 碼表與雲端編譯生成器」自動產生（模式：__MODE_NAME__）。
+
+## 合併碼表與設定摘要
+- **顯示名稱**：__DISPLAY_NAME__
+- **英文代號**：`__TARGET_NAME__`
+- **來源檔案**：__SOURCES_SUMMARY__
+- **最終詞條總數**：__ENTRY_COUNT__ 筆（跨檔去重：__DEDUPE_STATUS__）
+- **掛載中文語系**：__LANG_LABELS__（Windows 主語系：`__PRIMARY_SUBLANG__`）
+
+## GitHub 雲端編譯步驟
+1. 在 GitHub 建立一個新倉庫，將本壓縮檔解壓後的所有檔案（**務必包含 `.github` 資料夾**）上傳至倉庫根目錄。
+2. 點選倉庫上方的 **Actions** 分頁，按需要執行對應的 Workflow：
+   - **Windows (.dll)**：點選 `Build Windows IME (__TARGET_NAME__ DLL)` → **Run workflow** → 下載 `__TARGET_NAME__-Windows-IME.zip` → 以管理員身分執行 `install_ime.bat`。
+   - **macOS (.app)**：點選 `Build macOS IME (__TARGET_NAME__ Universal .app)` → **Run workflow** → 下載 `__TARGET_NAME__-macOS-IME.zip` → 執行 `install_macos_ime.command` 並重新登入。
+3. **手機 (Android / iOS) 與免編譯方案**：可直接使用 `cross-platform/` 內的 `.cin`（macOS 原生 / Windows DIME / Android & iOS 萊姆）與 `rime/`（小狼毫 / 鼠鬚管 / Fcitx5 / 同文 / 元書）。
+</script>
+
+<script>
+(() => {
+  'use strict';
+
+  function fillTemplate(id, replacements) {
+    let text = document.getElementById(id).textContent;
+    for (const [token, value] of Object.entries(replacements)) {
+      text = text.split(token).join(value);
+    }
+    return text;
+  }
+
+  function escapeXml(str) {
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&apos;');
+  }
+
+  function formatBytes(n) {
+    if (!n) return '0 B';
+    if (n < 1024) return n + ' B';
+    if (n < 1024 * 1024) return (n / 1024).toFixed(1) + ' KB';
+    return (n / (1024 * 1024)).toFixed(2) + ' MB';
+  }
+
+  // =========================================================================
+  // 1. PURE JS ZERO-DEPENDENCY ZIP BUILDER (STORE METHOD + IEEE CRC32 + UTF-8)
+  // =========================================================================
+  const crcTable = new Uint32Array(256);
+  for (let i = 0; i < 256; i++) {
+    let c = i;
+    for (let k = 0; k < 8; k++) {
+      c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+    }
+    crcTable[i] = c >>> 0;
+  }
+
+  function crc32(bytes) {
+    let crc = 0xFFFFFFFF;
+    for (let i = 0; i < bytes.length; i++) {
+      crc = crcTable[(crc ^ bytes[i]) & 0xFF] ^ (crc >>> 8);
+    }
+    return (crc ^ 0xFFFFFFFF) >>> 0;
+  }
+
+  function utf8Bytes(str) {
+    return new TextEncoder().encode(str);
+  }
+
+  function utf16LeBomBytes(str) {
+    const out = new Uint8Array(2 + str.length * 2);
+    out[0] = 0xFF;
+    out[1] = 0xFE;
+    for (let i = 0; i < str.length; i++) {
+      const code = str.charCodeAt(i);
+      out[2 + i * 2] = code & 0xFF;
+      out[2 + i * 2 + 1] = (code >> 8) & 0xFF;
+    }
+    return out;
+  }
+
+  function buildZipBlob(files) {
+    const now = new Date();
+    const dosTime = ((now.getHours() & 0x1F) << 11) | ((now.getMinutes() & 0x3F) << 5) | ((now.getSeconds() >> 1) & 0x1F);
+    const dosDate = (((Math.max(now.getFullYear(), 1980) - 1980) & 0x7F) << 9) | (((now.getMonth() + 1) & 0x0F) << 5) | (now.getDate() & 0x1F);
+
+    const localParts = [];
+    const centralParts = [];
+    let offset = 0;
+
+    for (const f of files) {
+      const cleanName = f.name.replace(/^\/+/, '').replace(/\\/g, '/');
+      const nameBytes = utf8Bytes(cleanName);
+      const dataBytes = (f.data instanceof Uint8Array) ? f.data : utf8Bytes(String(f.data));
+      const crc = crc32(dataBytes);
+      const size = dataBytes.length;
+
+      const lfh = new Uint8Array(30 + nameBytes.length);
+      const lv = new DataView(lfh.buffer);
+      lv.setUint32(0, 0x04034b50, true);
+      lv.setUint16(4, 20, true);
+      lv.setUint16(6, 0x0800, true);
+      lv.setUint16(8, 0, true);
+      lv.setUint16(10, dosTime, true);
+      lv.setUint16(12, dosDate, true);
+      lv.setUint32(14, crc, true);
+      lv.setUint32(18, size, true);
+      lv.setUint32(22, size, true);
+      lv.setUint16(26, nameBytes.length, true);
+      lv.setUint16(28, 0, true);
+      lfh.set(nameBytes, 30);
+      localParts.push(lfh, dataBytes);
+
+      const cdh = new Uint8Array(46 + nameBytes.length);
+      const cv = new DataView(cdh.buffer);
+      cv.setUint32(0, 0x02014b50, true);
+      cv.setUint16(4, 20, true);
+      cv.setUint16(6, 20, true);
+      cv.setUint16(8, 0x0800, true);
+      cv.setUint16(10, 0, true);
+      cv.setUint16(12, dosTime, true);
+      cv.setUint16(14, dosDate, true);
+      cv.setUint32(16, crc, true);
+      cv.setUint32(20, size, true);
+      cv.setUint32(24, size, true);
+      cv.setUint16(28, nameBytes.length, true);
+      cv.setUint16(30, 0, true);
+      cv.setUint16(32, 0, true);
+      cv.setUint16(34, 0, true);
+      cv.setUint16(36, 0, true);
+      cv.setUint32(38, 0, true);
+      cv.setUint32(42, offset, true);
+      cdh.set(nameBytes, 46);
+
+      centralParts.push(cdh);
+      offset += lfh.length + dataBytes.length;
+    }
+
+    const centralSize = centralParts.reduce((s, p) => s + p.length, 0);
+    const eocd = new Uint8Array(22);
+    const ev = new DataView(eocd.buffer);
+    ev.setUint32(0, 0x06054b50, true);
+    ev.setUint16(4, 0, true);
+    ev.setUint16(6, 0, true);
+    ev.setUint16(8, files.length, true);
+    ev.setUint16(10, files.length, true);
+    ev.setUint32(12, centralSize, true);
+    ev.setUint32(16, offset, true);
+    ev.setUint16(20, 0, true);
+
+    return new Blob([...localParts, ...centralParts, eocd], { type: 'application/zip' });
+  }
+
+  function triggerDownload(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 1000);
+  }
+
+  // =========================================================================
+  // 2. GUID GENERATION & CODE-POINT UNICODE ESCAPING (\uXXXX & \U000XXXXX)
+  // =========================================================================
+  function generateCppGuid() {
+    const b = new Uint8Array(16);
+    crypto.getRandomValues(b);
+    b[6] = (b[6] & 0x0f) | 0x40;
+    b[8] = (b[8] & 0x3f) | 0x80;
+
+    const dv = new DataView(b.buffer);
+    const d1 = dv.getUint32(0, true).toString(16).padStart(8, '0');
+    const d2 = dv.getUint16(4, true).toString(16).padStart(4, '0');
+    const d3 = dv.getUint16(6, true).toString(16).padStart(4, '0');
+    const d4 = Array.from(b.slice(8)).map(v => '0x' + v.toString(16).padStart(2, '0')).join(', ');
+    return '{ 0x' + d1 + ', 0x' + d2 + ', 0x' + d3 + ', { ' + d4 + ' } }';
+  }
+
+  function toCppUnicodeLiteral(str) {
+    let out = '';
+    for (const ch of str) {
+      const cp = ch.codePointAt(0);
+      if (cp === 0x22) out += '\\"';
+      else if (cp === 0x5c) out += '\\\\';
+      else if (cp > 0xFFFF) out += '\\U' + cp.toString(16).padStart(8, '0').toUpperCase();
+      else if (cp >= 0x20 && cp <= 0x7e) out += ch;
+      else out += '\\u' + cp.toString(16).padStart(4, '0').toUpperCase();
+    }
+    return out;
+  }
+
+  // =========================================================================
+  // 3. STATE, 3 LOCAL FILE SLOTS & LOCALE DEFINITIONS
+  // =========================================================================
+  const MAX_LOCAL_FILES = 3;
+
+  const LOCALE_DEFS = {
+    'zh-HK': { code: 'zh-HK', macLang: 'zh-Hant-HK', script: 'Hant', lcid: '0x0C04', sublang: 'SUBLANG_CHINESE_HONGKONG', touchLayout: 'TKBL_OPT_TRADITIONAL_CHINESE_PHONETIC', label: '香港繁體中文 (zh-HK)' },
+    'zh-TW': { code: 'zh-TW', macLang: 'zh-Hant-TW', script: 'Hant', lcid: '0x0404', sublang: 'SUBLANG_CHINESE_TRADITIONAL', touchLayout: 'TKBL_OPT_TRADITIONAL_CHINESE_PHONETIC', label: '台灣繁體中文 (zh-TW)' },
+    'zh-MO': { code: 'zh-MO', macLang: 'zh-Hant-MO', script: 'Hant', lcid: '0x1404', sublang: 'SUBLANG_CHINESE_MACAU', touchLayout: 'TKBL_OPT_TRADITIONAL_CHINESE_PHONETIC', label: '澳門繁體中文 (zh-MO)' },
+    'zh-CN': { code: 'zh-CN', macLang: 'zh-Hans-CN', script: 'Hans', lcid: '0x0804', sublang: 'SUBLANG_CHINESE_SIMPLIFIED', touchLayout: 'TKBL_OPT_SIMPLIFIED_CHINESE_PINYIN', label: '簡體中文 (zh-CN)' },
+    'zh-SG': { code: 'zh-SG', macLang: 'zh-Hans-SG', script: 'Hans', lcid: '0x1004', sublang: 'SUBLANG_CHINESE_SINGAPORE', touchLayout: 'TKBL_OPT_SIMPLIFIED_CHINESE_PINYIN', label: '新加坡簡體中文 (zh-SG)' }
+  };
+
+  function createEmptySlot(idx) {
+    const hints = ['主碼表', '補充／香港字', '詞組／符號'];
+    return {
+      idx,
+      roleHint: hints[idx] || ('補充 ' + (idx + 1)),
+      enabled: true,
+      fileName: '',
+      fileSize: 0,
+      rawBytes: null,
+      decodedText: '',
+      encoding: 'auto',
+      usedEncoding: '',
+      fallbackNote: '',
+      delimiter: 'inherit',
+      order: 'inherit',
+      entryCount: 0
+    };
+  }
+
+  let fileSlots = [createEmptySlot(0), createEmptySlot(1), createEmptySlot(2)];
+  let parsedEntries = [];
+  let dedupedCount = 0;
+  let guidPool = [];
+  let uploadedSourceFiles = [];
+  let previewExpanded = false;
+
+  const el = {
+    multiDropzone: document.getElementById('multiDropzone'),
+    multiFileInput: document.getElementById('multiFileInput'),
+    slotsContainer: document.getElementById('slotsContainer'),
+    rawTxtInput: document.getElementById('rawTxtInput'),
+    delimiterSelect: document.getElementById('delimiterSelect'),
+    orderSelect: document.getElementById('orderSelect'),
+    caseSelect: document.getElementById('caseSelect'),
+    skipComments: document.getElementById('skipComments'),
+    stripQuotes: document.getElementById('stripQuotes'),
+    dedupeEntries: document.getElementById('dedupeEntries'),
+    entryCountBadge: document.getElementById('entryCountBadge'),
+    previewContainer: document.getElementById('previewContainer'),
+    previewTitle: document.getElementById('previewTitle'),
+    previewFilterSelect: document.getElementById('previewFilterSelect'),
+    togglePreviewMoreBtn: document.getElementById('togglePreviewMoreBtn'),
+    previewTbody: document.getElementById('previewTbody'),
+    loadSampleBtn: document.getElementById('loadSampleBtn'),
+    swapOrderBtn: document.getElementById('swapOrderBtn'),
+    clearAllSourcesBtn: document.getElementById('clearAllSourcesBtn'),
+
+    imeDisplayName: document.getElementById('imeDisplayName'),
+    imeTargetName: document.getElementById('imeTargetName'),
+    targetNameWarn: document.getElementById('targetNameWarn'),
+    fontSelect: document.getElementById('fontSelect'),
+    buildWin32: document.getElementById('buildWin32'),
+    staticCrt: document.getElementById('staticCrt'),
+    escapedNamePreview: document.getElementById('escapedNamePreview'),
+    dllNamePreview: document.getElementById('dllNamePreview'),
+    appNamePreview: document.getElementById('appNamePreview'),
+    guidPreviewBox: document.getElementById('guidPreviewBox'),
+    regenGuidsBtn: document.getElementById('regenGuidsBtn'),
+    localeSummaryHint: document.getElementById('localeSummaryHint'),
+    presetHkBtn: document.getElementById('presetHkBtn'),
+    presetTradBtn: document.getElementById('presetTradBtn'),
+    presetAllZhBtn: document.getElementById('presetAllZhBtn'),
+
+    downloadAllInOneKitBtn: document.getElementById('downloadAllInOneKitBtn'),
+    downloadWinCloudKitBtn: document.getElementById('downloadWinCloudKitBtn'),
+    downloadMacCloudKitBtn: document.getElementById('downloadMacCloudKitBtn'),
+    selectFolderBtn: document.getElementById('selectFolderBtn'),
+    sourceFolderInput: document.getElementById('sourceFolderInput'),
+    folderStatus: document.getElementById('folderStatus'),
+    patchLogBox: document.getElementById('patchLogBox'),
+    downloadPatchedSrcBtn: document.getElementById('downloadPatchedSrcBtn'),
+
+    downloadSampleTxtBtn: document.getElementById('downloadSampleTxtBtn'),
+    downloadCinBtn: document.getElementById('downloadCinBtn'),
+    downloadRimeZipBtn: document.getElementById('downloadRimeZipBtn'),
+    statusAlert: document.getElementById('statusAlert')
+  };
+
+  function showAlert(msg, type) {
+    el.statusAlert.className = 'alert ' + (type === 'warn' ? 'alert-warn' : 'alert-ok');
+    el.statusAlert.textContent = msg;
+    el.statusAlert.style.display = 'block';
+  }
+
+  function refreshGuids() {
+    guidPool = Array.from({ length: 16 }, () => generateCppGuid());
+    const labels = [
+      'SampleIMECLSID',
+      'SampleIMEGuidProfile',
+      'SampleIMEGuidImeModePreserveKey',
+      'SampleIMEGuidDoubleSingleBytePreserveKey',
+      'SampleIMEGuidPunctuationPreserveKey',
+      'SampleIMEGuidCompartmentDoubleSingleByte',
+      'SampleIMEGuidCompartmentPunctuation',
+      'SampleIMEGuidCandUIElement',
+      'SampleIMEGuidDisplayAttributeInput',
+      'SampleIMEGuidDisplayAttributeConverted',
+      'ExtraGUID_11',
+      'ExtraGUID_12',
+      'ExtraGUID_13',
+      'ExtraGUID_14',
+      'ExtraGUID_15',
+      'ExtraGUID_16'
+    ];
+    el.guidPreviewBox.textContent = labels.map((lbl, i) => '// ' + lbl + '\n' + guidPool[i] + ';').join('\n\n');
+  }
+
+  function getSelectedLocales() {
+    const checkboxes = Array.from(document.querySelectorAll('.locale-cb'));
+    const selected = checkboxes
+      .filter(cb => cb.checked)
+      .map(cb => LOCALE_DEFS[cb.value])
+      .filter(Boolean);
+    return selected.length > 0 ? selected : [LOCALE_DEFS['zh-HK']];
+  }
+
+  function syncLocaleChipStyles() {
+    document.querySelectorAll('.locale-chip').forEach(chip => {
+      const cb = chip.querySelector('input.locale-cb');
+      chip.classList.toggle('active', !!(cb && cb.checked));
+    });
+  }
+
+  function setSelectedLocaleCodes(codes) {
+    const set = new Set(codes);
+    document.querySelectorAll('.locale-cb').forEach(cb => {
+      cb.checked = set.has(cb.value);
+    });
+    syncLocaleChipStyles();
+    updateConfigPreviews();
+  }
+
+  function getConfig() {
+    const displayName = (el.imeDisplayName.value || '我的香港輸入法').trim();
+    const rawTarget = (el.imeTargetName.value || '').trim();
+    const sanitizedTarget = rawTarget.replace(/[^A-Za-z0-9_]/g, '');
+    const targetName = sanitizedTarget || 'MyHKIME';
+    const dictFileName = targetName + '.txt';
+
+    const selectedLocales = getSelectedLocales();
+    const primaryLocale = selectedLocales[0];
+    const extraLocales = selectedLocales.slice(1);
+    const scripts = Array.from(new Set(selectedLocales.map(l => l.script)));
+
+    const activeSources = [];
+    fileSlots.forEach((slot, i) => {
+      if (slot.rawBytes && slot.enabled) {
+        activeSources.push('檔案 ' + (i + 1) + '：' + slot.fileName + '（' + slot.entryCount + ' 筆）');
+      }
+    });
+    if ((el.rawTxtInput.value || '').trim().length > 0) {
+      activeSources.push('手動補充詞條');
+    }
+
+    return {
+      displayName,
+      escapedDisplayName: toCppUnicodeLiteral(displayName),
+      rawTarget,
+      targetName,
+      targetWasSanitized: rawTarget !== '' && rawTarget !== sanitizedTarget,
+      targetUsedFallback: rawTarget !== '' && sanitizedTarget === '',
+      dictFileName,
+      selectedLocales,
+      primaryLocale,
+      extraLocales,
+      scripts,
+      langSummary: selectedLocales.map(l => l.code).join('+'),
+      langLabels: selectedLocales.map(l => l.label).join('、'),
+      sourcesSummary: activeSources.length > 0 ? activeSources.join(' ＋ ') : '無',
+      fontName: el.fontSelect.value,
+      buildWin32: el.buildWin32.checked,
+      staticCrt: el.staticCrt.checked
+    };
+  }
+
+  function updateConfigPreviews() {
+    const cfg = getConfig();
+    el.escapedNamePreview.textContent = 'L"' + cfg.escapedDisplayName + '"';
+    el.dllNamePreview.textContent = cfg.targetName + '.dll';
+    el.appNamePreview.textContent = cfg.targetName + '.app';
+
+    if (cfg.targetUsedFallback) {
+      el.targetNameWarn.textContent = '⚠️ 英文代號不可為空或純中文，實際輸出將自動採用預設值 MyHKIME';
+      el.targetNameWarn.style.display = 'block';
+    } else if (cfg.targetWasSanitized) {
+      el.targetNameWarn.textContent = '⚠️ 已自動過濾非英數／底線字元，實際輸出檔名將使用：' + cfg.targetName;
+      el.targetNameWarn.style.display = 'block';
+    } else {
+      el.targetNameWarn.style.display = 'none';
+    }
+
+    el.localeSummaryHint.textContent =
+      '已選 ' + cfg.selectedLocales.length + ' 個語系：' + cfg.langLabels +
+      '（Windows 主語系 = ' + cfg.primaryLocale.sublang +
+      (cfg.extraLocales.length > 0 ? ' ＋ 額外掛載 ' + cfg.extraLocales.length + ' 個語系' : '') +
+      '；macOS 語系 = ' + cfg.primaryLocale.macLang + '）';
+  }
+
+  // =========================================================================
+  // 4. DECODING & MULTI-FILE PARSER (UP TO 3 LOCAL FILES + MANUAL)
+  // =========================================================================
+  function decodeBytes(bytes, selectedEnc) {
+    if (selectedEnc === 'big5' || selectedEnc === 'gbk') {
+      try {
+        return { text: new TextDecoder(selectedEnc).decode(bytes), usedEncoding: selectedEnc.toUpperCase(), fallbackNote: '' };
+      } catch (e) {
+        return {
+          text: new TextDecoder('utf-8').decode(bytes),
+          usedEncoding: 'UTF-8',
+          fallbackNote: '瀏覽器不支援 ' + selectedEnc.toUpperCase() + ' 解碼器，已改用 UTF-8。'
+        };
+      }
+    }
+
+    if (bytes.length >= 2 && bytes[0] === 0xFF && bytes[1] === 0xFE) {
+      return { text: new TextDecoder('utf-16le').decode(bytes.subarray(2)), usedEncoding: 'UTF-16 LE', fallbackNote: '' };
+    }
+    if (bytes.length >= 2 && bytes[0] === 0xFE && bytes[1] === 0xFF) {
+      return { text: new TextDecoder('utf-16be').decode(bytes.subarray(2)), usedEncoding: 'UTF-16 BE', fallbackNote: '' };
+    }
+
+    const utf8Text = new TextDecoder('utf-8').decode(bytes);
+    if (utf8Text.includes('\uFFFD')) {
+      try {
+        const big5Text = new TextDecoder('big5').decode(bytes);
+        if (!big5Text.includes('\uFFFD')) {
+          return { text: big5Text, usedEncoding: 'Big5 (自動)', fallbackNote: '偵測到非 UTF-8 位元組，本次自動以 Big5 解碼。' };
+        }
+      } catch (_) {}
+    }
+    return { text: utf8Text, usedEncoding: 'UTF-8', fallbackNote: '' };
+  }
+
+  function cleanToken(s, stripQuotes) {
+    let v = s.trim();
+    if (stripQuotes && v.length >= 2 && v.startsWith('"') && v.endsWith('"')) {
+      v = v.slice(1, -1);
+    }
+    return v;
+  }
+
+  function parseTextToEntries(text, delim, order, caseMode, skipComments, stripQuotes) {
+    const lines = (text || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+    const results = [];
+    let inCinKeynameSection = false;
+    const cinDirectives = /^%(gen_inp|ename|cname|selkey|keyname|chardef|encoding|space_style|keep_key_case|auto_compose|endkey)\b/i;
+
+    for (let rawLine of lines) {
+      const line = rawLine.trim();
+      if (!line) continue;
+
+      if (line.toLowerCase() === '%keyname begin') { inCinKeynameSection = true; continue; }
+      if (line.toLowerCase() === '%keyname end') { inCinKeynameSection = false; continue; }
+      if (inCinKeynameSection) continue;
+
+      if (skipComments && (
+        line.startsWith('#') || line.startsWith(';') || line.startsWith('//') ||
+        cinDirectives.test(line) || line === '---' || line === '...'
+      )) {
+        continue;
+      }
+
+      let parts = null;
+      if (delim === 'tab') {
+        parts = line.split('\t');
+      } else if (delim === 'space') {
+        parts = line.split(/\s+/);
+      } else if (delim === 'equal') {
+        const idx = line.indexOf('=');
+        if (idx > 0) parts = [line.slice(0, idx), line.slice(idx + 1)];
+      } else if (delim === 'comma') {
+        parts = line.split(',');
+      } else {
+        if (line.includes('\t')) {
+          parts = line.split('\t');
+        } else if (line.includes('=') && /^"?[^="]+"?\s*=\s*"?[^="]+"?$/.test(line)) {
+          const idx = line.indexOf('=');
+          parts = [line.slice(0, idx), line.slice(idx + 1)];
+        } else if (/\s+/.test(line)) {
+          parts = line.split(/\s+/);
+        } else if (line.includes(',')) {
+          parts = line.split(',');
+        }
+      }
+
+      if (!parts || parts.length < 2) continue;
+      const col1 = cleanToken(parts[0], stripQuotes);
+      const col2 = cleanToken(parts[1], stripQuotes);
+      if (!col1 || !col2) continue;
+
+      let code = (order === 'code_word') ? col1 : col2;
+      let word = (order === 'code_word') ? col2 : col1;
+
+      if (caseMode === 'lower') code = code.toLowerCase();
+      else if (caseMode === 'upper') code = code.toUpperCase();
+
+      results.push({ code, word });
+    }
+
+    return results;
+  }
+
+  function parseAndMergeAllSources() {
+    const globalDelim = el.delimiterSelect.value;
+    const globalOrder = el.orderSelect.value;
+    const caseMode = el.caseSelect.value;
+    const skipComments = el.skipComments.checked;
+    const stripQuotes = el.stripQuotes.checked;
+    const dedupe = el.dedupeEntries.checked;
+
+    const merged = [];
+    const seen = new Set();
+    let dupes = 0;
+
+    // 1. Parse up to 3 local file slots in priority order (Slot 0 -> Slot 1 -> Slot 2)
+    fileSlots.forEach((slot, i) => {
+      if (!slot.rawBytes) {
+        slot.entryCount = 0;
+        return;
+      }
+      const effDelim = (slot.delimiter === 'inherit') ? globalDelim : slot.delimiter;
+      const effOrder = (slot.order === 'inherit') ? globalOrder : slot.order;
+      const items = parseTextToEntries(slot.decodedText, effDelim, effOrder, caseMode, skipComments, stripQuotes);
+      slot.entryCount = items.length;
+
+      if (!slot.enabled) return;
+
+      const sourceKey = 'slot' + i;
+      const sourceLabel = '檔案 ' + (i + 1);
+      for (const it of items) {
+        if (dedupe) {
+          const k = it.code + '\u0000' + it.word;
+          if (seen.has(k)) { dupes++; continue; }
+          seen.add(k);
+        }
+        merged.push({ code: it.code, word: it.word, sourceKey, sourceLabel });
+      }
+    });
+
+    // 2. Parse optional manual textarea
+    const manualItems = parseTextToEntries(el.rawTxtInput.value || '', globalDelim, globalOrder, caseMode, skipComments, stripQuotes);
+    for (const it of manualItems) {
+      if (dedupe) {
+        const k = it.code + '\u0000' + it.word;
+        if (seen.has(k)) { dupes++; continue; }
+        seen.add(k);
+      }
+      merged.push({ code: it.code, word: it.word, sourceKey: 'manual', sourceLabel: '手動' });
+    }
+
+    parsedEntries = merged;
+    dedupedCount = dupes;
+    renderSlotsUI();
+    renderPreview();
+  }
+
+  function loadFileIntoSlot(slotIndex, file) {
+    return new Promise(resolve => {
+      if (!file || slotIndex < 0 || slotIndex >= MAX_LOCAL_FILES) { resolve(null); return; }
+      const reader = new FileReader();
+      reader.onload = () => {
+        const slot = fileSlots[slotIndex];
+        slot.rawBytes = new Uint8Array(reader.result);
+        slot.fileName = file.name;
+        slot.fileSize = file.size;
+        slot.enabled = true;
+        const decoded = decodeBytes(slot.rawBytes, slot.encoding);
+        slot.decodedText = decoded.text;
+        slot.usedEncoding = decoded.usedEncoding;
+        slot.fallbackNote = decoded.fallbackNote;
+        resolve(slot);
+      };
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
+  async function handleMultipleFilesSelected(fileList) {
+    const incoming = Array.from(fileList || []);
+    if (incoming.length === 0) return;
+
+    let truncatedMsg = '';
+    let filesToLoad = incoming;
+    if (incoming.length > MAX_LOCAL_FILES) {
+      filesToLoad = incoming.slice(0, MAX_LOCAL_FILES);
+      truncatedMsg = '（最多支援 3 個本機檔案，已自動取前 3 個）';
+    }
+
+    const warnings = [];
+    for (const file of filesToLoad) {
+      // Find first empty slot; if all 3 full, overwrite from slot 0 round-robin
+      let targetIdx = fileSlots.findIndex(s => !s.rawBytes);
+      if (targetIdx === -1) targetIdx = MAX_LOCAL_FILES - 1;
+      const slot = await loadFileIntoSlot(targetIdx, file);
+      if (slot && slot.fallbackNote) {
+        warnings.push('檔案 ' + (targetIdx + 1) + '：' + slot.fallbackNote);
+      }
+    }
+
+    parseAndMergeAllSources();
+    const loadedNum = fileSlots.filter(s => s.rawBytes).length;
+    const msg = '已載入 ' + loadedNum + ' / ' + MAX_LOCAL_FILES + ' 個本機檔案，合併總計 ' + parsedEntries.length.toLocaleString() + ' 筆詞條。' + truncatedMsg + (warnings.length ? ' ' + warnings.join(' ') : '');
+    showAlert(msg, (truncatedMsg || warnings.length) ? 'warn' : 'ok');
+  }
+
+  function renderSlotsUI() {
+    el.slotsContainer.innerHTML = '';
+
+    fileSlots.forEach((slot, i) => {
+      const card = document.createElement('div');
+      card.className = 'slot-card' + (slot.rawBytes ? ' loaded' : '') + (slot.rawBytes && !slot.enabled ? ' disabled-slot' : '');
+
+      const tagClass = i === 0 ? 'slot-tag' : (i === 1 ? 'slot-tag slot-2' : 'slot-tag slot-3');
+      const hiddenInput = document.createElement('input');
+      hiddenInput.type = 'file';
+      hiddenInput.accept = '.txt,.cin,.dict,.yaml,.csv,text/plain';
+      hiddenInput.style.display = 'none';
+      hiddenInput.addEventListener('change', async e => {
+        const f = e.target.files && e.target.files[0];
+        if (!f) return;
+        const updated = await loadFileIntoSlot(i, f);
+        parseAndMergeAllSources();
+        const msg = '已載入「' + updated.fileName + '」至檔案 ' + (i + 1) + '（' + updated.usedEncoding + '，' + updated.entryCount.toLocaleString() + ' 筆）。' + (updated.fallbackNote ? ' ' + updated.fallbackNote : '');
+        showAlert(msg, updated.fallbackNote ? 'warn' : 'ok');
+      });
+
+      const topRow = document.createElement('div');
+      topRow.className = 'slot-top';
+
+      const left = document.createElement('div');
+      left.className = 'slot-left';
+
+      if (slot.rawBytes) {
+        const enableCb = document.createElement('input');
+        enableCb.type = 'checkbox';
+        enableCb.checked = slot.enabled;
+        enableCb.title = '勾選以納入合併';
+        enableCb.style.width = '16px';
+        enableCb.style.height = '16px';
+        enableCb.style.cursor = 'pointer';
+        enableCb.addEventListener('change', () => {
+          slot.enabled = enableCb.checked;
+          parseAndMergeAllSources();
+        });
+        left.appendChild(enableCb);
+      }
+
+      const tagSpan = document.createElement('span');
+      tagSpan.className = tagClass;
+      tagSpan.textContent = '本機檔案 ' + (i + 1) + '・' + slot.roleHint;
+      left.appendChild(tagSpan);
+
+      if (slot.rawBytes) {
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'slot-filename';
+        nameSpan.textContent = slot.fileName + ' (' + formatBytes(slot.fileSize) + '・' + slot.usedEncoding + ')';
+        left.appendChild(nameSpan);
+
+        const countSpan = document.createElement('span');
+        countSpan.className = 'slot-count';
+        countSpan.textContent = slot.entryCount.toLocaleString() + ' 筆';
+        left.appendChild(countSpan);
+      } else {
+        const emptySpan = document.createElement('span');
+        emptySpan.className = 'slot-empty-text';
+        emptySpan.textContent = '尚未載入檔案（可選）';
+        left.appendChild(emptySpan);
+      }
+
+      const actions = document.createElement('div');
+      actions.className = 'slot-actions';
+
+      const pickBtn = document.createElement('button');
+      pickBtn.type = 'button';
+      pickBtn.className = 'btn btn-outline btn-xs';
+      pickBtn.textContent = slot.rawBytes ? '更換檔案' : '＋ 選擇本機檔案';
+      pickBtn.addEventListener('click', () => hiddenInput.click());
+      actions.appendChild(pickBtn);
+
+      if (slot.rawBytes) {
+        if (i > 0) {
+          const upBtn = document.createElement('button');
+          upBtn.type = 'button';
+          upBtn.className = 'btn btn-outline btn-xs';
+          upBtn.textContent = '↑ 提高優先';
+          upBtn.addEventListener('click', () => {
+            const tmp = fileSlots[i - 1];
+            fileSlots[i - 1] = fileSlots[i];
+            fileSlots[i] = tmp;
+            parseAndMergeAllSources();
+          });
+          actions.appendChild(upBtn);
+        }
+        if (i < MAX_LOCAL_FILES - 1) {
+          const dnBtn = document.createElement('button');
+          dnBtn.type = 'button';
+          dnBtn.className = 'btn btn-outline btn-xs';
+          dnBtn.textContent = '↓ 降低優先';
+          dnBtn.addEventListener('click', () => {
+            const tmp = fileSlots[i + 1];
+            fileSlots[i + 1] = fileSlots[i];
+            fileSlots[i] = tmp;
+            parseAndMergeAllSources();
+          });
+          actions.appendChild(dnBtn);
+        }
+
+        const rmBtn = document.createElement('button');
+        rmBtn.type = 'button';
+        rmBtn.className = 'btn btn-danger-outline btn-xs';
+        rmBtn.textContent = '✕ 移除';
+        rmBtn.addEventListener('click', () => {
+          fileSlots[i] = createEmptySlot(i);
+          parseAndMergeAllSources();
+        });
+        actions.appendChild(rmBtn);
+      }
+
+      topRow.appendChild(left);
+      topRow.appendChild(actions);
+      card.appendChild(topRow);
+      card.appendChild(hiddenInput);
+
+      // Per-file override controls when a file is loaded
+      if (slot.rawBytes) {
+        const ctrlRow = document.createElement('div');
+        ctrlRow.className = 'slot-controls';
+
+        // Encoding
+        const encDiv = document.createElement('div');
+        const encLbl = document.createElement('label');
+        encLbl.textContent = '此檔編碼';
+        const encSel = document.createElement('select');
+        [
+          ['auto', '自動 (UTF-8 / UTF-16)'],
+          ['big5', 'Big5（港台舊碼表）'],
+          ['gbk', 'GBK（簡體舊碼表）']
+        ].forEach(([val, txt]) => {
+          const opt = document.createElement('option');
+          opt.value = val;
+          opt.textContent = txt;
+          if (slot.encoding === val) opt.selected = true;
+          encSel.appendChild(opt);
+        });
+        encSel.addEventListener('change', () => {
+          slot.encoding = encSel.value;
+          const decoded = decodeBytes(slot.rawBytes, slot.encoding);
+          slot.decodedText = decoded.text;
+          slot.usedEncoding = decoded.usedEncoding;
+          slot.fallbackNote = decoded.fallbackNote;
+          parseAndMergeAllSources();
+          if (decoded.fallbackNote) showAlert('檔案 ' + (i + 1) + '：' + decoded.fallbackNote, 'warn');
+        });
+        encDiv.appendChild(encLbl);
+        encDiv.appendChild(encSel);
+
+        // Delimiter
+        const delDiv = document.createElement('div');
+        const delLbl = document.createElement('label');
+        delLbl.textContent = '此檔分隔符號';
+        const delSel = document.createElement('select');
+        [
+          ['inherit', '跟隨下方全域設定'],
+          ['auto', '自動偵測'],
+          ['tab', 'Tab 鍵 (\\t)'],
+          ['space', '空格'],
+          ['equal', '等號 (=)'],
+          ['comma', '逗號 (,)']
+        ].forEach(([val, txt]) => {
+          const opt = document.createElement('option');
+          opt.value = val;
+          opt.textContent = txt;
+          if (slot.delimiter === val) opt.selected = true;
+          delSel.appendChild(opt);
+        });
+        delSel.addEventListener('change', () => {
+          slot.delimiter = delSel.value;
+          parseAndMergeAllSources();
+        });
+        delDiv.appendChild(delLbl);
+        delDiv.appendChild(delSel);
+
+        // Order
+        const ordDiv = document.createElement('div');
+        const ordLbl = document.createElement('label');
+        ordLbl.textContent = '此檔欄位順序';
+        const ordSel = document.createElement('select');
+        [
+          ['inherit', '跟隨下方全域設定'],
+          ['code_word', '編碼在前，字詞在後'],
+          ['word_code', '字詞在前，編碼在後']
+        ].forEach(([val, txt]) => {
+          const opt = document.createElement('option');
+          opt.value = val;
+          opt.textContent = txt;
+          if (slot.order === val) opt.selected = true;
+          ordSel.appendChild(opt);
+        });
+        ordSel.addEventListener('change', () => {
+          slot.order = ordSel.value;
+          parseAndMergeAllSources();
+        });
+        ordDiv.appendChild(ordLbl);
+        ordDiv.appendChild(ordSel);
+
+        ctrlRow.appendChild(encDiv);
+        ctrlRow.appendChild(delDiv);
+        ctrlRow.appendChild(ordDiv);
+        card.appendChild(ctrlRow);
+      }
+
+      el.slotsContainer.appendChild(card);
+    });
+  }
+
+  function renderPreview() {
+    const loadedFilesCount = fileSlots.filter(s => s.rawBytes && s.enabled).length;
+
+    if (parsedEntries.length === 0) {
+      el.entryCountBadge.textContent = loadedFilesCount > 0 ? ('已載入 ' + loadedFilesCount + ' 檔（尚無有效詞條）') : '尚未載入有效碼表';
+      el.entryCountBadge.classList.remove('ready');
+      el.previewContainer.style.display = 'none';
+      return;
+    }
+
+    const dupeText = dedupedCount > 0 ? ('・去重 ' + dedupedCount.toLocaleString() + ' 筆') : '';
+    el.entryCountBadge.textContent =
+      (loadedFilesCount > 0 ? ('已啟用 ' + loadedFilesCount + ' 個本機檔｜') : '') +
+      '合併 ' + parsedEntries.length.toLocaleString() + ' 筆詞條' + dupeText;
+    el.entryCountBadge.classList.add('ready');
+    el.previewContainer.style.display = 'block';
+
+    const filterVal = el.previewFilterSelect.value;
+    const filtered = (filterVal === 'all')
+      ? parsedEntries
+      : parsedEntries.filter(it => it.sourceKey === filterVal);
+
+    const limit = previewExpanded ? 50 : 8;
+    const shownCount = Math.min(filtered.length, limit);
+    el.previewTitle.textContent = '合併結果預覽（顯示前 ' + shownCount + ' 筆，篩選共 ' + filtered.length.toLocaleString() + ' 筆）：';
+
+    if (filtered.length > 8) {
+      el.togglePreviewMoreBtn.style.display = 'inline-flex';
+      el.togglePreviewMoreBtn.textContent = previewExpanded ? '收起為前 8 筆' : '顯示更多（前 50 筆）';
+    } else {
+      el.togglePreviewMoreBtn.style.display = 'none';
+    }
+
+    const sample = filtered.slice(0, shownCount);
+    el.previewTbody.innerHTML = '';
+    const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    sample.forEach((item, idx) => {
+      const tr = document.createElement('tr');
+      const safeCode = item.code.replace(/"/g, '');
+      const safeWord = item.word.replace(/"/g, '');
+      const tagCls = item.sourceKey === 'slot0' ? 'slot-tag'
+        : (item.sourceKey === 'slot1' ? 'slot-tag slot-2'
+        : (item.sourceKey === 'slot2' ? 'slot-tag slot-3' : 'slot-tag slot-manual'));
+      tr.innerHTML =
+        '<td>' + (idx + 1) + '</td>' +
+        '<td><span class="' + tagCls + '">' + esc(item.sourceLabel) + '</span></td>' +
+        '<td><code>' + esc(item.code) + '</code></td>' +
+        '<td><strong>' + esc(item.word) + '</strong></td>' +
+        '<td><code>"' + esc(safeCode) + '"="' + esc(safeWord) + '"</code></td>';
+      el.previewTbody.appendChild(tr);
+    });
+  }
+
+  // =========================================================================
+  // 5. DICTIONARY EXPORTERS (SAMPLEIME / MACOS / CIN / RIME)
+  // =========================================================================
+  function buildSampleImeDictText() {
+    return parsedEntries
+      .map(e => '"' + e.code.replace(/"/g, '') + '"="' + e.word.replace(/"/g, '') + '"')
+      .join('\r\n') + '\r\n';
+  }
+
+  function buildMacOsDictText() {
+    return parsedEntries
+      .map(e => e.code.replace(/\t/g, '') + '\t' + e.word.replace(/\t/g, ''))
+      .join('\n') + '\n';
+  }
+
+  function buildCinResult(cfg) {
+    const keySet = new Set();
+    const countPerCode = new Map();
+    let maxCandidates = 0;
+
+    for (const e of parsedEntries) {
+      for (const ch of e.code) keySet.add(ch);
+      const nextCount = (countPerCode.get(e.code) || 0) + 1;
+      countPerCode.set(e.code, nextCount);
+      if (nextCount > maxCandidates) maxCandidates = nextCount;
+    }
+
+    const sortedKeys = Array.from(keySet).sort();
+    const lines = [
+      '%gen_inp',
+      '%ename ' + cfg.targetName,
+      '%cname ' + cfg.displayName,
+      '%selkey 1234567890',
+      '%keyname begin'
+    ];
+    for (const k of sortedKeys) {
+      lines.push(k + '\t' + k.toUpperCase());
+    }
+    lines.push('%keyname end');
+    lines.push('%chardef begin');
+    for (const e of parsedEntries) {
+      lines.push(e.code + '\t' + e.word);
+    }
+    lines.push('%chardef end');
+    return { text: lines.join('\n') + '\n', maxCandidates };
+  }
+
+  function buildRimeResult(cfg) {
+    const schemaId = cfg.targetName.toLowerCase();
+    const keySet = new Set();
+    let hasNonAsciiKey = false;
+    for (const e of parsedEntries) {
+      for (const ch of e.code) {
+        keySet.add(ch);
+        if (ch.codePointAt(0) > 0x7E) hasNonAsciiKey = true;
+      }
+    }
+    const alphabet = Array.from(keySet).sort().join('') || 'abcdefghijklmnopqrstuvwxyz';
+    const escapedAlphabet = alphabet.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+    const escapedName = cfg.displayName.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+
+    const dictYaml = [
+      '---',
+      'name: ' + schemaId,
+      'version: "1.0"',
+      'sort: original',
+      'use_preset_vocabulary: false',
+      '...',
+      ...parsedEntries.map(e => e.word + '\t' + e.code)
+    ].join('\n') + '\n';
+
+    const schemaYaml = [
+      'schema:',
+      '  schema_id: ' + schemaId,
+      '  name: "' + escapedName + '"',
+      '  version: "1.0"',
+      '',
+      'switches:',
+      '  - name: ascii_mode',
+      '    reset: 0',
+      '    states: [ 中文, 英文 ]',
+      '  - name: full_shape',
+      '    states: [ 半形, 全形 ]',
+      '',
+      'engine:',
+      '  processors:',
+      '    - ascii_composer',
+      '    - key_binder',
+      '    - speller',
+      '    - punctuator',
+      '    - selector',
+      '    - navigator',
+      '    - express_editor',
+      '  segmentors:',
+      '    - ascii_segmentor',
+      '    - abc_segmentor',
+      '    - punct_segmentor',
+      '    - fallback_segmentor',
+      '  translators:',
+      '    - punct_translator',
+      '    - table_translator',
+      '',
+      'speller:',
+      '  alphabet: "' + escapedAlphabet + '"',
+      '  delimiter: " \'"',
+      '',
+      'translator:',
+      '  dictionary: ' + schemaId,
+      '  enable_sentence: false',
+      '  enable_user_dict: true',
+      '  initial_quality: 1',
+      ''
+    ].join('\n');
+
+    const defaultCustomYaml = [
+      '# 若你的用戶資料夾已有 default.custom.yaml，只需把以下 schema 加入 schema_list 即可',
+      'patch:',
+      '  schema_list:',
+      '    - schema: ' + schemaId,
+      ''
+    ].join('\n');
+
+    return {
+      files: [
+        { name: schemaId + '.dict.yaml', data: dictYaml },
+        { name: schemaId + '.schema.yaml', data: schemaYaml },
+        { name: 'default.custom.yaml', data: defaultCustomYaml }
+      ],
+      hasNonAsciiKey
+    };
+  }
+
+  // =========================================================================
+  // 6. TEMPLATE-BASED GENERATORS (WINDOWS & MACOS WORKFLOWS)
+  // =========================================================================
+  function generatePatchPowerShell(cfg) {
+    const guidsPsArray = guidPool.map(g => "    '" + g + "'").join(',\n');
+    const extraSublangsArray = cfg.extraLocales.length > 0
+      ? cfg.extraLocales.map(l => "    '" + l.sublang + "'").join(',\n')
+      : '';
+    const staticCrtBlock = cfg.staticCrt
+      ? "$out = $out.Replace('<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>', '<RuntimeLibrary>MultiThreaded</RuntimeLibrary>')\n        if ($out -notmatch '<RuntimeLibrary>') { $out = [regex]::Replace($out, '(<ClCompile>)', { param($m) $m.Groups[1].Value + [Environment]::NewLine + '      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>' }) }"
+      : '# Keep default dynamic CRT';
+
+    return fillTemplate('tpl-patch-ps1', {
+      '__GUIDS_PS_ARRAY__': guidsPsArray,
+      '__EXTRA_SUBLANGS_PS_ARRAY__': extraSublangsArray,
+      '__ESCAPED_DISPLAY_NAME__': cfg.escapedDisplayName,
+      '__PRIMARY_SUBLANG__': cfg.primaryLocale.sublang,
+      '__TOUCH_LAYOUT__': cfg.primaryLocale.touchLayout,
+      '__FONT_NAME__': cfg.fontName,
+      '__DICT_FILENAME__': cfg.dictFileName,
+      '__TARGET_NAME__': cfg.targetName,
+      '__STATIC_CRT_BLOCK__': staticCrtBlock
+    });
+  }
+
+  function generateWinWorkflowYaml(cfg, useLocalRepoSource) {
+    const win32BuildBlock = cfg.buildWin32
+      ? fillTemplate('tpl-win32-step', { '__TARGET_NAME__': cfg.targetName })
+      : '\n';
+
+    return fillTemplate(useLocalRepoSource ? 'tpl-workflow-win-local' : 'tpl-workflow-win-cloud', {
+      '__TARGET_NAME__': cfg.targetName,
+      '__DICT_FILENAME__': cfg.dictFileName,
+      '__LANG_SUMMARY__': cfg.langSummary,
+      '__WIN32_BUILD_BLOCK__': win32BuildBlock
+    });
+  }
+
+  function generateInstallBat(cfg) {
+    return fillTemplate('tpl-install-bat', {
+      '__TARGET_NAME__': cfg.targetName,
+      '__DISPLAY_NAME__': cfg.displayName,
+      '__DICT_FILENAME__': cfg.dictFileName,
+      '__LANG_LABELS__': cfg.langLabels
+    }).replace(/\r?\n/g, '\r\n');
+  }
+
+  function generateUninstallBat(cfg) {
+    return fillTemplate('tpl-uninstall-bat', {
+      '__TARGET_NAME__': cfg.targetName,
+      '__DICT_FILENAME__': cfg.dictFileName
+    }).replace(/\r?\n/g, '\r\n');
+  }
+
+  function generateMacFiles(cfg) {
+    const repertoireItems = cfg.scripts.map(s => '        <string>' + s + '</string>').join('\n');
+    const swiftCode = fillTemplate('tpl-macos-swift', {
+      '__TARGET_NAME__': cfg.targetName
+    });
+    const plistXml = fillTemplate('tpl-macos-plist', {
+      '__TARGET_NAME__': cfg.targetName,
+      '__TARGET_NAME_LOWER__': cfg.targetName.toLowerCase(),
+      '__XML_DISPLAY_NAME__': escapeXml(cfg.displayName),
+      '__MAC_INTENDED_LANG__': cfg.primaryLocale.macLang,
+      '__MAC_REPERTOIRE_ITEMS__': repertoireItems
+    });
+    const macWorkflow = fillTemplate('tpl-workflow-mac-cloud', {
+      '__TARGET_NAME__': cfg.targetName
+    });
+    const macInstall = fillTemplate('tpl-macos-install-cmd', {
+      '__TARGET_NAME__': cfg.targetName,
+      '__DISPLAY_NAME__': cfg.displayName
+    });
+    const macUninstall = fillTemplate('tpl-macos-uninstall-cmd', {
+      '__TARGET_NAME__': cfg.targetName
+    });
+
+    return [
+      { name: '.github/workflows/build-macos-ime.yml', data: macWorkflow },
+      { name: 'macos/Sources/main.swift', data: swiftCode },
+      { name: 'macos/Info.plist', data: plistXml },
+      { name: 'macos/Resources/dictionary.txt', data: buildMacOsDictText() },
+      { name: 'macos/install_macos_ime.command', data: macInstall },
+      { name: 'macos/uninstall_macos_ime.command', data: macUninstall }
+    ];
+  }
+
+  function generateReadme(cfg, modeName) {
+    return fillTemplate('tpl-readme', {
+      '__DISPLAY_NAME__': cfg.displayName,
+      '__TARGET_NAME__': cfg.targetName,
+      '__MODE_NAME__': modeName,
+      '__SOURCES_SUMMARY__': cfg.sourcesSummary,
+      '__ENTRY_COUNT__': String(parsedEntries.length),
+      '__DEDUPE_STATUS__': el.dedupeEntries.checked ? ('已開啟，移除 ' + dedupedCount + ' 筆重複') : '未開啟',
+      '__LANG_LABELS__': cfg.langLabels,
+      '__PRIMARY_SUBLANG__': cfg.primaryLocale.sublang
+    });
+  }
+
+  // =========================================================================
+  // 7. LOCAL FOLDER IN-BROWSER PATCHING (WINDOWS SAMPLEIME)
+  // =========================================================================
+  async function patchLocalSourceAndDownload() {
+    parseAndMergeAllSources();
+    if (parsedEntries.length === 0) {
+      showAlert('請先在第 1 步載入本機碼表或貼上有效詞條！', 'warn');
+      return;
+    }
+    if (uploadedSourceFiles.length === 0) {
+      showAlert('請先選取本地的 SampleIME / cpp 源碼資料夾！', 'warn');
+      return;
+    }
+
+    const cfg = getConfig();
+    const logs = [];
+    const zipEntries = [];
+    let guidIdx = 0;
+
+    const paths = uploadedSourceFiles.map(f => (f.webkitRelativePath || f.name).replace(/\\/g, '/'));
+    const firstSeg = paths[0].split('/')[0];
+    const hasCommonRoot = paths.every(p => p.startsWith(firstSeg + '/'));
+
+    let dictAlreadyPlaced = false;
+    const dictBytes = utf16LeBomBytes(buildSampleImeDictText());
+
+    for (const file of uploadedSourceFiles) {
+      let relPath = (file.webkitRelativePath || file.name).replace(/\\/g, '/');
+      if (hasCommonRoot) relPath = relPath.slice(firstSeg.length + 1);
+      if (!relPath || relPath.includes('/.git/') || relPath.startsWith('.git/')) continue;
+
+      const baseName = relPath.split('/').pop();
+      const lowerBase = baseName.toLowerCase();
+
+      if (lowerBase === 'sampleimesimplifiedquanpin.txt') {
+        const dir = relPath.slice(0, relPath.length - baseName.length);
+        const replacedPath = dir + cfg.dictFileName;
+        if (!dictAlreadyPlaced) {
+          zipEntries.push({ name: replacedPath, data: dictBytes });
+          dictAlreadyPlaced = true;
+          logs.push('[REPLACE DICT] ' + relPath + ' -> ' + replacedPath + ' (UTF-16 LE BOM)');
+        }
+        continue;
+      }
+
+      const isPatchableText = [
+        'register.cpp', 'define.h', 'sampleime.cpp', 'globals.cpp',
+        'compositionprocessorengine.cpp', 'sampleime.def', 'sampleime.vcxproj'
+      ].includes(lowerBase);
+
+      if (isPatchableText) {
+        let text = await file.text();
+
+        if (lowerBase === 'register.cpp') {
+          let next = text.split('L"Sample IME"').join('L"' + cfg.escapedDisplayName + '"');
+          if (cfg.extraLocales.length > 0) {
+            let regBlock = '';
+            let unregBlock = '';
+            for (const loc of cfg.extraLocales) {
+              regBlock += '\r\n    if (SUCCEEDED(hr)) { hr = pITfInputProcessorProfileMgr->RegisterProfile(Global::SampleIMECLSID, MAKELANGID(LANG_CHINESE, ' + loc.sublang + '), Global::SampleIMEGuidProfile, TEXTSERVICE_DESC, static_cast<ULONG>(lenOfDesc), achIconFile, cchA, (UINT)TEXTSERVICE_ICON_INDEX, NULL, 0, TRUE, 0); }';
+              unregBlock += '\r\n    pITfInputProcessorProfileMgr->UnregisterProfile(Global::SampleIMECLSID, MAKELANGID(LANG_CHINESE, ' + loc.sublang + '), Global::SampleIMEGuidProfile, 0);';
+            }
+            next = next.replace(/(hr\s*=\s*pITfInputProcessorProfileMgr->RegisterProfile\([\s\S]*?\);)/, '$1' + regBlock);
+            next = next.replace(/(pITfInputProcessorProfileMgr->UnregisterProfile\([\s\S]*?\);)/, '$1' + unregBlock);
+          }
+          if (next !== text) {
+            text = next;
+            logs.push('[PATCH] ' + relPath + ' (名稱 -> ' + cfg.displayName + '；語系共 ' + cfg.selectedLocales.length + ' 組)');
+          }
+        } else if (lowerBase === 'define.h') {
+          const next = text.split('SUBLANG_CHINESE_SIMPLIFIED').join(cfg.primaryLocale.sublang);
+          if (next !== text) { text = next; logs.push('[PATCH] ' + relPath + ' (主語系 -> ' + cfg.primaryLocale.sublang + ')'); }
+        } else if (lowerBase === 'sampleime.cpp') {
+          const next = text.split('TKBL_OPT_SIMPLIFIED_CHINESE_PINYIN').join(cfg.primaryLocale.touchLayout);
+          if (next !== text) { text = next; logs.push('[PATCH] ' + relPath + ' (觸控鍵盤 -> ' + cfg.primaryLocale.touchLayout + ')'); }
+        } else if (lowerBase === 'globals.cpp') {
+          let replacedCount = 0;
+          const guidRegex = /^(\s*(?:extern\s+)?const\s+(?:CLSID|GUID)\s+SampleIME\w*\s*=\s*)\{\s*0x[0-9a-fA-F]+,\s*0x[0-9a-fA-F]+,\s*0x[0-9a-fA-F]+,\s*\{[^}]+\}\s*\};/gm;
+          let next = text.replace(guidRegex, (_, prefix) => {
+            const g = (guidIdx < guidPool.length) ? guidPool[guidIdx++] : generateCppGuid();
+            replacedCount++;
+            return prefix + g + ';';
+          });
+          next = next
+            .split('L"Microsoft YaHei"').join('L"' + cfg.fontName + '"')
+            .split('L"SimSun"').join('L"' + cfg.fontName + '"')
+            .split('L"MS Shell Dlg"').join('L"' + cfg.fontName + '"');
+          if (next !== text) {
+            text = next;
+            logs.push('[PATCH] ' + relPath + ' (替換 ' + replacedCount + ' 組 GUID + 字體 ' + cfg.fontName + ')');
+          }
+        } else if (lowerBase === 'compositionprocessorengine.cpp') {
+          const next = text.split('SampleIMESimplifiedQuanPin.txt').join(cfg.dictFileName);
+          if (next !== text) { text = next; logs.push('[PATCH] ' + relPath + ' (碼表檔名 -> ' + cfg.dictFileName + ')'); }
+        } else if (lowerBase === 'sampleime.def') {
+          const next = text.replace(/^LIBRARY\s+"?SampleIME"?/mi, 'LIBRARY "' + cfg.targetName + '"');
+          if (next !== text) { text = next; logs.push('[PATCH] ' + relPath + ' (更新 LIBRARY 宣告，實際 DLL 檔名由 TargetName 決定)'); }
+        } else if (lowerBase === 'sampleime.vcxproj') {
+          let next = text;
+          if (!/<TargetName>/i.test(next)) {
+            next = next.replace(/(<PropertyGroup[^>]*Label="Globals"[^>]*>)/i, '$1\r\n    <TargetName>' + cfg.targetName + '</TargetName>');
+          } else {
+            next = next.replace(/<TargetName>[^<]*<\/TargetName>/gi, '<TargetName>' + cfg.targetName + '</TargetName>');
+          }
+          next = next
+            .split('<WholeProgramOptimization>true</WholeProgramOptimization>').join('<WholeProgramOptimization>false</WholeProgramOptimization>')
+            .split('<OptimizeReferences>false</OptimizeReferences>').join('<OptimizeReferences>true</OptimizeReferences>')
+            .split('<EnableCOMDATFolding>false</EnableCOMDATFolding>').join('<EnableCOMDATFolding>true</EnableCOMDATFolding>')
+            .split('<TreatWarningAsError>true</TreatWarningAsError>').join('<TreatWarningAsError>false</TreatWarningAsError>')
+            .replace(/(<Link>)/gi, '$1\r\n      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>')
+            .replace(/(<ClCompile>)/gi, '$1\r\n      <AdditionalOptions>/utf-8 /WX- /wd4463 %(AdditionalOptions)</AdditionalOptions>');
+          if (cfg.staticCrt) {
+            if (/<RuntimeLibrary>/i.test(next)) {
+              next = next.split('<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>').join('<RuntimeLibrary>MultiThreaded</RuntimeLibrary>');
+            } else {
+              next = next.replace(/(<ClCompile>)/gi, '$1\r\n      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>');
+            }
+          }
+          if (next !== text) { text = next; logs.push('[PATCH] ' + relPath + ' (TargetName=' + cfg.targetName + ' + /utf-8)'); }
+        }
+
+        const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+        const body = utf8Bytes(text.replace(/^\uFEFF/, ''));
+        const combined = new Uint8Array(bom.length + body.length);
+        combined.set(bom, 0);
+        combined.set(body, bom.length);
+        zipEntries.push({ name: relPath, data: combined });
+      } else {
+        const buf = new Uint8Array(await file.arrayBuffer());
+        zipEntries.push({ name: relPath, data: buf });
+      }
+    }
+
+    if (!dictAlreadyPlaced) {
+      const fallbackPath = 'SampleIME/Dictionary/' + cfg.dictFileName;
+      zipEntries.push({ name: fallbackPath, data: dictBytes });
+      logs.push('[ADD DICT] ' + fallbackPath + ' (UTF-16 LE BOM)');
+    }
+
+    zipEntries.push({ name: '.github/workflows/build-windows-ime.yml', data: generateWinWorkflowYaml(cfg, true) });
+    zipEntries.push({ name: 'scripts/install_ime.bat', data: generateInstallBat(cfg) });
+    zipEntries.push({ name: 'scripts/uninstall_ime.bat', data: generateUninstallBat(cfg) });
+    zipEntries.push({ name: 'README.md', data: generateReadme(cfg, 'Windows 本地源碼已修補完整版') });
+
+    el.patchLogBox.textContent = logs.join('\n') || '已完成封裝（請確認選取的是包含 SampleIME 源碼的資料夾）。';
+    el.patchLogBox.style.display = 'block';
+
+    const blob = buildZipBlob(zipEntries);
+    triggerDownload(blob, cfg.targetName + '-Patched-WinRepo.zip');
+    showAlert('已成功修補並打包 ' + zipEntries.length + ' 個檔案！解壓後推上 GitHub 即可按 Run workflow 編譯。', 'ok');
+  }
+
+  // =========================================================================
+  // 8. EVENT LISTENERS
+  // =========================================================================
+  el.multiDropzone.addEventListener('click', () => el.multiFileInput.click());
+  el.multiFileInput.addEventListener('change', e => {
+    handleMultipleFilesSelected(e.target.files);
+    e.target.value = '';
+  });
+  el.multiDropzone.addEventListener('dragover', e => { e.preventDefault(); el.multiDropzone.classList.add('dragover'); });
+  el.multiDropzone.addEventListener('dragleave', () => el.multiDropzone.classList.remove('dragover'));
+  el.multiDropzone.addEventListener('drop', e => {
+    e.preventDefault();
+    el.multiDropzone.classList.remove('dragover');
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleMultipleFilesSelected(e.dataTransfer.files);
+    }
+  });
+
+  [el.rawTxtInput, el.delimiterSelect, el.orderSelect, el.caseSelect, el.skipComments, el.stripQuotes, el.dedupeEntries]
+    .forEach(node => node.addEventListener('input', parseAndMergeAllSources));
+  [el.delimiterSelect, el.orderSelect, el.caseSelect, el.skipComments, el.stripQuotes, el.dedupeEntries]
+    .forEach(node => node.addEventListener('change', parseAndMergeAllSources));
+
+  el.previewFilterSelect.addEventListener('change', renderPreview);
+  el.togglePreviewMoreBtn.addEventListener('click', () => {
+    previewExpanded = !previewExpanded;
+    renderPreview();
+  });
+
+  el.loadSampleBtn.addEventListener('click', () => {
+    el.rawTxtInput.value = [
+      '# 香港粵語與常用漢字範例碼表',
+      'a\t日',
+      'b\t月',
+      'ab\t明',
+      'hk\t香港',
+      'di\t啲',
+      'keoi\t佢',
+      'ge\t嘅',
+      'gam\t咁',
+      'cyun\t邨',
+      'lip\t𨋢'
+    ].join('\n');
+    parseAndMergeAllSources();
+  });
+
+  el.swapOrderBtn.addEventListener('click', () => {
+    el.orderSelect.value = (el.orderSelect.value === 'code_word') ? 'word_code' : 'code_word';
+    parseAndMergeAllSources();
+  });
+
+  el.clearAllSourcesBtn.addEventListener('click', () => {
+    fileSlots = [createEmptySlot(0), createEmptySlot(1), createEmptySlot(2)];
+    el.rawTxtInput.value = '';
+    el.previewFilterSelect.value = 'all';
+    parseAndMergeAllSources();
+    showAlert('已清空所有本機檔案槽位與手動詞條。', 'ok');
+  });
+
+  [el.imeDisplayName, el.imeTargetName, el.fontSelect].forEach(node => {
+    node.addEventListener('input', updateConfigPreviews);
+    node.addEventListener('change', updateConfigPreviews);
+  });
+
+  document.querySelectorAll('.locale-cb').forEach(cb => {
+    cb.addEventListener('change', () => {
+      if (document.querySelectorAll('.locale-cb:checked').length === 0) {
+        cb.checked = true;
+        showAlert('至少需要保留一個中文註冊語系！', 'warn');
+      }
+      syncLocaleChipStyles();
+      updateConfigPreviews();
+    });
+  });
+
+  el.presetHkBtn.addEventListener('click', () => setSelectedLocaleCodes(['zh-HK']));
+  el.presetTradBtn.addEventListener('click', () => setSelectedLocaleCodes(['zh-HK', 'zh-TW', 'zh-MO']));
+  el.presetAllZhBtn.addEventListener('click', () => setSelectedLocaleCodes(['zh-HK', 'zh-TW', 'zh-MO', 'zh-CN', 'zh-SG']));
+
+  el.regenGuidsBtn.addEventListener('click', () => {
+    refreshGuids();
+    showAlert('已重新生成全新 16 組不衝突的 Windows C++ GUID。', 'ok');
+  });
+
+  // HERO: 3-IN-1 ALL PLATFORM KIT
+  el.downloadAllInOneKitBtn.addEventListener('click', () => {
+    parseAndMergeAllSources();
+    if (parsedEntries.length === 0) {
+      showAlert('請先在第 1 步載入至少 1 個本機碼表或貼上有效詞條！', 'warn');
+      return;
+    }
+    const cfg = getConfig();
+    const cinRes = buildCinResult(cfg);
+    const rimeRes = buildRimeResult(cfg);
+
+    const files = [
+      // Windows Cloud Build
+      { name: '.github/workflows/build-windows-ime.yml', data: generateWinWorkflowYaml(cfg, false) },
+      { name: 'patch_sampleime.ps1', data: generatePatchPowerShell(cfg) },
+      { name: 'dictionary/' + cfg.dictFileName, data: utf16LeBomBytes(buildSampleImeDictText()) },
+      { name: 'scripts/install_ime.bat', data: generateInstallBat(cfg) },
+      { name: 'scripts/uninstall_ime.bat', data: generateUninstallBat(cfg) },
+      // macOS Cloud Build
+      ...generateMacFiles(cfg),
+      // Cross-platform ready tables
+      { name: 'cross-platform/' + cfg.targetName + '.cin', data: cinRes.text },
+      ...rimeRes.files.map(rf => ({ name: 'cross-platform/rime/' + rf.name, data: rf.data })),
+      { name: 'README.md', data: generateReadme(cfg, '三合一全平台包（Windows DLL ＋ macOS .app ＋ 跨平台碼表）') }
+    ];
+
+    const blob = buildZipBlob(files);
+    triggerDownload(blob, cfg.targetName + '-3in1-AllPlatform-Kit.zip');
+    showAlert('已匯出三合一全平台包「' + cfg.targetName + '-3in1-AllPlatform-Kit.zip」（含合併後 ' + parsedEntries.length.toLocaleString() + ' 筆詞條、Windows/macOS 雙雲端編譯腳本與 .cin / Rime 碼表）！', 'ok');
+  });
+
+  // WINDOWS CLOUD KIT ONLY
+  el.downloadWinCloudKitBtn.addEventListener('click', () => {
+    parseAndMergeAllSources();
+    if (parsedEntries.length === 0) {
+      showAlert('請先在第 1 步載入至少 1 個本機碼表或貼上有效詞條！', 'warn');
+      return;
+    }
+    const cfg = getConfig();
+    const files = [
+      { name: '.github/workflows/build-windows-ime.yml', data: generateWinWorkflowYaml(cfg, false) },
+      { name: 'patch_sampleime.ps1', data: generatePatchPowerShell(cfg) },
+      { name: 'dictionary/' + cfg.dictFileName, data: utf16LeBomBytes(buildSampleImeDictText()) },
+      { name: 'scripts/install_ime.bat', data: generateInstallBat(cfg) },
+      { name: 'scripts/uninstall_ime.bat', data: generateUninstallBat(cfg) },
+      { name: 'README.md', data: generateReadme(cfg, 'Windows 雲端自動編譯包') }
+    ];
+    const blob = buildZipBlob(files);
+    triggerDownload(blob, cfg.targetName + '-Windows-CloudBuild.zip');
+    showAlert('已匯出 Windows 雲端編譯包「' + cfg.targetName + '-Windows-CloudBuild.zip」！', 'ok');
+  });
+
+  // MACOS CLOUD KIT ONLY
+  el.downloadMacCloudKitBtn.addEventListener('click', () => {
+    parseAndMergeAllSources();
+    if (parsedEntries.length === 0) {
+      showAlert('請先在第 1 步載入至少 1 個本機碼表或貼上有效詞條！', 'warn');
+      return;
+    }
+    const cfg = getConfig();
+    const files = [
+      ...generateMacFiles(cfg),
+      { name: 'README.md', data: generateReadme(cfg, 'macOS Universal .app 雲端編譯包') }
+    ];
+    const blob = buildZipBlob(files);
+    triggerDownload(blob, cfg.targetName + '-macOS-CloudBuild.zip');
+    showAlert('已匯出 macOS 雲端編譯包「' + cfg.targetName + '-macOS-CloudBuild.zip」！推上 GitHub 後按 Run workflow 即可產出 Universal .app。', 'ok');
+  });
+
+  // LOCAL SAMPLEIME FOLDER PATCH
+  el.selectFolderBtn.addEventListener('click', () => el.sourceFolderInput.click());
+  el.sourceFolderInput.addEventListener('change', e => {
+    uploadedSourceFiles = Array.from(e.target.files || []);
+    if (uploadedSourceFiles.length > 0) {
+      const hasSln = uploadedSourceFiles.some(f => f.name.toLowerCase() === 'sampleime.sln');
+      const hasReg = uploadedSourceFiles.some(f => f.name.toLowerCase() === 'register.cpp');
+      el.folderStatus.textContent = '已載入 ' + uploadedSourceFiles.length + ' 個檔案' +
+        (hasSln && hasReg ? '（已偵測到 SampleIME.sln 與 Register.cpp ✓）' : '（⚠️ 未偵測到 SampleIME.sln，請確認選對 cpp 資料夾）');
+      el.downloadPatchedSrcBtn.disabled = false;
+    } else {
+      el.folderStatus.textContent = '尚未選取本地源碼資料夾';
+      el.downloadPatchedSrcBtn.disabled = true;
+    }
+  });
+  el.downloadPatchedSrcBtn.addEventListener('click', patchLocalSourceAndDownload);
+
+  // INDIVIDUAL MERGED TABLE EXPORTS
+  el.downloadSampleTxtBtn.addEventListener('click', () => {
+    parseAndMergeAllSources();
+    if (parsedEntries.length === 0) {
+      showAlert('請先在第 1 步載入至少 1 個本機碼表或貼上有效詞條！', 'warn');
+      return;
+    }
+    const cfg = getConfig();
+    const bytes = utf16LeBomBytes(buildSampleImeDictText());
+    triggerDownload(new Blob([bytes], { type: 'text/plain;charset=utf-16le' }), cfg.dictFileName);
+    showAlert('已匯出合併後的 SampleIME UTF-16 LE (BOM) 碼表：' + cfg.dictFileName, 'ok');
+  });
+
+  el.downloadCinBtn.addEventListener('click', () => {
+    parseAndMergeAllSources();
+    if (parsedEntries.length === 0) {
+      showAlert('請先在第 1 步載入至少 1 個本機碼表或貼上有效詞條！', 'warn');
+      return;
+    }
+    const cfg = getConfig();
+    const cinRes = buildCinResult(cfg);
+    triggerDownload(new Blob([cinRes.text], { type: 'text/plain;charset=utf-8' }), cfg.targetName + '.cin');
+    if (cinRes.maxCandidates > 10) {
+      showAlert('已匯出 ' + cfg.targetName + '.cin（提示：同碼最多有 ' + cinRes.maxCandidates + ' 個重碼字，超過 10 鍵選字上限，打字時需按翻頁鍵選字）。', 'warn');
+    } else {
+      showAlert('已匯出合併後的 .cin 碼表（' + cfg.targetName + '.cin），可直接拖入 macOS ~/Library/Input Methods/ 或匯入 DIME / 萊姆！', 'ok');
+    }
+  });
+
+  el.downloadRimeZipBtn.addEventListener('click', () => {
+    parseAndMergeAllSources();
+    if (parsedEntries.length === 0) {
+      showAlert('請先在第 1 步載入至少 1 個本機碼表或貼上有效詞條！', 'warn');
+      return;
+    }
+    const cfg = getConfig();
+    const rimeRes = buildRimeResult(cfg);
+    const blob = buildZipBlob(rimeRes.files);
+    triggerDownload(blob, cfg.targetName + '-Rime.zip');
+    if (rimeRes.hasNonAsciiKey) {
+      showAlert('已匯出 ' + cfg.targetName + '-Rime.zip（注意：偵測到非標準 ASCII 編碼字元，若 Rime 部署異常請檢查 speller/alphabet）。', 'warn');
+    } else {
+      showAlert('已匯出合併後的 Rime 設定包（' + cfg.targetName + '-Rime.zip），適用於小狼毫、鼠鬚管、Fcitx5、同文、元書！', 'ok');
+    }
+  });
+
+  refreshGuids();
+  syncLocaleChipStyles();
+  renderSlotsUI();
+  updateConfigPreviews();
+})();
+</script>
+</body>
+</html>
