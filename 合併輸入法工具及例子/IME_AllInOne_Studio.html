@@ -296,6 +296,78 @@
       cursor: pointer;
     }
 
+    /* Icon Generator Box */
+    .icon-box {
+      margin-top: 14px;
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #f8fafc;
+    }
+    .icon-studio-grid {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 16px;
+      align-items: center;
+      margin-top: 10px;
+    }
+    @media (max-width: 680px) {
+      .icon-studio-grid { grid-template-columns: 1fr; }
+    }
+    .icon-controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+      gap: 10px 12px;
+    }
+    .icon-preview-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      min-width: 195px;
+    }
+    .icon-preview-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .icon-bg-light {
+      padding: 8px;
+      border-radius: 8px;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .icon-bg-dark {
+      padding: 8px;
+      border-radius: 8px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .color-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .color-row input[type="color"] {
+      width: 38px;
+      height: 34px;
+      padding: 2px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      background: #fff;
+      cursor: pointer;
+    }
+
     /* Locale selector cards */
     .locale-box {
       margin-top: 14px;
@@ -509,16 +581,16 @@
       </div>
 
       <div id="multiDropzone" class="dropzone">
-        <strong>點擊一次選取或拖放 1～3 個本機碼表檔（.txt / .cin / .yaml / .csv）</strong>
+        <strong>點擊一次選取或拖放 1～3 個本機碼表檔（.txt / .tt / .cin / .yaml / .csv）</strong>
         <span>可混合載入不同編碼（UTF-8 / UTF-16 / Big5 / GBK）及不同欄位順序，系統會按「檔案 1 → 檔案 2 → 檔案 3」優先順序自動合併</span>
-        <input type="file" id="multiFileInput" accept=".txt,.cin,.dict,.yaml,.csv,text/plain" multiple style="display:none" />
+        <input type="file" id="multiFileInput" accept=".txt,.tt,.cin,.dict,.yaml,.csv,text/plain" multiple style="display:none" />
       </div>
 
       <!-- 3 LOCAL FILE SLOTS -->
       <div id="slotsContainer" class="slots-list"></div>
 
       <!-- GLOBAL PARSE OPTIONS -->
-      <div class="grid-3" style="margin-bottom: 10px;">
+      <div class="grid-2" style="margin-bottom: 10px;">
         <div>
           <label class="field-label" for="delimiterSelect">預設欄位分隔符號</label>
           <select id="delimiterSelect">
@@ -532,7 +604,8 @@
         <div>
           <label class="field-label" for="orderSelect">預設欄位順序</label>
           <select id="orderSelect">
-            <option value="code_word" selected>編碼 在前，字詞 在後（如：a 日）</option>
+            <option value="auto" selected>自動辨識（依字元特徵判斷編碼／字詞）</option>
+            <option value="code_word">編碼 在前，字詞 在後（如：a 日）</option>
             <option value="word_code">字詞 在前，編碼 在後（如：日 a）</option>
           </select>
         </div>
@@ -542,6 +615,15 @@
             <option value="lower" selected>全部轉小寫（SampleIME / macOS 推薦）</option>
             <option value="keep">保持原樣</option>
             <option value="upper">全部轉大寫</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-label" for="extraTokenSelect">單行超過 2 欄時處理方式（含空格詞組／多欄）</label>
+          <select id="extraTokenSelect">
+            <option value="drop" selected>僅取前 2 欄（丟棄餘欄並顯示警告）</option>
+            <option value="merge_word">併入字詞欄（適合：編碼 英文 短語）</option>
+            <option value="merge_code">併入編碼欄（適合：ni hao 你好）</option>
+            <option value="pairs">一行多筆・兩兩成對（適合：a 日 b 月）</option>
           </select>
         </div>
       </div>
@@ -566,9 +648,12 @@
       <textarea id="rawTxtInput" placeholder="可留空，或直接貼上額外補充詞條（例如：&#10;hk	香港&#10;lip	𨋢）"></textarea>
       <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
         <button class="btn btn-outline btn-sm" id="loadSampleBtn" type="button">填入香港字測試範例</button>
-        <button class="btn btn-outline btn-sm" id="swapOrderBtn" type="button">快速對調全域「編碼／字詞」順序</button>
+        <button class="btn btn-outline btn-sm" id="swapOrderBtn" type="button">對調全域預設順序（個別檔案覆寫不受影響）</button>
         <button class="btn btn-danger-outline btn-sm" id="clearAllSourcesBtn" type="button">清空全部本機檔案與手動詞條</button>
       </div>
+
+      <!-- TRUNCATION / PARSE WARNING -->
+      <div id="parseWarnBox" class="alert alert-warn" style="display:none; margin-top:12px;"></div>
 
       <!-- PREVIEW TABLE -->
       <div id="previewContainer" style="margin-top: 14px; display:none;">
@@ -662,6 +747,114 @@
           </label>
         </div>
         <div id="localeSummaryHint" class="hint" style="margin-top:8px;"></div>
+        <div class="hint" style="margin-top:4px; color:#b45309;">⚠️ 提示：每多勾選 1 個語系，Windows 切換清單就會多顯示 1 個同名項目（建議只勾選單一常用語系）；另 zh-MO / zh-SG 需 Windows 10 以上才完整支援。</div>
+      </div>
+
+      <div class="grid-2" style="margin-top: 14px;">
+        <div>
+          <label class="field-label" for="spaceBehaviorSelect">空白鍵（Space）行為設定（Windows / macOS / Rime 同步套用）</label>
+          <select id="spaceBehaviorSelect">
+            <option value="commit" selected>預設：Space 上屏第 1 個候選字（PageDown / PageUp 翻頁）</option>
+            <option value="page_down">港式翻頁：Space 向下翻頁（改按數字鍵 1–9 選字上屏）</option>
+          </select>
+          <div class="hint" id="spaceBehaviorHint">Windows SampleIME 預設由 PageDown / PageUp 翻頁；若習慣按空白鍵翻頁請選第二項。</div>
+        </div>
+        <div>
+          <label class="field-label" for="candSizeSelect">選字框高度與字體（10 字 [1–9, 0] 專用加高・不加寬）</label>
+          <select id="candSizeSelect">
+            <option value="comfortable" selected>舒適加高（推薦：字體 18px・行距 +8px・高度冗餘 +64px・不加寬）</option>
+            <option value="large">特大加高（2K/4K 螢幕：字體 22px・行距 +10px・高度冗餘 +84px・不加寬）</option>
+            <option value="compact">標準加高（字體 15px・行距 +6px・高度冗餘 +48px・不加寬）</option>
+            <option value="original">維持微軟 SampleIME 原版預設尺寸（不調整）</option>
+          </select>
+          <div class="hint" id="candSizeHint">只加高列距與視窗底部冗餘，保持原本寬度，確保每頁 10 個字 [1–9, 0] 完整顯示。</div>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top: 12px;">
+        <div>
+          <label class="field-label" for="candLayoutSelect">候選字排列方向（直排／橫排）</label>
+          <select id="candLayoutSelect">
+            <option value="vertical" selected>直排（預設・全平台相容）</option>
+            <option value="horizontal">橫排（套用於 macOS .app 及 Rime；Windows SampleIME 維持直排）</option>
+          </select>
+          <div class="hint" id="candLayoutHint">macOS 原生與 Rime（小狼毫／鼠鬚管）支援一鍵橫排；微軟 SampleIME C++ 核心固定為直排。</div>
+        </div>
+        <div style="display:flex; align-items:flex-end;">
+          <div class="hint" style="background:#f8fafc; border:1px solid var(--border); border-radius:8px; padding:9px 12px; width:100%;">
+            <strong>重裝防重複提醒：</strong>若日後修改碼表或設定後重新編譯安裝，請先以管理員執行舊版的 <code>uninstall_ime.bat</code> 取消註冊，避免系統語言清單出現多個重複輸入法。
+          </div>
+        </div>
+      </div>
+
+
+
+      <!-- TEXT-TO-ICON GENERATOR -->
+      <div class="icon-box">
+        <div class="locale-header" style="margin-bottom:6px;">
+          <label class="checkbox-item" style="font-weight:600; color:#334155;">
+            <input type="checkbox" id="enableCustomIcon" checked />
+            啟用自訂文字圖示（離線自動生成 Windows .ico 與 macOS .png）
+          </label>
+          <div class="locale-presets">
+            <button type="button" class="btn btn-outline btn-xs" id="downloadIcoBtn">⬇️ 單獨下載 .ico</button>
+            <button type="button" class="btn btn-outline btn-xs" id="downloadPngBtn">⬇️ 單獨下載 .png</button>
+          </div>
+        </div>
+
+        <div id="iconStudioBody" class="icon-studio-grid">
+          <div class="icon-controls">
+            <div>
+              <label class="field-label" for="iconTextInput">圖示文字（1–2 字）</label>
+              <input type="text" id="iconTextInput" value="粵" maxlength="2" />
+            </div>
+            <div>
+              <label class="field-label" for="iconShapeSelect">外框形狀</label>
+              <select id="iconShapeSelect">
+                <option value="rounded" selected>圓角方塊（Win11 風格）</option>
+                <option value="square">直角正方形</option>
+                <option value="circle">圓形徽章</option>
+                <option value="transparent">透明無底色（純文字）</option>
+              </select>
+            </div>
+            <div>
+              <label class="field-label" for="iconBgColor">背景色</label>
+              <div class="color-row">
+                <input type="color" id="iconBgColor" value="#2563eb" />
+                <select id="iconColorPreset" style="padding:6px 8px; font-size:0.8rem;">
+                  <option value="">快速配色...</option>
+                  <option value="#2563eb|#ffffff">經典藍底白字</option>
+                  <option value="#0f766e|#ffffff">香港翡翠綠</option>
+                  <option value="#dc2626|#ffffff">醒目紅底白字</option>
+                  <option value="#1e293b|#ffffff">深灰黑底白字</option>
+                  <option value="#ffffff|#1e293b">簡約白底黑字</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label class="field-label" for="iconTextColor">文字顏色</label>
+              <div class="color-row">
+                <input type="color" id="iconTextColor" value="#ffffff" />
+                <span class="hint" style="margin:0;">建議高對比色</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="icon-preview-panel">
+            <div style="font-size:0.78rem; font-weight:600; color:#475569;">工作列即時預覽（48px / 16px）</div>
+            <div class="icon-preview-row">
+              <div class="icon-bg-light" title="淺色工作列預覽">
+                <canvas id="iconPrev48Light" width="48" height="48" style="width:40px;height:40px;"></canvas>
+                <canvas id="iconPrev16Light" width="16" height="16" style="width:16px;height:16px;"></canvas>
+              </div>
+              <div class="icon-bg-dark" title="深色工作列預覽">
+                <canvas id="iconPrev48Dark" width="48" height="48" style="width:40px;height:40px;"></canvas>
+                <canvas id="iconPrev16Dark" width="16" height="16" style="width:16px;height:16px;"></canvas>
+              </div>
+            </div>
+            <div class="hint" style="margin:0; text-align:center; font-size:0.74rem;">實際輸出為單一圖示；建議填 1 字並確認深／淺色工作列皆清晰</div>
+          </div>
+        </div>
       </div>
 
       <div class="checkbox-row">
@@ -676,7 +869,7 @@
       </div>
 
       <details>
-        <summary>查看自動生成的 16 組全新 Windows C++ GUID（已防止與原版 SampleIME 衝突）</summary>
+        <summary>查看預備的 16 組全新 Windows C++ GUID（實際替換數量依 SampleIME 源碼常數而定，通常約 10–12 組）</summary>
         <div id="guidPreviewBox" class="code-box"></div>
       </details>
     </section>
@@ -923,6 +1116,10 @@ Get-ChildItem -Path $SourceDir -Recurse -Filter 'SampleIME.vcxproj' | ForEach-Ob
     }
 }
 
+__SPACE_KEY_PATCH_BLOCK__
+
+__CAND_WINDOW_PATCH_BLOCK__
+
 Write-Host "=== Patch Complete ==="
 </script>
 
@@ -963,6 +1160,13 @@ jobs:
           $dictTargetDir = Join-Path $env:SLN_DIR "SampleIME\Dictionary"
           if (-not (Test-Path $dictTargetDir)) { New-Item -ItemType Directory -Force -Path $dictTargetDir | Out-Null }
           Copy-Item -Force "./dictionary/__DICT_FILENAME__" (Join-Path $dictTargetDir "__DICT_FILENAME__")
+          if (Test-Path "./assets/ime.ico") {
+            $imgDir = Join-Path $env:SLN_DIR "SampleIME\image"
+            if (Test-Path $imgDir) {
+              Copy-Item -Force "./assets/ime.ico" (Join-Path $imgDir "SampleIME.ico")
+              Write-Host "[ICON] Replaced SampleIME.ico with custom assets/ime.ico"
+            }
+          }
 
       - name: Build 64-bit (x64) Release DLL
         shell: pwsh
@@ -1064,46 +1268,56 @@ __WIN32_BUILD_BLOCK__
 <script type="text/plain" id="tpl-install-bat">@echo off
 chcp 65001 >nul
 net session >nul 2>&1
-if %errorLevel% neq 0 (
-    echo [錯誤] 請在此檔案上按右鍵，選擇「以系統管理員身分執行」！
-    pause
-    exit /b 1
-)
+if errorlevel 1 goto :need_admin
 
 set "BASE=%~dp0"
-set "DST64=%ProgramFiles%\__TARGET_NAME__"
+set "NAME=__TARGET_NAME__"
+set "DST64=%ProgramFiles%\%NAME%"
 
 echo 正在檢查系統已啟用的中文語系...
 reg query "HKCU\Control Panel\International\User Profile" /v Languages 2>nul | findstr /I "zh-" >nul
-if %errorLevel% neq 0 (
-    echo [提示] 偵測到目前帳戶可能尚未在 Windows「設定 -＞ 時間與語言 -＞ 語言與地區」加入中文語系。
-    echo        若註冊後按 Win+Space 未見輸入法，請先在 Windows 設定新增「__LANG_LABELS__」。
-    echo.
-)
+if not errorlevel 1 goto :install_x64
+echo [提示] 偵測到目前帳戶可能尚未在 Windows「設定 → 時間與語言 → 語言與地區」加入中文語系。
+echo        若註冊後按 Win+Space 未見輸入法，請先在 Windows 設定新增「__LANG_LABELS__」。
+echo.
 
-echo 正在安裝 __TARGET_NAME__ (64位元)...
+:install_x64
+if not exist "%BASE%x64\%NAME%.dll" goto :no_dll
+echo 正在安裝 %NAME% [64位元]...
 if not exist "%DST64%" mkdir "%DST64%"
-copy /Y "%BASE%x64\__TARGET_NAME__.dll" "%DST64%\" >nul
-copy /Y "%BASE%x64\__DICT_FILENAME__" "%DST64%\" >nul
-regsvr32 "%DST64%\__TARGET_NAME__.dll"
-if %errorLevel% neq 0 (
-    echo [警告] 64 位元 DLL 註冊回傳非零代碼，請確認架構相符及檔案未被防毒軟體攔截。
-)
+copy /Y "%BASE%x64\%NAME%.dll" "%DST64%\"
+copy /Y "%BASE%x64\__DICT_FILENAME__" "%DST64%\"
+regsvr32 "%DST64%\%NAME%.dll"
+if errorlevel 1 echo [警告] 64 位元 DLL 註冊回傳非零代碼，請確認架構相符、檔案未被防毒軟體攔截，或重新登入 Windows 讓 TSF 重新掃描。
 
-if defined ProgramFiles(x86) (
-    if exist "%BASE%x86\__TARGET_NAME__.dll" (
-        echo 正在安裝 __TARGET_NAME__ (32位元支援)...
-        if not exist "%ProgramFiles(x86)%\__TARGET_NAME__" mkdir "%ProgramFiles(x86)%\__TARGET_NAME__"
-        copy /Y "%BASE%x86\__TARGET_NAME__.dll" "%ProgramFiles(x86)%\__TARGET_NAME__\" >nul
-        copy /Y "%BASE%x86\__DICT_FILENAME__" "%ProgramFiles(x86)%\__TARGET_NAME__\" >nul
-        "%SystemRoot%\SysWOW64\regsvr32.exe" "%ProgramFiles(x86)%\__TARGET_NAME__\__TARGET_NAME__.dll"
-    )
-)
+:install_x86
+if "%ProgramFiles(x86)%"=="" goto :done
+if not exist "%BASE%x86\%NAME%.dll" goto :done
+set "DST86=%ProgramFiles(x86)%\%NAME%"
+echo 正在安裝 %NAME% [32位元支援]...
+if not exist "%DST86%" mkdir "%DST86%"
+copy /Y "%BASE%x86\%NAME%.dll" "%DST86%\"
+copy /Y "%BASE%x86\__DICT_FILENAME__" "%DST86%\"
+"%SystemRoot%\SysWOW64\regsvr32.exe" "%DST86%\%NAME%.dll"
+goto :done
 
+:need_admin
+echo [錯誤] 請在此檔案上按右鍵，選擇「以系統管理員身分執行」！
+pause
+exit /b 1
+
+:no_dll
+echo [錯誤] 找不到 x64\%NAME%.dll，請確認已完整解壓縮 ZIP 後再執行。
+pause
+exit /b 1
+
+:done
 echo.
 echo ============================================================
 echo 註冊程序已執行！已掛載語系：__LANG_LABELS__
-echo 1. 按 Win + Space 即可切換到「__DISPLAY_NAME__」（按 Shift 切換中/英）。
+echo 檔案位置：%DST64%
+echo 1. 按 Win + Space 即可切換到「__DISPLAY_NAME__」
+echo    （Shift 切換中/英；空白鍵模式：__SPACE_MODE_LABEL__）
 echo 2. 若語言列未即時更新，請重新登入 Windows 或執行 ctfmon.exe。
 echo ============================================================
 pause
@@ -1112,38 +1326,138 @@ pause
 <script type="text/plain" id="tpl-uninstall-bat">@echo off
 chcp 65001 >nul
 net session >nul 2>&1
-if %errorLevel% neq 0 (
-    echo [錯誤] 請在此檔案上按右鍵，選擇「以系統管理員身分執行」！
-    pause
-    exit /b 1
-)
+if errorlevel 1 goto :need_admin
 
-set "DST64=%ProgramFiles%\__TARGET_NAME__"
+set "NAME=__TARGET_NAME__"
+set "DST64=%ProgramFiles%\%NAME%"
 
-if exist "%DST64%\__TARGET_NAME__.dll" (
-    echo 正在取消註冊 64 位元輸入法...
-    regsvr32 /u "%DST64%\__TARGET_NAME__.dll"
-    del /F /Q "%DST64%\__DICT_FILENAME__" >nul 2>&1
-    del /F /Q "%DST64%\__TARGET_NAME__.dll" >nul 2>&1
-    rmdir "%DST64%" >nul 2>&1
-)
+if not exist "%DST64%\%NAME%.dll" goto :unreg_x86
+echo 正在取消註冊 64 位元輸入法...
+regsvr32 /u "%DST64%\%NAME%.dll"
+del /F /Q "%DST64%\__DICT_FILENAME__" >nul 2>&1
+del /F /Q "%DST64%\%NAME%.dll" >nul 2>&1
+rmdir "%DST64%" >nul 2>&1
 
-if defined ProgramFiles(x86) (
-    if exist "%ProgramFiles(x86)%\__TARGET_NAME__\__TARGET_NAME__.dll" (
-        echo 正在取消註冊 32 位元輸入法...
-        "%SystemRoot%\SysWOW64\regsvr32.exe" /u "%ProgramFiles(x86)%\__TARGET_NAME__\__TARGET_NAME__.dll"
-        del /F /Q "%ProgramFiles(x86)%\__TARGET_NAME__\__DICT_FILENAME__" >nul 2>&1
-        del /F /Q "%ProgramFiles(x86)%\__TARGET_NAME__\__TARGET_NAME__.dll" >nul 2>&1
-        rmdir "%ProgramFiles(x86)%\__TARGET_NAME__" >nul 2>&1
-    )
-)
+:unreg_x86
+if "%ProgramFiles(x86)%"=="" goto :done
+set "DST86=%ProgramFiles(x86)%\%NAME%"
+if not exist "%DST86%\%NAME%.dll" goto :done
+echo 正在取消註冊 32 位元輸入法...
+"%SystemRoot%\SysWOW64\regsvr32.exe" /u "%DST86%\%NAME%.dll"
+del /F /Q "%DST86%\__DICT_FILENAME__" >nul 2>&1
+del /F /Q "%DST86%\%NAME%.dll" >nul 2>&1
+rmdir "%DST86%" >nul 2>&1
+goto :done
 
+:need_admin
+echo [錯誤] 請在此檔案上按右鍵，選擇「以系統管理員身分執行」！
+pause
+exit /b 1
+
+:done
 echo.
 echo ============================================================
 echo 解除安裝程序已執行完畢。
 echo 若因系統正在使用而殘留資料夾，請重新登入或重開機後刪除即可。
 echo ============================================================
 pause
+</script>
+
+
+<script type="text/plain" id="tpl-ps1-space-pagedown"># 8. Remap case VK_SPACE Function -> PageDown（COMPOSING / CANDIDATE / PHRASE 四個分支全部覆蓋）
+#    依官方源碼實證：各分支的 VK_NEXT 本來就是「同 Category + MOVE_PAGE_DOWN」且運作正常，
+#    故僅需改 Function，Category 維持原樣即可翻頁（COMPOSING / PHRASE handler 均支援翻頁）。
+Write-Host "=== Patching case VK_SPACE Function -> PageDown ==="
+$script:totalSpacePatched = 0
+Get-ChildItem -Path $SourceDir -Recurse -Include 'CompositionProcessorEngine.cpp' | ForEach-Object {
+    $raw = [System.IO.File]::ReadAllText($_.FullName)
+    # 自動偵測上游使用的 PageDown enum（避免寫死名稱）
+    $pageDownFunc = 'FUNCTION_MOVE_PAGE_DOWN'
+    $nextMatch = [regex]::Match($raw, 'VK_NEXT[\s\S]{0,160}?(FUNCTION_\w+)')
+    if ($nextMatch.Success) { $pageDownFunc = $nextMatch.Groups[1].Value }
+    Write-Host " -> Detected PageDown enum: $pageDownFunc"
+    # 診斷（patch 之前）：印出所有原始 case VK_SPACE 行，便於比對原始 Function 值
+    Write-Host "--- Original 'case VK_SPACE' lines (BEFORE patch) ---"
+    Select-String -Path $_.FullName -Pattern 'case\s+VK_SPACE\s*:' | ForEach-Object {
+        Write-Host ("  line {0}: {1}" -f $_.LineNumber, $_.Line.Trim())
+    }
+    Replace-InFile $_.FullName {
+        param($c)
+        # tempered gap：禁止跨越 'case ' 或 'break;'，確保 lazy match 不污染相鄰 case；
+        # 由 gap 自行吃掉換行／縮排（tab 縮排也能命中），200 字元足蓋 INCREMENTAL 長分支
+        $gap = '(?:(?!case\s|break;)[\s\S]){0,200}?'
+        $pattern = "(case\s+VK_SPACE\s*:${gap}pKeyState->Function\s*=\s*)FUNCTION_(?!NONE\b)\w+(\s*;)"
+        $out = [regex]::Replace(
+            $c,
+            $pattern,
+            { param($m)
+                $script:totalSpacePatched++
+                Write-Host ("  -> [{0}] {1}" -f $script:totalSpacePatched, $m.Value)
+                return $m.Groups[1].Value + $pageDownFunc + $m.Groups[2].Value
+            }
+        )
+        return $out
+    }
+}
+if ($script:totalSpacePatched -eq 0) {
+    Write-Warning "[VK_SPACE] 0 matches! 請把上方 'Original case VK_SPACE lines' 的輸出貼出來對照。"
+} else {
+    Write-Host "=== VK_SPACE Patch Complete: $script:totalSpacePatched entries remapped ==="
+}
+</script>
+
+
+<script type="text/plain" id="tpl-ps1-cand-window">
+# 9. Enlarge Candidate Window HEIGHT only (10 items [1-9,0] with generous bottom margin; keep original width)
+#    Fixed: only patch CandidateWindow.cpp (avoid double height addition in CandidateListUIPresenter.cpp)
+#    Fixed: report explicit warning if upstream SampleIME changed and 0 patches matched
+Write-Host "=== Patching Candidate Window height only (Font=__CAND_FONT_PX__px, RowPad=+__CAND_ROW_PAD__px, ExtraH=+__CAND_EXTRA_H__px, Width=Unchanged) ==="
+$script:candHeightMatches = 0
+
+# 9a. Globals.cpp / CandidateWindow.cpp / BaseWindow.cpp -> enlarge candidate font height
+Get-ChildItem -Path $SourceDir -Recurse -Include 'Globals.cpp','CandidateWindow.cpp','BaseWindow.cpp','SampleIME.cpp' | ForEach-Object {
+    $raw = [System.IO.File]::ReadAllText($_.FullName)
+    if ($raw -match 'defaultlFontHandle|CreateFont|lfHeight') {
+        Replace-InFile $_.FullName {
+            param($c)
+            $out = $c
+            $out = [regex]::Replace($out, '(MulDiv\s*\(\s*)\d+(\s*,\s*GetDeviceCaps)', '${1}__CAND_FONT_PT__${2}')
+            $out = [regex]::Replace($out, '(CreateFont\s*\(\s*)-?\d+(\s*,)', '${1}-__CAND_FONT_PX__${2}')
+            $out = [regex]::Replace($out, '(lfHeight\s*=\s*)-?\d+(\s*;)', '${1}-__CAND_FONT_PX__${2}')
+            return $out
+        }
+    }
+}
+
+# 9b. CandidateWindow.cpp -> add vertical row padding (_cyRow) & extra window HEIGHT only in _Resize calls
+Get-ChildItem -Path $SourceDir -Recurse -Filter 'CandidateWindow.cpp' | ForEach-Object {
+    Replace-InFile $_.FullName {
+        param($c)
+        $out = $c
+        $out = [regex]::Replace($out, '(?m)^(\s*_cyRow\s*=\s*)(?!0\s*;)([^;\r\n]+)(;)', {
+            param($m)
+            $script:candHeightMatches++
+            return $m.Groups[1].Value + '(' + $m.Groups[2].Value + ') + __CAND_ROW_PAD__' + $m.Groups[3].Value
+        })
+        $out = [regex]::Replace($out, '(?m)^(\s*(?:CBaseWindow::)?_Resize\s*\(\s*[^,\r\n]+,\s*[^,\r\n]+,\s*)([^,\r\n]+)(,\s*)([^)\r\n]+)(\)\s*;)', {
+            param($m)
+            $wArg = $m.Groups[2].Value
+            $hArg = $m.Groups[4].Value
+            if ($wArg -match '\b(int|LONG|UINT|DWORD)\b' -or $hArg -match '\b(int|LONG|UINT|DWORD)\b') {
+                return $m.Value
+            }
+            $script:candHeightMatches++
+            return $m.Groups[1].Value + $wArg + $m.Groups[3].Value + "($hArg) + __CAND_EXTRA_H__" + $m.Groups[5].Value
+        })
+        return $out
+    }
+}
+
+if ($script:candHeightMatches -eq 0) {
+    Write-Warning "[CANDIDATE WINDOW] 0 height/row patterns matched in CandidateWindow.cpp! Upstream SampleIME structure may have changed."
+} else {
+    Write-Host "  -> Applied $($script:candHeightMatches) candidate window height/row patches in CandidateWindow.cpp"
+}
 </script>
 
 <!-- ==================== MACOS TEMPLATES ==================== -->
@@ -1313,11 +1627,10 @@ class CustomIMEController: IMKInputController {
             return false
         }
 
-        // Space: commit first candidate
+        // Space key behavior
         if keyCode == 49 {
             if !composedBuffer.isEmpty {
-                let best = currentCandidates.first ?? composedBuffer
-                commit(text: best, client: textClient)
+__MAC_SPACE_ACTION__
                 return true
             }
             return false
@@ -1329,10 +1642,10 @@ class CustomIMEController: IMKInputController {
             return true
         }
 
-        // Number key 1-9 to select candidate directly
+        // Number key 1-9 and 0 (10th candidate) to select candidate directly
         if !composedBuffer.isEmpty, chars.count == 1, let ch = chars.first,
-           ch >= "1", ch <= "9", !DictionaryStore.shared.validChars.contains(ch) {
-            let idx = Int(String(ch))! - 1
+           ((ch >= "1" && ch <= "9") || ch == "0"), !DictionaryStore.shared.validChars.contains(ch) {
+            let idx = (ch == "0") ? 9 : (Int(String(ch))! - 1)
             if idx < currentCandidates.count {
                 commit(text: currentCandidates[idx], client: textClient)
                 return true
@@ -1393,7 +1706,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if let srv = server {
             AppDelegate.sharedCandidates = IMKCandidates(
                 server: srv,
-                panelType: IMKCandidatePanelType(kIMKSingleColumnScrollingCandidatePanel)
+                panelType: IMKCandidatePanelType(__MAC_CAND_PANEL_TYPE__)
             )
         }
         _ = DictionaryStore.shared
@@ -1445,7 +1758,7 @@ app.run()
 __MAC_REPERTOIRE_ITEMS__
     </array>
     <key>tsInputMethodIconFileKey</key>
-    <string></string>
+    <string>__MAC_ICON_FILE__</string>
 </dict>
 </plist>
 </script>
@@ -1478,6 +1791,9 @@ jobs:
         run: |
           cp macos/Info.plist "dist/__TARGET_NAME__.app/Contents/Info.plist"
           cp macos/Resources/dictionary.txt "dist/__TARGET_NAME__.app/Contents/Resources/dictionary.txt"
+          if [ -f "macos/Resources/icon.png" ]; then
+            cp macos/Resources/icon.png "dist/__TARGET_NAME__.app/Contents/Resources/icon.png"
+          fi
           codesign --force --deep --sign - "dist/__TARGET_NAME__.app"
           cp macos/install_macos_ime.command dist/
           cp macos/uninstall_macos_ime.command dist/
@@ -1499,13 +1815,15 @@ DEST="$HOME/Library/Input Methods"
 mkdir -p "$DEST"
 rm -rf "$DEST/$APP_NAME"
 cp -R "$SCRIPT_DIR/$APP_NAME" "$DEST/$APP_NAME"
-xattr -cr "$DEST/$APP_NAME" 2>/dev/null || true
+if ! xattr -cr "$DEST/$APP_NAME" 2>/dev/null; then
+    echo "⚠️ 無法自動清除 quarantine 屬性，若無法啟用請至「系統設定 → 隱私權與安全性」手動允許。"
+fi
 
 echo "============================================================"
 echo "已安裝 $APP_NAME 到：$DEST"
 echo "1. 請先「登出 macOS 再重新登入」（讓系統掃描新輸入法）。"
 echo "2. 前往「系統設定 → 鍵盤 → 文字輸入 → 編輯 → +」加入「__DISPLAY_NAME__」。"
-echo "3. 打字時按 Shift 切換中/英文，Space 選第 1 字，數字鍵 1-9 選字。"
+echo "3. 打字時按 Shift 切換中/英，數字鍵 1-9 及 0 選字；空白鍵模式：__SPACE_MODE_LABEL__。"
 echo "============================================================"
 </script>
 
@@ -1529,6 +1847,9 @@ echo "已移除 $DEST。請重新登入 macOS 完成清理。"
 - **來源檔案**：__SOURCES_SUMMARY__
 - **最終詞條總數**：__ENTRY_COUNT__ 筆（跨檔去重：__DEDUPE_STATUS__）
 - **掛載中文語系**：__LANG_LABELS__（Windows 主語系：`__PRIMARY_SUBLANG__`）
+- **空白鍵（Space）模式**：__SPACE_MODE_LABEL__
+- **選字框尺寸設定**：__CAND_SIZE_LABEL__
+- **候選字排列方向**：__CAND_LAYOUT_LABEL__
 
 ## GitHub 雲端編譯步驟
 1. 在 GitHub 建立一個新倉庫，將本壓縮檔解壓後的所有檔案（**務必包含 `.github` 資料夾**）上傳至倉庫根目錄。
@@ -1536,6 +1857,9 @@ echo "已移除 $DEST。請重新登入 macOS 完成清理。"
    - **Windows (.dll)**：點選 `Build Windows IME (__TARGET_NAME__ DLL)` → **Run workflow** → 下載 `__TARGET_NAME__-Windows-IME.zip` → 以管理員身分執行 `install_ime.bat`。
    - **macOS (.app)**：點選 `Build macOS IME (__TARGET_NAME__ Universal .app)` → **Run workflow** → 下載 `__TARGET_NAME__-macOS-IME.zip` → 執行 `install_macos_ime.command` 並重新登入。
 3. **手機 (Android / iOS) 與免編譯方案**：可直接使用 `cross-platform/` 內的 `.cin`（macOS 原生 / Windows DIME / Android & iOS 萊姆）與 `rime/`（小狼毫 / 鼠鬚管 / Fcitx5 / 同文 / 元書）。
+
+## 注意事項
+- **更新／重裝前先反安裝**：每次生成器重新產出都會建立新 GUID；覆蓋更新前請先執行舊版的 `uninstall_ime.bat`，以免系統清單出現重複項目。
 </script>
 
 <script>
@@ -1718,9 +2042,159 @@ echo "已移除 $DEST。請重新登入 macOS 完成清理。"
   }
 
   // =========================================================================
+  // 2.5. TEXT-TO-ICON RENDERER + PURE JS 32-BIT BGRA .ICO & .PNG ENCODER
+  // =========================================================================
+  function renderIconToCanvas(canvas, size, opts) {
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, size, size);
+
+    const text = (opts.text || '粵').trim() || '粵';
+    const shape = opts.shape || 'rounded';
+    const bgColor = opts.bgColor || '#2563eb';
+    const textColor = opts.textColor || '#ffffff';
+
+    if (shape !== 'transparent') {
+      ctx.fillStyle = bgColor;
+      ctx.beginPath();
+      if (shape === 'circle') {
+        ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+      } else if (shape === 'rounded') {
+        const r = Math.max(2, Math.round(size * 0.22));
+        ctx.moveTo(r, 0);
+        ctx.lineTo(size - r, 0);
+        ctx.quadraticCurveTo(size, 0, size, r);
+        ctx.lineTo(size, size - r);
+        ctx.quadraticCurveTo(size, size, size - r, size);
+        ctx.lineTo(r, size);
+        ctx.quadraticCurveTo(0, size, 0, size - r);
+        ctx.lineTo(0, r);
+        ctx.quadraticCurveTo(0, 0, r, 0);
+      } else {
+        ctx.rect(0, 0, size, size);
+      }
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    const charCount = Array.from(text).length;
+    const fontScale = charCount >= 2 ? 0.50 : 0.72;
+    const fontSize = Math.max(8, Math.round(size * fontScale));
+    ctx.fillStyle = textColor;
+    ctx.font = '700 ' + fontSize + 'px "Microsoft JhengHei", "PingFang HK", "Noto Sans CJK TC", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, size / 2, size / 2 + size * 0.04);
+  }
+
+  function encodeCanvasToDibEntry(canvas) {
+    const w = canvas.width;
+    const h = canvas.height;
+    const ctx = canvas.getContext('2d');
+    const imgData = ctx.getImageData(0, 0, w, h).data;
+    const andRowBytes = Math.ceil(w / 32) * 4;
+    const xorSize = w * h * 4;
+    const andSize = andRowBytes * h;
+    const totalSize = 40 + xorSize + andSize;
+
+    const buf = new Uint8Array(totalSize);
+    const dv = new DataView(buf.buffer);
+
+    // BITMAPINFOHEADER (40 bytes)
+    dv.setUint32(0, 40, true);
+    dv.setInt32(4, w, true);
+    dv.setInt32(8, h * 2, true); // doubled height for XOR + AND masks
+    dv.setUint16(12, 1, true);   // planes
+    dv.setUint16(14, 32, true);  // 32-bit BGRA
+    dv.setUint32(16, 0, true);   // BI_RGB
+    dv.setUint32(20, xorSize + andSize, true);
+
+    // XOR mask (bottom-up BGRA)
+    let p = 40;
+    for (let y = h - 1; y >= 0; y--) {
+      for (let x = 0; x < w; x++) {
+        const idx = (y * w + x) * 4;
+        buf[p++] = imgData[idx + 2]; // B
+        buf[p++] = imgData[idx + 1]; // G
+        buf[p++] = imgData[idx];     // R
+        buf[p++] = imgData[idx + 3]; // A
+      }
+    }
+
+    // AND mask (bottom-up 1-bit transparency mask)
+    const andStart = 40 + xorSize;
+    for (let y = h - 1; y >= 0; y--) {
+      const rowOffset = andStart + (h - 1 - y) * andRowBytes;
+      for (let x = 0; x < w; x++) {
+        const a = imgData[(y * w + x) * 4 + 3];
+        if (a < 128) {
+          buf[rowOffset + (x >> 3)] |= (0x80 >> (x & 7));
+        }
+      }
+    }
+
+    return { width: w, height: h, data: buf };
+  }
+
+  function buildIcoBytes(opts) {
+    const sizes = [16, 32, 48];
+    const tmpCanvas = document.createElement('canvas');
+    const entries = sizes.map(sz => {
+      renderIconToCanvas(tmpCanvas, sz, opts);
+      return encodeCanvasToDibEntry(tmpCanvas);
+    });
+
+    const headerSize = 6 + entries.length * 16;
+    const totalLen = headerSize + entries.reduce((s, e) => s + e.data.length, 0);
+    const out = new Uint8Array(totalLen);
+    const dv = new DataView(out.buffer);
+
+    // ICONDIR
+    dv.setUint16(0, 0, true);
+    dv.setUint16(2, 1, true); // 1 = ICO
+    dv.setUint16(4, entries.length, true);
+
+    let offset = headerSize;
+    entries.forEach((e, i) => {
+      const dirOff = 6 + i * 16;
+      out[dirOff] = e.width >= 256 ? 0 : e.width;
+      out[dirOff + 1] = e.height >= 256 ? 0 : e.height;
+      out[dirOff + 2] = 0;
+      out[dirOff + 3] = 0;
+      dv.setUint16(dirOff + 4, 1, true);
+      dv.setUint16(dirOff + 6, 32, true);
+      dv.setUint32(dirOff + 8, e.data.length, true);
+      dv.setUint32(dirOff + 12, offset, true);
+      out.set(e.data, offset);
+      offset += e.data.length;
+    });
+
+    return out;
+  }
+
+  function buildPngBytes(opts, size) {
+    const tmpCanvas = document.createElement('canvas');
+    renderIconToCanvas(tmpCanvas, size || 32, opts);
+    const dataUrl = tmpCanvas.toDataURL('image/png');
+    const b64 = dataUrl.split(',')[1];
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return bytes;
+  }
+
+  // =========================================================================
   // 3. STATE, 3 LOCAL FILE SLOTS & LOCALE DEFINITIONS
   // =========================================================================
   const MAX_LOCAL_FILES = 3;
+
+  const CAND_SIZE_PRESETS = {
+    comfortable: { fontPx: 18, fontPt: 14, rowPad: 8, extraH: 64, label: '舒適加高（18px・行距+8px・高度冗餘+64px・不加寬）' },
+    large:       { fontPx: 22, fontPt: 16, rowPad: 10, extraH: 84, label: '特大加高（22px・行距+10px・高度冗餘+84px・不加寬）' },
+    compact:     { fontPx: 15, fontPt: 11, rowPad: 6, extraH: 48, label: '標準加高（15px・行距+6px・高度冗餘+48px・不加寬）' },
+    original:    { fontPx: 0, fontPt: 0, rowPad: 0, extraH: 0, label: '原版 SampleIME 預設尺寸' }
+  };
 
   const LOCALE_DEFS = {
     'zh-HK': { code: 'zh-HK', macLang: 'zh-Hant-HK', script: 'Hant', lcid: '0x0C04', sublang: 'SUBLANG_CHINESE_HONGKONG', touchLayout: 'TKBL_OPT_TRADITIONAL_CHINESE_PHONETIC', label: '香港繁體中文 (zh-HK)' },
@@ -1745,6 +2219,7 @@ echo "已移除 $DEST。請重新登入 macOS 完成清理。"
       fallbackNote: '',
       delimiter: 'inherit',
       order: 'inherit',
+      detectedOrder: '',
       entryCount: 0
     };
   }
@@ -1763,6 +2238,8 @@ echo "已移除 $DEST。請重新登入 macOS 完成清理。"
     rawTxtInput: document.getElementById('rawTxtInput'),
     delimiterSelect: document.getElementById('delimiterSelect'),
     orderSelect: document.getElementById('orderSelect'),
+    extraTokenSelect: document.getElementById('extraTokenSelect'),
+    parseWarnBox: document.getElementById('parseWarnBox'),
     caseSelect: document.getElementById('caseSelect'),
     skipComments: document.getElementById('skipComments'),
     stripQuotes: document.getElementById('stripQuotes'),
@@ -1781,6 +2258,25 @@ echo "已移除 $DEST。請重新登入 macOS 完成清理。"
     imeTargetName: document.getElementById('imeTargetName'),
     targetNameWarn: document.getElementById('targetNameWarn'),
     fontSelect: document.getElementById('fontSelect'),
+    spaceBehaviorSelect: document.getElementById('spaceBehaviorSelect'),
+    spaceBehaviorHint: document.getElementById('spaceBehaviorHint'),
+    candSizeSelect: document.getElementById('candSizeSelect'),
+    candSizeHint: document.getElementById('candSizeHint'),
+    candLayoutSelect: document.getElementById('candLayoutSelect'),
+    candLayoutHint: document.getElementById('candLayoutHint'),
+    enableCustomIcon: document.getElementById('enableCustomIcon'),
+    iconStudioBody: document.getElementById('iconStudioBody'),
+    iconTextInput: document.getElementById('iconTextInput'),
+    iconShapeSelect: document.getElementById('iconShapeSelect'),
+    iconBgColor: document.getElementById('iconBgColor'),
+    iconColorPreset: document.getElementById('iconColorPreset'),
+    iconTextColor: document.getElementById('iconTextColor'),
+    iconPrev48Light: document.getElementById('iconPrev48Light'),
+    iconPrev16Light: document.getElementById('iconPrev16Light'),
+    iconPrev48Dark: document.getElementById('iconPrev48Dark'),
+    iconPrev16Dark: document.getElementById('iconPrev16Dark'),
+    downloadIcoBtn: document.getElementById('downloadIcoBtn'),
+    downloadPngBtn: document.getElementById('downloadPngBtn'),
     buildWin32: document.getElementById('buildWin32'),
     staticCrt: document.getElementById('staticCrt'),
     escapedNamePreview: document.getElementById('escapedNamePreview'),
@@ -1900,6 +2396,21 @@ echo "已移除 $DEST。請重新登入 macOS 完成清理。"
       langLabels: selectedLocales.map(l => l.label).join('、'),
       sourcesSummary: activeSources.length > 0 ? activeSources.join(' ＋ ') : '無',
       fontName: el.fontSelect.value,
+      spaceBehavior: el.spaceBehaviorSelect.value,
+      spaceModeLabel: el.spaceBehaviorSelect.value === 'page_down'
+        ? '空白鍵翻頁（數字鍵 1–9/0 選字；候選需超過 1 頁、>10 個才會翻頁）'
+        : '空白鍵上屏第 1 字（PageDown/PageUp 翻頁）',
+      candSizeKey: el.candSizeSelect.value,
+      candSize: CAND_SIZE_PRESETS[el.candSizeSelect.value] || CAND_SIZE_PRESETS.comfortable,
+      candLayout: el.candLayoutSelect.value,
+      candLayoutLabel: el.candLayoutSelect.value === 'horizontal' ? '橫排（macOS .app 與 Rime 套用；Windows SampleIME 維持直排加高）' : '直排（全平台）',
+      customIconEnabled: el.enableCustomIcon.checked,
+      iconOpts: {
+        text: (el.iconTextInput.value || '粵').trim() || '粵',
+        shape: el.iconShapeSelect.value,
+        bgColor: el.iconBgColor.value,
+        textColor: el.iconTextColor.value
+      },
       buildWin32: el.buildWin32.checked,
       staticCrt: el.staticCrt.checked
     };
@@ -1926,6 +2437,26 @@ echo "已移除 $DEST。請重新登入 macOS 完成清理。"
       '（Windows 主語系 = ' + cfg.primaryLocale.sublang +
       (cfg.extraLocales.length > 0 ? ' ＋ 額外掛載 ' + cfg.extraLocales.length + ' 個語系' : '') +
       '；macOS 語系 = ' + cfg.primaryLocale.macLang + '）';
+
+    el.spaceBehaviorHint.textContent = cfg.spaceBehavior === 'page_down'
+      ? '已設為空白鍵向下翻頁：請按數字鍵 1–9/0 選字上屏（Enter 直接輸出原編碼）。注意：候選字需超過 1 頁（>10 個）翻頁才有反應；空白鍵不再上屏第 1 字。'
+      : 'Windows SampleIME 預設由 PageDown / PageUp 翻頁；若習慣按空白鍵翻頁請切換為第二項。';
+
+    el.candSizeHint.textContent = cfg.candSizeKey === 'original'
+      ? '將維持微軟原版 SampleIME 視窗高度與字體大小（10 字可能偏矮）。'
+      : '已啟用：' + cfg.candSize.label + '，確保每頁 10 字 [1–9, 0] 完整顯示。';
+
+    el.candLayoutHint.textContent = cfg.candLayout === 'horizontal'
+      ? '已選橫排：macOS .app 將使用系統原生橫排選字列，Rime 會附帶橫排設定檔；Windows SampleIME 因原生架構限制仍維持直排加高。'
+      : '已選直排：Windows、macOS 與 Rime 均採用直排候選視窗。';
+
+    el.iconStudioBody.style.opacity = cfg.customIconEnabled ? '1' : '0.45';
+    el.downloadIcoBtn.disabled = !cfg.customIconEnabled;
+    el.downloadPngBtn.disabled = !cfg.customIconEnabled;
+    renderIconToCanvas(el.iconPrev48Light, 48, cfg.iconOpts);
+    renderIconToCanvas(el.iconPrev16Light, 16, cfg.iconOpts);
+    renderIconToCanvas(el.iconPrev48Dark, 48, cfg.iconOpts);
+    renderIconToCanvas(el.iconPrev16Dark, 16, cfg.iconOpts);
   }
 
   // =========================================================================
@@ -1953,12 +2484,25 @@ echo "已移除 $DEST。請重新登入 macOS 完成清理。"
 
     const utf8Text = new TextDecoder('utf-8').decode(bytes);
     if (utf8Text.includes('\uFFFD')) {
-      try {
-        const big5Text = new TextDecoder('big5').decode(bytes);
-        if (!big5Text.includes('\uFFFD')) {
-          return { text: big5Text, usedEncoding: 'Big5 (自動)', fallbackNote: '偵測到非 UTF-8 位元組，本次自動以 Big5 解碼。' };
-        }
-      } catch (_) {}
+      let bestText = null;
+      let bestEnc = '';
+      for (const encName of ['big5', 'gbk']) {
+        try {
+          const candidate = new TextDecoder(encName).decode(bytes);
+          if (!candidate.includes('\uFFFD')) {
+            bestText = candidate;
+            bestEnc = encName.toUpperCase();
+            break;
+          }
+        } catch (_) {}
+      }
+      if (bestText !== null) {
+        return {
+          text: bestText,
+          usedEncoding: bestEnc + ' (自動)',
+          fallbackNote: '偵測到非 UTF-8 位元組，暫以 ' + bestEnc + ' 解碼（Big5 與 GBK 易重疊誤判，請核對下方預覽並視需要手動切換此檔編碼）。'
+        };
+      }
     }
     return { text: utf8Text, usedEncoding: 'UTF-8', fallbackNote: '' };
   }
@@ -1971,14 +2515,50 @@ echo "已移除 $DEST。請重新登入 macOS 完成清理。"
     return v;
   }
 
-  function parseTextToEntries(text, delim, order, caseMode, skipComments, stripQuotes) {
+  function detectColumnOrder(rawPairs) {
+    let codeWordScore = 0;
+    let wordCodeScore = 0;
+    const sampleLimit = Math.min(rawPairs.length, 300);
+    const asciiCodeRe = /^[\x21-\x7E]+$/;
+    const nonAsciiRe = /[^\x00-\x7F]/;
+
+    for (let i = 0; i < sampleLimit; i++) {
+      const c1 = rawPairs[i][0];
+      const c2 = rawPairs[i][1];
+      const c1Ascii = asciiCodeRe.test(c1);
+      const c2Ascii = asciiCodeRe.test(c2);
+      const c1NonAscii = nonAsciiRe.test(c1);
+      const c2NonAscii = nonAsciiRe.test(c2);
+
+      if (c1Ascii && c2NonAscii) codeWordScore += 2;
+      else if (c1NonAscii && c2Ascii) wordCodeScore += 2;
+      else if (c1Ascii && !c2Ascii) codeWordScore += 1;
+      else if (!c1Ascii && c2Ascii) wordCodeScore += 1;
+    }
+
+    return (wordCodeScore > codeWordScore) ? 'word_code' : 'code_word';
+  }
+
+  function splitQuoteAwareWhitespace(line) {
+    const tokens = [];
+    const re = /"([^"]*)"|\S+/g;
+    let m;
+    while ((m = re.exec(line)) !== null) {
+      tokens.push(m[1] !== undefined ? m[1] : m[0]);
+    }
+    return tokens;
+  }
+
+  function parseTextToEntries(text, delim, order, caseMode, skipComments, stripQuotes, extraMode) {
     const lines = (text || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
-    const results = [];
+    const rawPairs = [];
+    const truncatedSamples = [];
+    let truncatedCount = 0;
     let inCinKeynameSection = false;
     const cinDirectives = /^%(gen_inp|ename|cname|selkey|keyname|chardef|encoding|space_style|keep_key_case|auto_compose|endkey)\b/i;
 
-    for (let rawLine of lines) {
-      const line = rawLine.trim();
+    for (let lineIdx = 0; lineIdx < lines.length; lineIdx++) {
+      const line = lines[lineIdx].trim();
       if (!line) continue;
 
       if (line.toLowerCase() === '%keyname begin') { inCinKeynameSection = true; continue; }
@@ -1992,11 +2572,15 @@ echo "已移除 $DEST。請重新登入 macOS 完成清理。"
         continue;
       }
 
+      // Quote-wrapped pair shortcut: "a b"="c d" or "a b" "c d"
+      const quotedPair = stripQuotes ? line.match(/^"([^"]+)"\s*(?:=|\t|\s+)\s*"([^"]+)"$/) : null;
       let parts = null;
-      if (delim === 'tab') {
+      if (quotedPair) {
+        parts = [quotedPair[1], quotedPair[2]];
+      } else if (delim === 'tab') {
         parts = line.split('\t');
       } else if (delim === 'space') {
-        parts = line.split(/\s+/);
+        parts = stripQuotes ? splitQuoteAwareWhitespace(line) : line.split(/\s+/);
       } else if (delim === 'equal') {
         const idx = line.indexOf('=');
         if (idx > 0) parts = [line.slice(0, idx), line.slice(idx + 1)];
@@ -2009,19 +2593,43 @@ echo "已移除 $DEST。請重新登入 macOS 完成清理。"
           const idx = line.indexOf('=');
           parts = [line.slice(0, idx), line.slice(idx + 1)];
         } else if (/\s+/.test(line)) {
-          parts = line.split(/\s+/);
+          parts = stripQuotes ? splitQuoteAwareWhitespace(line) : line.split(/\s+/);
         } else if (line.includes(',')) {
           parts = line.split(',');
         }
       }
 
       if (!parts || parts.length < 2) continue;
-      const col1 = cleanToken(parts[0], stripQuotes);
-      const col2 = cleanToken(parts[1], stripQuotes);
-      if (!col1 || !col2) continue;
+      const cleaned = parts.map(p => cleanToken(p, stripQuotes)).filter(Boolean);
+      if (cleaned.length < 2) continue;
 
-      let code = (order === 'code_word') ? col1 : col2;
-      let word = (order === 'code_word') ? col2 : col1;
+      if (cleaned.length === 2) {
+        rawPairs.push([cleaned[0], cleaned[1]]);
+      } else if (extraMode === 'pairs') {
+        for (let k = 0; k + 1 < cleaned.length; k += 2) {
+          rawPairs.push([cleaned[k], cleaned[k + 1]]);
+        }
+      } else if (extraMode === 'merge_word') {
+        rawPairs.push([cleaned[0], cleaned.slice(1).join(' ')]);
+      } else if (extraMode === 'merge_code') {
+        rawPairs.push([cleaned.slice(0, -1).join(' '), cleaned[cleaned.length - 1]]);
+      } else {
+        // Default 'drop' mode: keep first 2, record warning instead of silent drop
+        rawPairs.push([cleaned[0], cleaned[1]]);
+        truncatedCount++;
+        if (truncatedSamples.length < 3) {
+          truncatedSamples.push('第 ' + (lineIdx + 1) + ' 行（' + cleaned.length + ' 欄）：保留「' + cleaned[0] + ' / ' + cleaned[1] + '」，略過「' + cleaned.slice(2).join(' ') + '」');
+        }
+      }
+    }
+
+    const resolvedOrder = (order === 'auto') ? detectColumnOrder(rawPairs) : order;
+    const results = [];
+    for (let i = 0; i < rawPairs.length; i++) {
+      const col1 = rawPairs[i][0];
+      const col2 = rawPairs[i][1];
+      let code = (resolvedOrder === 'code_word') ? col1 : col2;
+      let word = (resolvedOrder === 'code_word') ? col2 : col1;
 
       if (caseMode === 'lower') code = code.toLowerCase();
       else if (caseMode === 'upper') code = code.toUpperCase();
@@ -2029,12 +2637,13 @@ echo "已移除 $DEST。請重新登入 macOS 完成清理。"
       results.push({ code, word });
     }
 
-    return results;
+    return { items: results, resolvedOrder, truncatedCount, truncatedSamples };
   }
 
   function parseAndMergeAllSources() {
     const globalDelim = el.delimiterSelect.value;
     const globalOrder = el.orderSelect.value;
+    const extraMode = el.extraTokenSelect.value;
     const caseMode = el.caseSelect.value;
     const skipComments = el.skipComments.checked;
     const stripQuotes = el.stripQuotes.checked;
@@ -2043,6 +2652,8 @@ echo "已移除 $DEST。請重新登入 macOS 完成清理。"
     const merged = [];
     const seen = new Set();
     let dupes = 0;
+    let totalTruncated = 0;
+    const allTruncSamples = [];
 
     // 1. Parse up to 3 local file slots in priority order (Slot 0 -> Slot 1 -> Slot 2)
     fileSlots.forEach((slot, i) => {
@@ -2052,8 +2663,14 @@ echo "已移除 $DEST。請重新登入 macOS 完成清理。"
       }
       const effDelim = (slot.delimiter === 'inherit') ? globalDelim : slot.delimiter;
       const effOrder = (slot.order === 'inherit') ? globalOrder : slot.order;
-      const items = parseTextToEntries(slot.decodedText, effDelim, effOrder, caseMode, skipComments, stripQuotes);
+      const parsed = parseTextToEntries(slot.decodedText, effDelim, effOrder, caseMode, skipComments, stripQuotes, extraMode);
+      if (slot.enabled && parsed.truncatedCount > 0) {
+        totalTruncated += parsed.truncatedCount;
+        parsed.truncatedSamples.forEach(s => { if (allTruncSamples.length < 3) allTruncSamples.push('[檔案 ' + (i + 1) + '] ' + s); });
+      }
+      const items = parsed.items;
       slot.entryCount = items.length;
+      slot.detectedOrder = (effOrder === 'auto') ? parsed.resolvedOrder : '';
 
       if (!slot.enabled) return;
 
@@ -2070,7 +2687,12 @@ echo "已移除 $DEST。請重新登入 macOS 完成清理。"
     });
 
     // 2. Parse optional manual textarea
-    const manualItems = parseTextToEntries(el.rawTxtInput.value || '', globalDelim, globalOrder, caseMode, skipComments, stripQuotes);
+    const manualParsed = parseTextToEntries(el.rawTxtInput.value || '', globalDelim, globalOrder, caseMode, skipComments, stripQuotes, extraMode);
+    if (manualParsed.truncatedCount > 0) {
+      totalTruncated += manualParsed.truncatedCount;
+      manualParsed.truncatedSamples.forEach(s => { if (allTruncSamples.length < 3) allTruncSamples.push('[手動] ' + s); });
+    }
+    const manualItems = manualParsed.items;
     for (const it of manualItems) {
       if (dedupe) {
         const k = it.code + '\u0000' + it.word;
@@ -2082,6 +2704,12 @@ echo "已移除 $DEST。請重新登入 macOS 完成清理。"
 
     parsedEntries = merged;
     dedupedCount = dupes;
+    if (totalTruncated > 0) {
+      el.parseWarnBox.textContent = '⚠️ 偵測到共 ' + totalTruncated + ' 行超過 2 個欄位，已僅取前 2 欄（範例：' + allTruncSamples.join('；') + '）。如屬含空格詞組或一行多筆，請調整上方「單行超過 2 欄時處理方式」。';
+      el.parseWarnBox.style.display = 'block';
+    } else {
+      el.parseWarnBox.style.display = 'none';
+    }
     renderSlotsUI();
     renderPreview();
   }
@@ -2110,19 +2738,25 @@ echo "已移除 $DEST。請重新登入 macOS 完成清理。"
     const incoming = Array.from(fileList || []);
     if (incoming.length === 0) return;
 
-    let truncatedMsg = '';
+    const emptyIndices = [];
+    fileSlots.forEach((s, idx) => { if (!s.rawBytes) emptyIndices.push(idx); });
+
+    if (emptyIndices.length === 0) {
+      showAlert('3 個本機檔案槽位均已滿！為避免誤蓋原有碼表，請先在對應槽位點選「更換檔案」或「✕ 移除」。', 'warn');
+      return;
+    }
+
+    let skippedMsg = '';
     let filesToLoad = incoming;
-    if (incoming.length > MAX_LOCAL_FILES) {
-      filesToLoad = incoming.slice(0, MAX_LOCAL_FILES);
-      truncatedMsg = '（最多支援 3 個本機檔案，已自動取前 3 個）';
+    if (incoming.length > emptyIndices.length) {
+      filesToLoad = incoming.slice(0, emptyIndices.length);
+      skippedMsg = '（目前僅剩 ' + emptyIndices.length + ' 個空槽位，已載入前 ' + emptyIndices.length + ' 個檔案，其餘已略過以免覆蓋）';
     }
 
     const warnings = [];
-    for (const file of filesToLoad) {
-      // Find first empty slot; if all 3 full, overwrite from slot 0 round-robin
-      let targetIdx = fileSlots.findIndex(s => !s.rawBytes);
-      if (targetIdx === -1) targetIdx = MAX_LOCAL_FILES - 1;
-      const slot = await loadFileIntoSlot(targetIdx, file);
+    for (let k = 0; k < filesToLoad.length; k++) {
+      const targetIdx = emptyIndices[k];
+      const slot = await loadFileIntoSlot(targetIdx, filesToLoad[k]);
       if (slot && slot.fallbackNote) {
         warnings.push('檔案 ' + (targetIdx + 1) + '：' + slot.fallbackNote);
       }
@@ -2130,8 +2764,8 @@ echo "已移除 $DEST。請重新登入 macOS 完成清理。"
 
     parseAndMergeAllSources();
     const loadedNum = fileSlots.filter(s => s.rawBytes).length;
-    const msg = '已載入 ' + loadedNum + ' / ' + MAX_LOCAL_FILES + ' 個本機檔案，合併總計 ' + parsedEntries.length.toLocaleString() + ' 筆詞條。' + truncatedMsg + (warnings.length ? ' ' + warnings.join(' ') : '');
-    showAlert(msg, (truncatedMsg || warnings.length) ? 'warn' : 'ok');
+    const msg = '已載入 ' + loadedNum + ' / ' + MAX_LOCAL_FILES + ' 個本機檔案，合併總計 ' + parsedEntries.length.toLocaleString() + ' 筆詞條。' + skippedMsg + (warnings.length ? ' ' + warnings.join(' ') : '');
+    showAlert(msg, (skippedMsg || warnings.length) ? 'warn' : 'ok');
   }
 
   function renderSlotsUI() {
@@ -2144,7 +2778,7 @@ echo "已移除 $DEST。請重新登入 macOS 完成清理。"
       const tagClass = i === 0 ? 'slot-tag' : (i === 1 ? 'slot-tag slot-2' : 'slot-tag slot-3');
       const hiddenInput = document.createElement('input');
       hiddenInput.type = 'file';
-      hiddenInput.accept = '.txt,.cin,.dict,.yaml,.csv,text/plain';
+      hiddenInput.accept = '.txt,.tt,.cin,.dict,.yaml,.csv,text/plain';
       hiddenInput.style.display = 'none';
       hiddenInput.addEventListener('change', async e => {
         const f = e.target.files && e.target.files[0];
@@ -2178,7 +2812,8 @@ echo "已移除 $DEST。請重新登入 macOS 完成清理。"
 
       const tagSpan = document.createElement('span');
       tagSpan.className = tagClass;
-      tagSpan.textContent = '本機檔案 ' + (i + 1) + '・' + slot.roleHint;
+      const roleHints = ['主碼表', '補充／香港字', '詞組／符號'];
+      tagSpan.textContent = '本機檔案 ' + (i + 1) + '・' + (roleHints[i] || ('補充 ' + (i + 1)));
       left.appendChild(tagSpan);
 
       if (slot.rawBytes) {
@@ -2189,7 +2824,10 @@ echo "已移除 $DEST。請重新登入 macOS 完成清理。"
 
         const countSpan = document.createElement('span');
         countSpan.className = 'slot-count';
-        countSpan.textContent = slot.entryCount.toLocaleString() + ' 筆';
+        const orderBadge = slot.detectedOrder
+          ? ('・自動：' + (slot.detectedOrder === 'word_code' ? '字詞→編碼' : '編碼→字詞'))
+          : '';
+        countSpan.textContent = slot.entryCount.toLocaleString() + ' 筆' + orderBadge;
         left.appendChild(countSpan);
       } else {
         const emptySpan = document.createElement('span');
@@ -2242,6 +2880,9 @@ echo "已移除 $DEST。請重新登入 macOS 完成清理。"
         rmBtn.textContent = '✕ 移除';
         rmBtn.addEventListener('click', () => {
           fileSlots[i] = createEmptySlot(i);
+          if (el.previewFilterSelect.value === ('slot' + i)) {
+            el.previewFilterSelect.value = 'all';
+          }
           parseAndMergeAllSources();
         });
         actions.appendChild(rmBtn);
@@ -2318,6 +2959,7 @@ echo "已移除 $DEST。請重新登入 macOS 完成清理。"
         const ordSel = document.createElement('select');
         [
           ['inherit', '跟隨下方全域設定'],
+          ['auto', '自動辨識（編碼／字詞）'],
           ['code_word', '編碼在前，字詞在後'],
           ['word_code', '字詞在前，編碼在後']
         ].forEach(([val, txt]) => {
@@ -2379,7 +3021,13 @@ echo "已移除 $DEST。請重新登入 macOS 完成清理。"
 
     const sample = filtered.slice(0, shownCount);
     el.previewTbody.innerHTML = '';
-    const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    if (sample.length === 0) {
+      const emptyTr = document.createElement('tr');
+      emptyTr.innerHTML = '<td colspan="5" style="text-align:center; color:#64748b; padding:12px;">（此篩選來源目前沒有詞條，請切換回「全部來源」或先載入該檔案）</td>';
+      el.previewTbody.appendChild(emptyTr);
+      return;
+    }
+    const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     sample.forEach((item, idx) => {
       const tr = document.createElement('tr');
       const safeCode = item.code.replace(/"/g, '');
@@ -2402,13 +3050,13 @@ echo "已移除 $DEST。請重新登入 macOS 完成清理。"
   // =========================================================================
   function buildSampleImeDictText() {
     return parsedEntries
-      .map(e => '"' + e.code.replace(/"/g, '') + '"="' + e.word.replace(/"/g, '') + '"')
+      .map(e => '"' + e.code.replace(/["\t\r\n]/g, '') + '"="' + e.word.replace(/["\t\r\n]/g, '') + '"')
       .join('\r\n') + '\r\n';
   }
 
   function buildMacOsDictText() {
     return parsedEntries
-      .map(e => e.code.replace(/\t/g, '') + '\t' + e.word.replace(/\t/g, ''))
+      .map(e => e.code.replace(/[\t\r\n]/g, '') + '\t' + e.word.replace(/[\t\r\n]/g, ''))
       .join('\n') + '\n';
   }
 
@@ -2438,7 +3086,7 @@ echo "已移除 $DEST。請重新登入 macOS 完成清理。"
     lines.push('%keyname end');
     lines.push('%chardef begin');
     for (const e of parsedEntries) {
-      lines.push(e.code + '\t' + e.word);
+      lines.push(e.code.replace(/[\t\r\n]/g, '') + '\t' + e.word.replace(/[\t\r\n]/g, ''));
     }
     lines.push('%chardef end');
     return { text: lines.join('\n') + '\n', maxCandidates };
@@ -2465,7 +3113,7 @@ echo "已移除 $DEST。請重新登入 macOS 完成清理。"
       'sort: original',
       'use_preset_vocabulary: false',
       '...',
-      ...parsedEntries.map(e => e.word + '\t' + e.code)
+      ...parsedEntries.map(e => e.word.replace(/[\t\r\n]/g, '') + '\t' + e.code.replace(/[\t\r\n]/g, ''))
     ].join('\n') + '\n';
 
     const schemaYaml = [
@@ -2503,11 +3151,20 @@ echo "已移除 $DEST。請重新登入 macOS 完成清理。"
       '  alphabet: "' + escapedAlphabet + '"',
       '  delimiter: " \'"',
       '',
+      'menu:',
+      '  page_size: 10',
+      '',
       'translator:',
       '  dictionary: ' + schemaId,
       '  enable_sentence: false',
-      '  enable_user_dict: true',
+      '  enable_user_dict: false # 若希望啟用動態調頻學習，可改為 true（會覆蓋原始排序）',
       '  initial_quality: 1',
+      ...(cfg.spaceBehavior === 'page_down' ? [
+        '',
+        'key_binder:',
+        '  bindings:',
+        '    - { when: has_menu, accept: space, send: Page_Down }'
+      ] : []),
       ''
     ].join('\n');
 
@@ -2519,12 +3176,25 @@ echo "已移除 $DEST。請重新登入 macOS 完成清理。"
       ''
     ].join('\n');
 
+    const outFiles = [
+      { name: schemaId + '.dict.yaml', data: dictYaml },
+      { name: schemaId + '.schema.yaml', data: schemaYaml },
+      { name: 'default.custom.yaml', data: defaultCustomYaml }
+    ];
+
+    if (cfg.candLayout === 'horizontal') {
+      const horizYaml = [
+        '# 啟用 Rime 橫排候選視窗（適用於 Windows 小狼毫 / macOS 鼠鬚管）',
+        'patch:',
+        '  style/horizontal: true',
+        ''
+      ].join('\n');
+      outFiles.push({ name: 'weasel.custom.yaml', data: horizYaml });
+      outFiles.push({ name: 'squirrel.custom.yaml', data: horizYaml });
+    }
+
     return {
-      files: [
-        { name: schemaId + '.dict.yaml', data: dictYaml },
-        { name: schemaId + '.schema.yaml', data: schemaYaml },
-        { name: 'default.custom.yaml', data: defaultCustomYaml }
-      ],
+      files: outFiles,
       hasNonAsciiKey
     };
   }
@@ -2550,7 +3220,18 @@ echo "已移除 $DEST。請重新登入 macOS 完成清理。"
       '__FONT_NAME__': cfg.fontName,
       '__DICT_FILENAME__': cfg.dictFileName,
       '__TARGET_NAME__': cfg.targetName,
-      '__STATIC_CRT_BLOCK__': staticCrtBlock
+      '__STATIC_CRT_BLOCK__': staticCrtBlock,
+      '__SPACE_KEY_PATCH_BLOCK__': cfg.spaceBehavior === 'page_down'
+        ? document.getElementById('tpl-ps1-space-pagedown').textContent.trim()
+        : '# Keep default VK_SPACE behavior (commit/convert)',
+      '__CAND_WINDOW_PATCH_BLOCK__': cfg.candSizeKey !== 'original'
+        ? fillTemplate('tpl-ps1-cand-window', {
+            '__CAND_FONT_PX__': String(cfg.candSize.fontPx),
+            '__CAND_FONT_PT__': String(cfg.candSize.fontPt),
+            '__CAND_ROW_PAD__': String(cfg.candSize.rowPad),
+            '__CAND_EXTRA_H__': String(cfg.candSize.extraH)
+          }).trim()
+        : '# Keep original SampleIME candidate window dimensions'
     });
   }
 
@@ -2572,7 +3253,8 @@ echo "已移除 $DEST。請重新登入 macOS 完成清理。"
       '__TARGET_NAME__': cfg.targetName,
       '__DISPLAY_NAME__': cfg.displayName,
       '__DICT_FILENAME__': cfg.dictFileName,
-      '__LANG_LABELS__': cfg.langLabels
+      '__LANG_LABELS__': cfg.langLabels,
+      '__SPACE_MODE_LABEL__': cfg.spaceModeLabel
     }).replace(/\r?\n/g, '\r\n');
   }
 
@@ -2585,28 +3267,38 @@ echo "已移除 $DEST。請重新登入 macOS 完成清理。"
 
   function generateMacFiles(cfg) {
     const repertoireItems = cfg.scripts.map(s => '        <string>' + s + '</string>').join('\n');
+    const macSpaceAction = cfg.spaceBehavior === 'page_down'
+      ? '                AppDelegate.sharedCandidates?.pageDown(self)'
+      : '                let best = currentCandidates.first ?? composedBuffer\n                commit(text: best, client: textClient)';
+    const macPanelType = cfg.candLayout === 'horizontal'
+      ? 'kIMKSingleRowSteppingCandidatePanel'
+      : 'kIMKSingleColumnScrollingCandidatePanel';
     const swiftCode = fillTemplate('tpl-macos-swift', {
-      '__TARGET_NAME__': cfg.targetName
+      '__TARGET_NAME__': cfg.targetName,
+      '__MAC_SPACE_ACTION__': macSpaceAction,
+      '__MAC_CAND_PANEL_TYPE__': macPanelType
     });
     const plistXml = fillTemplate('tpl-macos-plist', {
       '__TARGET_NAME__': cfg.targetName,
       '__TARGET_NAME_LOWER__': cfg.targetName.toLowerCase(),
       '__XML_DISPLAY_NAME__': escapeXml(cfg.displayName),
       '__MAC_INTENDED_LANG__': cfg.primaryLocale.macLang,
-      '__MAC_REPERTOIRE_ITEMS__': repertoireItems
+      '__MAC_REPERTOIRE_ITEMS__': repertoireItems,
+      '__MAC_ICON_FILE__': cfg.customIconEnabled ? 'icon.png' : ''
     });
     const macWorkflow = fillTemplate('tpl-workflow-mac-cloud', {
       '__TARGET_NAME__': cfg.targetName
     });
     const macInstall = fillTemplate('tpl-macos-install-cmd', {
       '__TARGET_NAME__': cfg.targetName,
-      '__DISPLAY_NAME__': cfg.displayName
+      '__DISPLAY_NAME__': cfg.displayName,
+      '__SPACE_MODE_LABEL__': cfg.spaceModeLabel
     });
     const macUninstall = fillTemplate('tpl-macos-uninstall-cmd', {
       '__TARGET_NAME__': cfg.targetName
     });
 
-    return [
+    const macFiles = [
       { name: '.github/workflows/build-macos-ime.yml', data: macWorkflow },
       { name: 'macos/Sources/main.swift', data: swiftCode },
       { name: 'macos/Info.plist', data: plistXml },
@@ -2614,6 +3306,10 @@ echo "已移除 $DEST。請重新登入 macOS 完成清理。"
       { name: 'macos/install_macos_ime.command', data: macInstall },
       { name: 'macos/uninstall_macos_ime.command', data: macUninstall }
     ];
+    if (cfg.customIconEnabled) {
+      macFiles.push({ name: 'macos/Resources/icon.png', data: buildPngBytes(cfg.iconOpts, 32) });
+    }
+    return macFiles;
   }
 
   function generateReadme(cfg, modeName) {
@@ -2625,7 +3321,10 @@ echo "已移除 $DEST。請重新登入 macOS 完成清理。"
       '__ENTRY_COUNT__': String(parsedEntries.length),
       '__DEDUPE_STATUS__': el.dedupeEntries.checked ? ('已開啟，移除 ' + dedupedCount + ' 筆重複') : '未開啟',
       '__LANG_LABELS__': cfg.langLabels,
-      '__PRIMARY_SUBLANG__': cfg.primaryLocale.sublang
+      '__PRIMARY_SUBLANG__': cfg.primaryLocale.sublang,
+      '__SPACE_MODE_LABEL__': cfg.spaceModeLabel,
+      '__CAND_SIZE_LABEL__': cfg.candSize.label,
+      '__CAND_LAYOUT_LABEL__': cfg.candLayoutLabel
     });
   }
 
@@ -2663,6 +3362,12 @@ echo "已移除 $DEST。請重新登入 macOS 完成清理。"
       const baseName = relPath.split('/').pop();
       const lowerBase = baseName.toLowerCase();
 
+      if (cfg.customIconEnabled && lowerBase === 'sampleime.ico') {
+        zipEntries.push({ name: relPath, data: buildIcoBytes(cfg.iconOpts) });
+        logs.push('[REPLACE ICON] ' + relPath + ' (文字圖示「' + cfg.iconOpts.text + '」)');
+        continue;
+      }
+
       if (lowerBase === 'sampleimesimplifiedquanpin.txt') {
         const dir = relPath.slice(0, relPath.length - baseName.length);
         const replacedPath = dir + cfg.dictFileName;
@@ -2676,7 +3381,9 @@ echo "已移除 $DEST。請重新登入 macOS 完成清理。"
 
       const isPatchableText = [
         'register.cpp', 'define.h', 'sampleime.cpp', 'globals.cpp',
-        'compositionprocessorengine.cpp', 'sampleime.def', 'sampleime.vcxproj'
+        'compositionprocessorengine.cpp', 'candidatewindow.cpp',
+        'candidatelistuipresenter.cpp', 'basewindow.cpp',
+        'sampleime.def', 'sampleime.vcxproj'
       ].includes(lowerBase);
 
       if (isPatchableText) {
@@ -2716,13 +3423,53 @@ echo "已移除 $DEST。請重新登入 macOS 完成清理。"
             .split('L"Microsoft YaHei"').join('L"' + cfg.fontName + '"')
             .split('L"SimSun"').join('L"' + cfg.fontName + '"')
             .split('L"MS Shell Dlg"').join('L"' + cfg.fontName + '"');
+          if (cfg.candSizeKey !== 'original') {
+            next = next
+              .replace(/(MulDiv\s*\(\s*)\d+(\s*,\s*GetDeviceCaps)/g, '$1' + cfg.candSize.fontPt + '$2')
+              .replace(/(CreateFont\s*\(\s*)-?\d+(\s*,)/g, '$1-' + cfg.candSize.fontPx + '$2')
+              .replace(/(lfHeight\s*=\s*)-?\d+(\s*;)/g, '$1-' + cfg.candSize.fontPx + '$2');
+          }
           if (next !== text) {
             text = next;
-            logs.push('[PATCH] ' + relPath + ' (替換 ' + replacedCount + ' 組 GUID + 字體 ' + cfg.fontName + ')');
+            logs.push('[PATCH] ' + relPath + ' (替換 ' + replacedCount + ' 組 GUID + 字體 ' + cfg.fontName + (cfg.candSizeKey !== 'original' ? ' ' + cfg.candSize.fontPx + 'px' : '') + ')');
           }
         } else if (lowerBase === 'compositionprocessorengine.cpp') {
-          const next = text.split('SampleIMESimplifiedQuanPin.txt').join(cfg.dictFileName);
-          if (next !== text) { text = next; logs.push('[PATCH] ' + relPath + ' (碼表檔名 -> ' + cfg.dictFileName + ')'); }
+          let next = text.split('SampleIMESimplifiedQuanPin.txt').join(cfg.dictFileName);
+          let spaceChanged = 0;
+          if (cfg.spaceBehavior === 'page_down') {
+            const nextMatch = next.match(/VK_NEXT[\s\S]{0,160}?(FUNCTION_\w+)/);
+            const pageDownFunc = nextMatch ? nextMatch[1] : 'FUNCTION_MOVE_PAGE_DOWN';
+            // 與雲端 patch 一致：僅改 Function、不動 Category；tempered gap 防跨 case，四個分支全覆蓋
+            next = next.replace(
+              /(case\s+VK_SPACE\s*:(?:(?!case\s|break;)[\s\S]){0,200}?pKeyState->Function\s*=\s*)FUNCTION_(?!NONE\b)\w+(\s*;)/g,
+              (m, p1, p2) => { spaceChanged++; return p1 + pageDownFunc + p2; }
+            );
+            if (spaceChanged === 0) {
+              logs.push('[WARN] ' + relPath + '：0 個 case VK_SPACE 命中，上游源碼結構可能已變更');
+            }
+          }
+          if (next !== text) {
+            text = next;
+            logs.push('[PATCH] ' + relPath + ' (碼表檔名 -> ' + cfg.dictFileName + (spaceChanged > 0 ? '；Space -> 翻頁 x' + spaceChanged : '') + ')');
+          }
+        } else if (lowerBase === 'candidatewindow.cpp' && cfg.candSizeKey !== 'original') {
+          let next = text
+            .replace(/(MulDiv\s*\(\s*)\d+(\s*,\s*GetDeviceCaps)/g, '$1' + cfg.candSize.fontPt + '$2')
+            .replace(/(CreateFont\s*\(\s*)-?\d+(\s*,)/g, '$1-' + cfg.candSize.fontPx + '$2')
+            .replace(/(lfHeight\s*=\s*)-?\d+(\s*;)/g, '$1-' + cfg.candSize.fontPx + '$2')
+            .replace(/^(\s*_cyRow\s*=\s*)(?!0\s*;)([^;\r\n]+)(;)/gm, '$1($2) + ' + cfg.candSize.rowPad + '$3')
+            .replace(/^(\s*(?:CBaseWindow::)?_Resize\s*\(\s*[^,\r\n]+,\s*[^,\r\n]+,\s*)([^,\r\n]+)(,\s*)([^)\r\n]+)(\)\s*;)/gm, (m, p1, w, p3, h, p5) => {
+              if (/\b(int|LONG|UINT|DWORD)\b/.test(w) || /\b(int|LONG|UINT|DWORD)\b/.test(h)) return m;
+              return p1 + w + p3 + '(' + h + ') + ' + cfg.candSize.extraH + p5;
+            });
+          if (next !== text) { text = next; logs.push('[PATCH] ' + relPath + ' (選字框放大：' + cfg.candSize.label + ')'); }
+
+        } else if (lowerBase === 'basewindow.cpp' && cfg.candSizeKey !== 'original') {
+          const next = text
+            .replace(/(MulDiv\s*\(\s*)\d+(\s*,\s*GetDeviceCaps)/g, '$1' + cfg.candSize.fontPt + '$2')
+            .replace(/(CreateFont\s*\(\s*)-?\d+(\s*,)/g, '$1-' + cfg.candSize.fontPx + '$2')
+            .replace(/(lfHeight\s*=\s*)-?\d+(\s*;)/g, '$1-' + cfg.candSize.fontPx + '$2');
+          if (next !== text) { text = next; logs.push('[PATCH] ' + relPath + ' (調整字體高度 -> ' + cfg.candSize.fontPx + 'px)'); }
         } else if (lowerBase === 'sampleime.def') {
           const next = text.replace(/^LIBRARY\s+"?SampleIME"?/mi, 'LIBRARY "' + cfg.targetName + '"');
           if (next !== text) { text = next; logs.push('[PATCH] ' + relPath + ' (更新 LIBRARY 宣告，實際 DLL 檔名由 TargetName 決定)'); }
@@ -2799,9 +3546,13 @@ echo "已移除 $DEST。請重新登入 macOS 完成清理。"
     }
   });
 
-  [el.rawTxtInput, el.delimiterSelect, el.orderSelect, el.caseSelect, el.skipComments, el.stripQuotes, el.dedupeEntries]
-    .forEach(node => node.addEventListener('input', parseAndMergeAllSources));
-  [el.delimiterSelect, el.orderSelect, el.caseSelect, el.skipComments, el.stripQuotes, el.dedupeEntries]
+  let mergeDebounceTimer = null;
+  function debouncedMerge() {
+    clearTimeout(mergeDebounceTimer);
+    mergeDebounceTimer = setTimeout(parseAndMergeAllSources, 300);
+  }
+  el.rawTxtInput.addEventListener('input', debouncedMerge);
+  [el.delimiterSelect, el.orderSelect, el.extraTokenSelect, el.caseSelect, el.skipComments, el.stripQuotes, el.dedupeEntries]
     .forEach(node => node.addEventListener('change', parseAndMergeAllSources));
 
   el.previewFilterSelect.addEventListener('change', renderPreview);
@@ -2822,13 +3573,15 @@ echo "已移除 $DEST。請重新登入 macOS 完成清理。"
       'ge\t嘅',
       'gam\t咁',
       'cyun\t邨',
-      'lip\t𨋢'
+      'lip\t𨋢',
+      'gai\t𠝹',
+      'baak\t栢'
     ].join('\n');
     parseAndMergeAllSources();
   });
 
   el.swapOrderBtn.addEventListener('click', () => {
-    el.orderSelect.value = (el.orderSelect.value === 'code_word') ? 'word_code' : 'code_word';
+    el.orderSelect.value = (el.orderSelect.value === 'word_code') ? 'code_word' : 'word_code';
     parseAndMergeAllSources();
   });
 
@@ -2840,17 +3593,24 @@ echo "已移除 $DEST。請重新登入 macOS 完成清理。"
     showAlert('已清空所有本機檔案槽位與手動詞條。', 'ok');
   });
 
-  [el.imeDisplayName, el.imeTargetName, el.fontSelect].forEach(node => {
+  [
+    el.imeDisplayName, el.imeTargetName, el.fontSelect, el.spaceBehaviorSelect,
+    el.candSizeSelect, el.candLayoutSelect, el.enableCustomIcon,
+    el.iconTextInput, el.iconShapeSelect, el.iconBgColor, el.iconTextColor
+  ].forEach(node => {
     node.addEventListener('input', updateConfigPreviews);
     node.addEventListener('change', updateConfigPreviews);
   });
 
   document.querySelectorAll('.locale-cb').forEach(cb => {
-    cb.addEventListener('change', () => {
-      if (document.querySelectorAll('.locale-cb:checked').length === 0) {
-        cb.checked = true;
+    cb.addEventListener('click', e => {
+      // When user tries to uncheck the very last remaining locale, block cleanly without flicker
+      if (!cb.checked && document.querySelectorAll('.locale-cb:checked').length === 0) {
+        e.preventDefault();
         showAlert('至少需要保留一個中文註冊語系！', 'warn');
       }
+    });
+    cb.addEventListener('change', () => {
       syncLocaleChipStyles();
       updateConfigPreviews();
     });
@@ -2859,6 +3619,31 @@ echo "已移除 $DEST。請重新登入 macOS 完成清理。"
   el.presetHkBtn.addEventListener('click', () => setSelectedLocaleCodes(['zh-HK']));
   el.presetTradBtn.addEventListener('click', () => setSelectedLocaleCodes(['zh-HK', 'zh-TW', 'zh-MO']));
   el.presetAllZhBtn.addEventListener('click', () => setSelectedLocaleCodes(['zh-HK', 'zh-TW', 'zh-MO', 'zh-CN', 'zh-SG']));
+
+  el.iconColorPreset.addEventListener('change', () => {
+    const val = el.iconColorPreset.value;
+    if (val && val.includes('|')) {
+      const parts = val.split('|');
+      el.iconBgColor.value = parts[0];
+      el.iconTextColor.value = parts[1];
+      updateConfigPreviews();
+    }
+    el.iconColorPreset.value = '';
+  });
+
+  el.downloadIcoBtn.addEventListener('click', () => {
+    const cfg = getConfig();
+    const bytes = buildIcoBytes(cfg.iconOpts);
+    triggerDownload(new Blob([bytes], { type: 'image/x-icon' }), cfg.targetName + '.ico');
+    showAlert('已匯出 Windows 圖示「' + cfg.targetName + '.ico」（內含 16x16 / 32x32 / 48x48 32-bit 透明層）。', 'ok');
+  });
+
+  el.downloadPngBtn.addEventListener('click', () => {
+    const cfg = getConfig();
+    const bytes = buildPngBytes(cfg.iconOpts, 64);
+    triggerDownload(new Blob([bytes], { type: 'image/png' }), cfg.targetName + '.png');
+    showAlert('已匯出 PNG 圖示「' + cfg.targetName + '.png」（64x64 透明背景）。', 'ok');
+  });
 
   el.regenGuidsBtn.addEventListener('click', () => {
     refreshGuids();
@@ -2883,6 +3668,7 @@ echo "已移除 $DEST。請重新登入 macOS 完成清理。"
       { name: 'dictionary/' + cfg.dictFileName, data: utf16LeBomBytes(buildSampleImeDictText()) },
       { name: 'scripts/install_ime.bat', data: generateInstallBat(cfg) },
       { name: 'scripts/uninstall_ime.bat', data: generateUninstallBat(cfg) },
+      ...(cfg.customIconEnabled ? [{ name: 'assets/ime.ico', data: buildIcoBytes(cfg.iconOpts) }] : []),
       // macOS Cloud Build
       ...generateMacFiles(cfg),
       // Cross-platform ready tables
@@ -2910,6 +3696,7 @@ echo "已移除 $DEST。請重新登入 macOS 完成清理。"
       { name: 'dictionary/' + cfg.dictFileName, data: utf16LeBomBytes(buildSampleImeDictText()) },
       { name: 'scripts/install_ime.bat', data: generateInstallBat(cfg) },
       { name: 'scripts/uninstall_ime.bat', data: generateUninstallBat(cfg) },
+      ...(cfg.customIconEnabled ? [{ name: 'assets/ime.ico', data: buildIcoBytes(cfg.iconOpts) }] : []),
       { name: 'README.md', data: generateReadme(cfg, 'Windows 雲端自動編譯包') }
     ];
     const blob = buildZipBlob(files);
