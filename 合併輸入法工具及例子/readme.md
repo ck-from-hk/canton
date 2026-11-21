@@ -2,7 +2,7 @@
 
 注意:使用生成器（看下面介紹）後，可直接以dime等掛載.cin，或按.zip內的readme.md介紹的方法自行在github編譯可安裝的輸入法安裝包
 
-以上HK_and_IEd_Cantonese.zip是按SampleIME方向生成的效果，解壓後可右鍵用admin權限安裝使用(space轉頁，屬生成器可設定功能，但末頁按space不能回到首頁)，惟沒有相關字詞功能。主要為探討SampleIME設定極限，一般使用建議輸出.cin用DIME/RIME掛載較易自行調整。
+以上HK_Cantonese-Windows-IME.zip是按SampleIME方向生成的效果，解壓後可右鍵用admin權限安裝使用(space轉頁，屬生成器可設定功能，但末頁按space不能回到首頁)，惟沒有相關字詞功能。主要為探討SampleIME設定極限，一般使用建議輸出.cin用DIME/RIME掛載較易自行調整。
 
 ———
 
