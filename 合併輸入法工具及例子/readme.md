@@ -5,7 +5,7 @@
 
 ———
 
-# 三合一 IME 碼表與雲端編譯生成器　IME_AllInOne_Studio.html
+# IME 碼表與雲端編譯生成器　IME_AllInOne_Studio.html
 
 本工具是一套 100% 離線執行的瀏覽器單頁應用（`IME_AllInOne_Studio_v6.5.html`），無需安裝開發環境或上傳任何個人碼表，即可將純文字碼表一鍵轉換並打包為 **Windows（TSF `.dll`）**、**macOS（Universal `.app` / 原生 `.cin`）** 與 **Android / iOS（Rime / 萊姆）** 全平台可用的自訂輸入法。
 
